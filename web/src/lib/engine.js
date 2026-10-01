@@ -104,6 +104,97 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // which word follows which: a vocab x vocab grid of counts, row = word, column = the word after it
+    pairCounts(ids, vocab) {
+      const pi = m._malloc(ids.length * 4);
+      const pc = m._malloc(vocab * vocab * 4);
+      try {
+        m.HEAP32.set(ids, pi / 4);
+        const pairs = m._gb_pair_counts(pi, ids.length, vocab, pc);
+        return { counts: m.HEAPU32.slice(pc / 4, pc / 4 + vocab * vocab), pairs };
+      } finally {
+        free(pi, pc);
+      }
+    },
+
+    // the lowest loss a counting table can reach on its own text, to compare a network against
+    tableLoss(counts, vocab, ids) {
+      const pc = m._malloc(counts.length * 4);
+      const pi = m._malloc(ids.length * 4);
+      try {
+        m.HEAPU32.set(counts, pc / 4);
+        m.HEAP32.set(ids, pi / 4);
+        return m._gb_table_loss(pc, vocab, pi, ids.length);
+      } finally {
+        free(pc, pi);
+      }
+    },
+
+    // a row of counts as odds that add up to 1, plus the row total
+    rowOdds(row) {
+      const n = row.length;
+      const pr = m._malloc(n * 4);
+      const po = m._malloc(n * 8);
+      try {
+        m.HEAPU32.set(row, pr / 4);
+        const total = m._gb_row_odds(pr, n, po);
+        return { odds: get(po, n), total };
+      } finally {
+        free(pr, po);
+      }
+    },
+
+    // a tiny neural network: one word in, odds for the next word out.
+    // All its learned numbers sit in one array (see engine/nn.h).
+    nnInit(vocab, hidden, seed) {
+      const n = m._gb_nn_params(vocab, hidden);
+      const p = m._malloc(n * 8);
+      try {
+        m._gb_nn_init(p, vocab, hidden, seed >>> 0);
+        return get(p, n);
+      } finally {
+        free(p);
+      }
+    },
+
+    // the hidden values and the odds for one input word
+    nnForward(params, vocab, hidden, word) {
+      const pp = put(params);
+      const ph = m._malloc(hidden * 8);
+      const po = m._malloc(vocab * 8);
+      try {
+        m._gb_nn_forward(pp, vocab, hidden, word, ph, po);
+        return { hidden: get(ph, hidden), odds: get(po, vocab) };
+      } finally {
+        free(pp, ph, po);
+      }
+    },
+
+    // how surprised the network is by the text: lower is better
+    nnLoss(params, vocab, hidden, ids) {
+      const pp = put(params);
+      const pi = m._malloc(ids.length * 4);
+      try {
+        m.HEAP32.set(ids, pi / 4);
+        return m._gb_nn_loss(pp, vocab, hidden, pi, ids.length);
+      } finally {
+        free(pp, pi);
+      }
+    },
+
+    // teaches the network for some passes over the text. Returns the new numbers and the loss.
+    nnTrain(params, vocab, hidden, ids, epochs, rate) {
+      const pp = put(params);
+      const pi = m._malloc(ids.length * 4);
+      try {
+        m.HEAP32.set(ids, pi / 4);
+        const loss = m._gb_nn_train(pp, vocab, hidden, pi, ids.length, epochs, rate);
+        return { params: get(pp, params.length), loss };
+      } finally {
+        free(pp, pi);
+      }
+    },
+
     // picks an index from the probabilities `draws` times and counts each index
     sample(probs, draws, seed) {
       const n = probs.length;
