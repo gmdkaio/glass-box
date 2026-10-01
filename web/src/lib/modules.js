@@ -14,7 +14,7 @@ export const tracks = [
 
 // titles are short so they fit on one line in the sidebar
 export const modules = [
-	{ track: 'using', slug: 'sampling', title: 'Sampling', ready: false },
+	{ track: 'using', slug: 'sampling', title: 'Why answers vary', ready: true },
 	{ track: 'using', slug: 'compounding', title: 'Long tasks', ready: false },
 	{ track: 'using', slug: 'context', title: 'Context', ready: false },
 	{ track: 'using', slug: 'tokenization', title: 'Tokenization', ready: false },

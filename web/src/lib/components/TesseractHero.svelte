@@ -28,7 +28,12 @@
 			canvas.height = height * ratio;
 			c.setTransform(ratio, 0, 0, ratio, 0, 0);
 		}
-		const watcher = new ResizeObserver(resize);
+		// resizing inside the observer callback can trigger the "loop" warning, so wait a frame
+		let pending;
+		const watcher = new ResizeObserver(() => {
+			cancelAnimationFrame(pending);
+			pending = requestAnimationFrame(resize);
+		});
 		watcher.observe(box);
 		resize();
 
@@ -83,6 +88,7 @@
 		draw();
 		return () => {
 			cancelAnimationFrame(frame);
+			cancelAnimationFrame(pending);
 			watcher.disconnect();
 		};
 	});
