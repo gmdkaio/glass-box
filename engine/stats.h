@@ -13,4 +13,11 @@
 size_t gb_histogram(const double *x, size_t n, double lo, double hi,
                     size_t bins, size_t *counts);
 
+/*
+ * Turns scores into probabilities that add up to 1: exp(x / t), divided by
+ * the sum. A higher temperature flattens them, a lower one sharpens them.
+ * If temperature <= 0 all the probability goes to the first highest score.
+ */
+void gb_softmax(const double *x, double *out, size_t n, double temperature);
+
 #endif
