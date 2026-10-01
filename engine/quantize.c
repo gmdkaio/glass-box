@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+#include "rng.h"
+
 double gb_max_abs(const double *w, size_t n) {
     double m = 0.0;
     for (size_t i = 0; i < n; i++) {
@@ -62,6 +64,41 @@ double gb_signal_kept(const double *w, const double *q, size_t n) {
     if (power == 0.0) return 0.0;
     double kept = 1.0 - gb_mse(w, q, n) / power;
     return kept < 0.0 ? 0.0 : kept;
+}
+
+double gb_lattice_count(int bits, int dims) {
+    return ldexp(1.0, bits * dims);
+}
+
+/* level j of 2^bits on [-1, 1], at the cell center */
+static double level(double j, double n) {
+    return -1.0 + (2.0 * j + 1.0) / n;
+}
+
+size_t gb_lattice4(double *out, int bits, size_t max_points, unsigned int seed) {
+    if (bits < 1 || max_points == 0) return 0;
+    double n = ldexp(1.0, bits);
+    size_t w = 0;
+
+    if (gb_lattice_count(bits, 4) <= (double)max_points) {
+        int m = (int)n;
+        for (int a = 0; a < m; a++)
+            for (int b = 0; b < m; b++)
+                for (int c = 0; c < m; c++)
+                    for (int d = 0; d < m; d++) {
+                        out[w++] = level(a, n);
+                        out[w++] = level(b, n);
+                        out[w++] = level(c, n);
+                        out[w++] = level(d, n);
+                    }
+        return w / 4;
+    }
+
+    gb_rng r;
+    gb_rng_seed(&r, seed);
+    for (size_t i = 0; i < max_points * 4; i++)
+        out[i] = level(floor(gb_rng_uniform(&r) * n), n);
+    return max_points;
 }
 
 double gb_quant_mse_theory(double max_abs, int bits) {

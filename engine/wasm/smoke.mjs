@@ -1,6 +1,5 @@
-// Run with `make wasm-test` (builds first). Asserts the numbers the native test
-// pins in tests/test_wasm_api.c, so native and wasm are cross-checked, then
-// forces the wasm heap to grow and checks results are still right.
+// make wasm-test. Checks the numbers pinned in tests/test_wasm_api.c, then
+// grows the wasm heap and checks again.
 
 import createModule from "../build/wasm/glassbox.mjs";
 import { loadEngine } from "../../web/src/lib/engine.js";
@@ -36,7 +35,17 @@ const t = new Float64Array([0.55, -0.35, 0.8, -0.6]);
 const { out: tq } = gb.quantize(t, 3, 1.0);
 check(near(gb.dist(t, tq), 0.11180339887498944), "distance to nearest point, 3 bits");
 
-// memory growth: 2M weights is 16 MB per array, past the initial heap
+const l1 = gb.lattice4(1, 16, 0);
+check(l1.length === 64, "1 bit lattice has 16 points");
+check(Array.from(l1).every((v) => v === 0.5 || v === -0.5), "1 bit coordinates are -0.5 or 0.5");
+check(gb.latticeCount(4, 4) === 65536, "4 bits, 4 numbers: 65536 results");
+const l4 = gb.lattice4(4, 100000, 0);
+check(l4.length === 65536 * 4, "4 bit lattice is written in full");
+const sample = gb.lattice4(6, 3, 5);
+const refSample = [-0.234375, 0.515625, -0.546875, -0.796875, -0.609375, -0.234375, 0.984375, 0.015625, -0.140625, 0.203125, -0.109375, -0.734375];
+check(sample.length === 12 && refSample.every((v, i) => near(sample[i], v)), "lattice sample, 6 bits, seed 5");
+
+// 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);
 check(big.length === 2_000_000, "big array length");
 const { out: bigq, delta: bigd } = gb.quantize(big, 6);
