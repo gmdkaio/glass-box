@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+#include "rng.h"
+
 size_t gb_histogram(const double *x, size_t n, double lo, double hi,
                     size_t bins, size_t *counts) {
     for (size_t b = 0; b < bins; b++) counts[b] = 0;
@@ -38,4 +40,30 @@ void gb_softmax(const double *x, double *out, size_t n, double temperature) {
         sum += out[i];
     }
     for (size_t i = 0; i < n; i++) out[i] /= sum;
+}
+
+void gb_sample_counts(const double *p, size_t n, size_t draws, unsigned int seed,
+                      size_t *counts) {
+    for (size_t i = 0; i < n; i++) counts[i] = 0;
+
+    size_t last = n;
+    for (size_t i = 0; i < n; i++)
+        if (p[i] > 0.0) last = i;
+    if (last == n) return;
+
+    gb_rng r;
+    gb_rng_seed(&r, seed);
+    for (size_t d = 0; d < draws; d++) {
+        double u = gb_rng_uniform(&r);
+        double cumulative = 0.0;
+        size_t pick = last;
+        for (size_t i = 0; i < last; i++) {
+            cumulative += p[i];
+            if (u < cumulative) {
+                pick = i;
+                break;
+            }
+        }
+        counts[pick]++;
+    }
 }

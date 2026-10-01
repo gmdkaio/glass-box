@@ -104,6 +104,19 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // picks an index from the probabilities `draws` times and counts each index
+    sample(probs, draws, seed) {
+      const n = probs.length;
+      const pp = put(probs);
+      const pc = m._malloc(n * 4);
+      try {
+        m._gb_sample_counts(pp, n, draws, seed >>> 0, pc);
+        return m.HEAPU32.slice(pc / 4, pc / 4 + n);
+      } finally {
+        free(pp, pc);
+      }
+    },
+
     // nearest allowed value when only 2^bits values are allowed between lo and hi
     snap: (x, bits, lo, hi) => m._gb_snap(x, bits, lo, hi),
 
