@@ -1,10 +1,9 @@
-// Thin glue over the C engine compiled to WebAssembly. No math lives here:
-// every function copies arrays into wasm memory, calls the engine, copies the
-// result out and frees. Pass in the factory from build/wasm/glassbox.mjs so the
-// caller decides how the module is imported.
+// Calls the C engine through wasm. Arrays are copied into wasm memory, the
+// engine runs, and the result is copied back. Pass in the factory from
+// build/wasm/glassbox.mjs.
 //
-// Heap views are read fresh on every access: when wasm memory grows, the old
-// Float64Array points at a detached buffer.
+// The heap views are read again on every use, because they go stale when the
+// memory grows.
 
 export async function loadEngine(createModule) {
   const m = await createModule();
@@ -38,7 +37,7 @@ export async function loadEngine(createModule) {
       }
     },
 
-    // quantizes over the data's own range, or over [-maxAbs, maxAbs] if given
+    // over the data's own range, or over [-maxAbs, maxAbs] if given
     quantize(w, bits, maxAbs) {
       const n = w.length;
       const pin = put(w);
@@ -56,7 +55,6 @@ export async function loadEngine(createModule) {
 
     mse: (a, b) => pairCall("_gb_mse", a, b),
     dist: (a, b) => pairCall("_gb_dist", a, b),
-    // 1 - mse / mean(w^2), floored at 0: how much of w survives in q
     signalKept: (w, q) => pairCall("_gb_signal_kept", w, q),
 
     maxAbs(w) {
@@ -68,7 +66,7 @@ export async function loadEngine(createModule) {
       }
     },
 
-    // equal-width bins over [lo, hi]; values outside are not counted
+    // equal-width bins over [lo, hi], values outside are skipped
     histogram(x, lo, hi, bins) {
       const px = put(x);
       const pc = m._malloc(bins * 4);
@@ -80,6 +78,20 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // allowed results for 4 numbers, 4 values per point; samples if there are
+    // more than maxPoints
+    lattice4(bits, maxPoints, seed) {
+      const size = Math.min(m._gb_lattice_count(bits, 4), maxPoints);
+      const p = m._malloc(size * 32);
+      try {
+        const written = m._gb_lattice4(p, bits, maxPoints, seed >>> 0);
+        return get(p, written * 4);
+      } finally {
+        free(p);
+      }
+    },
+
+    latticeCount: (bits, dims) => m._gb_lattice_count(bits, dims),
     quantStep: (maxAbs, bits) => m._gb_quant_step(maxAbs, bits),
     mseTheory: (maxAbs, bits) => m._gb_quant_mse_theory(maxAbs, bits),
   };

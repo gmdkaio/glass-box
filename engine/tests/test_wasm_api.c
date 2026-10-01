@@ -7,10 +7,9 @@
 #include "stats.h"
 
 /*
- * Reference values for the wasm cross-check. wasm/smoke.mjs asserts the same
- * numbers on the Emscripten build, so if both pass the two builds agree.
- * Compare with a tolerance: wasm uses its own libm, which can differ in the
- * last bit.
+ * Reference values from the native build. wasm/smoke.mjs checks the same
+ * numbers on the wasm build. The tolerance is 1e-12 because wasm has its own
+ * libm.
  */
 
 static int near(double a, double b) {
@@ -55,6 +54,14 @@ int main(void) {
     double t[4] = {0.55, -0.35, 0.8, -0.6}, tq[4];
     gb_quantize_range(t, tq, 4, 3, 1.0);
     CHECK(near(gb_dist(t, tq, 4), 0.11180339887498944), "distance to nearest point at 3 bits");
+
+    double s[12];
+    double ref_s[12] = {-0.234375, 0.515625, -0.546875, -0.796875, -0.609375, -0.234375,
+                        0.984375, 0.015625, -0.140625, 0.203125, -0.109375, -0.734375};
+    CHECK(gb_lattice4(s, 6, 3, 5u) == 3, "sample of 3 lattice points");
+    int sample_ok = 1;
+    for (int i = 0; i < 12; i++) if (!near(s[i], ref_s[i])) sample_ok = 0;
+    CHECK(sample_ok, "lattice sample at 6 bits, seed 5");
 
     free(a);
     free(q);

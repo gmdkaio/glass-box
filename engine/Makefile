@@ -6,13 +6,12 @@ LDLIBS = -lm
 BUILD = build
 LIB = rng.c quantize.c stats.c gb_wasm.c
 HDR = rng.h quantize.h stats.h gb_wasm.h tests/check.h
-TESTS = test_rng test_quantize test_stats test_wasm_api
+TESTS = test_rng test_quantize test_stats test_lattice test_wasm_api
 
-# WebAssembly build. Needs Emscripten on PATH: source emsdk_env.sh (Linux/WSL)
-# or run emsdk_env.ps1 (Windows PowerShell) first.
+# wasm build: run emsdk_env.sh (Linux) or emsdk_env.ps1 (Windows) first
 EMCC ?= emcc
 WASM_DIR = $(BUILD)/wasm
-WASM_FUNCS = _gb_wasm_weights,_gb_max_abs,_gb_quant_step,_gb_quantize,_gb_quantize_range,_gb_mse,_gb_dist,_gb_signal_kept,_gb_quant_mse_theory,_gb_histogram,_malloc,_free
+WASM_FUNCS = _gb_wasm_weights,_gb_max_abs,_gb_quant_step,_gb_quantize,_gb_quantize_range,_gb_mse,_gb_dist,_gb_signal_kept,_gb_quant_mse_theory,_gb_lattice_count,_gb_lattice4,_gb_histogram,_malloc,_free
 WASM_FLAGS = -std=c99 -O2 -I. --no-entry -sMODULARIZE -sEXPORT_ES6 -sENVIRONMENT=web,node -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=$(WASM_FUNCS) -sEXPORTED_RUNTIME_METHODS=HEAPF64,HEAPU32
 
 .PHONY: test wasm wasm-test clean
