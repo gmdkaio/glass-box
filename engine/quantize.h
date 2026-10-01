@@ -19,9 +19,8 @@ double gb_quantize(const double *w, double *out, size_t n, int bits);
 
 /*
  * Same quantizer over a fixed range [-max_abs, max_abs]. Values outside the
- * range are clipped to the outermost level. Returns delta, or 0 (and writes
- * zeros) when max_abs is 0. With max_abs = 1 and n = 4 this gives the nearest
- * allowed point of the tesseract view.
+ * range clip to the outermost level. Returns delta, or 0 and zeros if max_abs
+ * is 0. With max_abs = 1 and n = 4 it gives the nearest point of the lattice.
  */
 double gb_quantize_range(const double *w, double *out, size_t n, int bits,
                          double max_abs);
@@ -32,11 +31,33 @@ double gb_mse(const double *a, const double *b, size_t n);
 double gb_dist(const double *a, const double *b, size_t n);
 
 /*
- * Share of the original signal kept after quantizing: 1 - mse / mean(w^2),
- * floored at 0. A readout for the toy model, not a measure of model accuracy.
- * Returns 0 when w is all zeros.
+ * How much of the signal survives quantizing: 1 - mse / mean(w^2), at least 0.
+ * Returns 0 if w is all zeros. A readout for the toy model.
  */
 double gb_signal_kept(const double *w, const double *q, size_t n);
+
+/*
+ * The nearest allowed value to x when only 2^bits values are allowed between
+ * lo and hi (the centers of 2^bits equal cells). x outside [lo, hi] clips to
+ * the first or last value.
+ */
+double gb_snap(double x, int bits, double lo, double hi);
+
+/*
+ * Writes the 2^bits allowed values between lo and hi, lowest first.
+ * Returns how many it wrote, or 0 if there are more than max_points.
+ */
+size_t gb_snap_levels(double *out, int bits, double lo, double hi, size_t max_points);
+
+/* How many results exist for dims numbers at this many bits: 2^(bits * dims). */
+double gb_lattice_count(int bits, int dims);
+
+/*
+ * Allowed results for 4 numbers in [-1, 1]: every mix of the 2^bits levels,
+ * 4 doubles per point. If that is more than max_points, writes max_points
+ * random points from the seed instead. Returns how many points it wrote.
+ */
+size_t gb_lattice4(double *out, int bits, size_t max_points, unsigned int seed);
 
 /* Theory: for weights spread evenly over the range, MSE = delta^2 / 12. */
 double gb_quant_mse_theory(double max_abs, int bits);

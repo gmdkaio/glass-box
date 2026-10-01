@@ -46,6 +46,38 @@ int main(void) {
         if (fabs((double)h[b] / (N / 10.0) - 1.0) > 0.03) flat = 0;
     CHECK(flat, "uniform weights give a flat error histogram within 3%");
 
+    /* softmax: [0, ln 3] gives 1/4 and 3/4 */
+    double s2[2] = {0.0, log(3.0)}, p2[2];
+    gb_softmax(s2, p2, 2, 1.0);
+    CHECK(fabs(p2[0] - 0.25) < 1e-12 && fabs(p2[1] - 0.75) < 1e-12, "softmax of [0, ln 3]");
+
+    /* equal scores share the probability evenly, even when huge */
+    double eq[4] = {2, 2, 2, 2}, pe[4];
+    gb_softmax(eq, pe, 4, 1.0);
+    CHECK(fabs(pe[0] - 0.25) < 1e-12 && fabs(pe[3] - 0.25) < 1e-12, "equal scores give 1/4 each");
+    double big[2] = {1000, 1000}, pb[2];
+    gb_softmax(big, pb, 2, 1.0);
+    CHECK(fabs(pb[0] - 0.5) < 1e-12 && fabs(pb[1] - 0.5) < 1e-12, "huge scores do not overflow");
+
+    /* probabilities add up to 1 and keep the order of the scores */
+    double sc[6] = {3.9, 3.6, 2.1, 0.4, -1.0, 3.9}, pr[6];
+    gb_softmax(sc, pr, 6, 1.0);
+    double total = 0.0;
+    for (int i = 0; i < 6; i++) total += pr[i];
+    CHECK(fabs(total - 1.0) < 1e-12, "probabilities add up to 1");
+    CHECK(pr[0] > pr[1] && pr[1] > pr[2] && pr[2] > pr[3] && pr[3] > pr[4], "order of scores is kept");
+    CHECK(pr[0] == pr[5], "equal scores get equal probability");
+
+    /* temperature: higher flattens, lower sharpens, 0 picks the first highest */
+    double hot[6], cold[6];
+    gb_softmax(sc, hot, 6, 2.0);
+    gb_softmax(sc, cold, 6, 0.5);
+    CHECK(hot[0] < pr[0] && cold[0] > pr[0], "temperature flattens or sharpens the top score");
+    double t3[3] = {1, 3, 3}, p3[3];
+    gb_softmax(t3, p3, 3, 0.0);
+    CHECK(p3[0] == 0.0 && p3[1] == 1.0 && p3[2] == 0.0, "temperature 0 is one-hot on the first highest");
+    gb_softmax(t3, p3, 0, 1.0);
+
     free(w);
     free(q);
     free(e);
