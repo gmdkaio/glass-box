@@ -4,11 +4,18 @@ endif
 CFLAGS ?= -std=c99 -O2 -Wall -Wextra -Wpedantic
 LDLIBS = -lm
 BUILD = build
-LIB = rng.c quantize.c stats.c
-HDR = rng.h quantize.h stats.h tests/check.h
-TESTS = test_rng test_quantize test_stats
+LIB = rng.c quantize.c stats.c gb_wasm.c
+HDR = rng.h quantize.h stats.h gb_wasm.h tests/check.h
+TESTS = test_rng test_quantize test_stats test_wasm_api
 
-.PHONY: test clean
+# WebAssembly build. Needs Emscripten on PATH: source emsdk_env.sh (Linux/WSL)
+# or run emsdk_env.ps1 (Windows PowerShell) first.
+EMCC ?= emcc
+WASM_DIR = $(BUILD)/wasm
+WASM_FUNCS = _gb_wasm_weights,_gb_max_abs,_gb_quant_step,_gb_quantize,_gb_quantize_range,_gb_mse,_gb_dist,_gb_signal_kept,_gb_quant_mse_theory,_gb_histogram,_malloc,_free
+WASM_FLAGS = -std=c99 -O2 -I. --no-entry -sMODULARIZE -sEXPORT_ES6 -sENVIRONMENT=web,node -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=$(WASM_FUNCS) -sEXPORTED_RUNTIME_METHODS=HEAPF64,HEAPU32
+
+.PHONY: test wasm wasm-test clean
 
 test: $(addprefix $(BUILD)/,$(TESTS))
 	@for t in $(TESTS); do echo "== $$t"; ./$(BUILD)/$$t || exit 1; done
@@ -16,8 +23,19 @@ test: $(addprefix $(BUILD)/,$(TESTS))
 $(BUILD)/%: tests/%.c $(LIB) $(HDR) | $(BUILD)
 	$(CC) $(CFLAGS) -I. $< $(LIB) -o $@ $(LDLIBS)
 
+wasm: $(WASM_DIR)/glassbox.mjs
+
+$(WASM_DIR)/glassbox.mjs: $(LIB) $(HDR) | $(WASM_DIR)
+	$(EMCC) $(WASM_FLAGS) $(LIB) -o $@
+
+wasm-test: wasm
+	node wasm/smoke.mjs
+
 $(BUILD):
 	mkdir -p $(BUILD)
+
+$(WASM_DIR):
+	mkdir -p $(WASM_DIR)
 
 clean:
 	rm -rf $(BUILD)
