@@ -45,6 +45,15 @@ const sample = gb.lattice4(6, 3, 5);
 const refSample = [-0.234375, 0.515625, -0.546875, -0.796875, -0.609375, -0.234375, 0.984375, 0.015625, -0.140625, 0.203125, -0.109375, -0.734375];
 check(sample.length === 12 && refSample.every((v, i) => near(sample[i], v)), "lattice sample, 6 bits, seed 5");
 
+const sm = gb.softmax(new Float64Array([0, Math.log(3)]), 1);
+check(near(sm[0], 0.25) && near(sm[1], 0.75), "softmax of [0, ln 3]");
+check(near(gb.softmax(new Float64Array([1000, 1000]), 1)[0], 0.5), "softmax does not overflow");
+check(near(gb.snap(10, 1, 0, 100), 25), "10 at 1 bit snaps to 25");
+check(near(gb.snap(10, 4, 0, 100), 9.375), "10 at 4 bits snaps to 9.375");
+check(near(gb.snap(85, 1, 0, 100), 75), "85 at 1 bit snaps to 75");
+check(gb.snapLevels(2, 0, 100, 64).join(" ") === "12.5 37.5 62.5 87.5", "2-bit values between 0 and 100");
+check(gb.snapLevels(8, 0, 100, 64).length === 0, "256 values are too many to list under 64");
+
 // 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);
 check(big.length === 2_000_000, "big array length");

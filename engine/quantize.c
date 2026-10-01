@@ -66,6 +66,24 @@ double gb_signal_kept(const double *w, const double *q, size_t n) {
     return kept < 0.0 ? 0.0 : kept;
 }
 
+double gb_snap(double x, int bits, double lo, double hi) {
+    double n = ldexp(1.0, bits);
+    double d = (hi - lo) / n;
+    double k = floor((x - lo) / d);
+    if (k < 0.0) k = 0.0;
+    if (k > n - 1.0) k = n - 1.0;
+    return lo + (k + 0.5) * d;
+}
+
+size_t gb_snap_levels(double *out, int bits, double lo, double hi, size_t max_points) {
+    if (bits < 1) return 0;
+    double n = ldexp(1.0, bits);
+    if (n > (double)max_points) return 0;
+    double d = (hi - lo) / n;
+    for (size_t k = 0; k < (size_t)n; k++) out[k] = lo + ((double)k + 0.5) * d;
+    return (size_t)n;
+}
+
 double gb_lattice_count(int bits, int dims) {
     return ldexp(1.0, bits * dims);
 }

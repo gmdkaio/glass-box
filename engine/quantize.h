@@ -36,6 +36,19 @@ double gb_dist(const double *a, const double *b, size_t n);
  */
 double gb_signal_kept(const double *w, const double *q, size_t n);
 
+/*
+ * The nearest allowed value to x when only 2^bits values are allowed between
+ * lo and hi (the centers of 2^bits equal cells). x outside [lo, hi] clips to
+ * the first or last value.
+ */
+double gb_snap(double x, int bits, double lo, double hi);
+
+/*
+ * Writes the 2^bits allowed values between lo and hi, lowest first.
+ * Returns how many it wrote, or 0 if there are more than max_points.
+ */
+size_t gb_snap_levels(double *out, int bits, double lo, double hi, size_t max_points);
+
 /* How many results exist for dims numbers at this many bits: 2^(bits * dims). */
 double gb_lattice_count(int bits, int dims);
 

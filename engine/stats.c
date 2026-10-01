@@ -19,3 +19,23 @@ size_t gb_histogram(const double *x, size_t n, double lo, double hi,
     }
     return counted;
 }
+
+void gb_softmax(const double *x, double *out, size_t n, double temperature) {
+    if (n == 0) return;
+    size_t top = 0;
+    for (size_t i = 1; i < n; i++)
+        if (x[i] > x[top]) top = i;
+
+    if (!(temperature > 0.0)) {
+        for (size_t i = 0; i < n; i++) out[i] = (i == top) ? 1.0 : 0.0;
+        return;
+    }
+
+    /* subtracting the highest score keeps exp() from overflowing */
+    double sum = 0.0;
+    for (size_t i = 0; i < n; i++) {
+        out[i] = exp((x[i] - x[top]) / temperature);
+        sum += out[i];
+    }
+    for (size_t i = 0; i < n; i++) out[i] /= sum;
+}

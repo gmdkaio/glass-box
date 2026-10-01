@@ -91,6 +91,33 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // scores to probabilities that add up to 1
+    softmax(scores, temperature) {
+      const n = scores.length;
+      const pin = put(scores);
+      const pout = m._malloc(n * 8);
+      try {
+        m._gb_softmax(pin, pout, n, temperature);
+        return get(pout, n);
+      } finally {
+        free(pin, pout);
+      }
+    },
+
+    // nearest allowed value when only 2^bits values are allowed between lo and hi
+    snap: (x, bits, lo, hi) => m._gb_snap(x, bits, lo, hi),
+
+    // the allowed values themselves, or an empty array if there are more than maxPoints
+    snapLevels(bits, lo, hi, maxPoints) {
+      const p = m._malloc(Math.min(m._gb_lattice_count(bits, 1), maxPoints) * 8);
+      try {
+        const written = m._gb_snap_levels(p, bits, lo, hi, maxPoints);
+        return get(p, written);
+      } finally {
+        free(p);
+      }
+    },
+
     latticeCount: (bits, dims) => m._gb_lattice_count(bits, dims),
     quantStep: (maxAbs, bits) => m._gb_quant_step(maxAbs, bits),
     mseTheory: (maxAbs, bits) => m._gb_quant_mse_theory(maxAbs, bits),
