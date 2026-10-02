@@ -1,14 +1,15 @@
 // Writes the README banner: the home page hero at desktop width, text on the left
 // and the tesseract on the right. GitHub does not run scripts in a README, so the
 // motion is baked into SMIL keyframes. Run with: node scripts/readme-banner.mjs
+//
+// Inside an <img> the browser redraws the whole picture for every running
+// animation, so the banner keeps them few: one path per tesseract for the edges,
+// one path per pulse phase for the corners, and one dashed ellipse for the ring.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { BOX, EDGES, project } from '../src/lib/tesseract.js';
+import { UPM, GLYPHS } from './title-glyphs.js';
 
 const OUT = new URL('../../.github/assets/', import.meta.url);
-const FONT = new URL(
-	'../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2',
-	import.meta.url
-);
 
 // the hero section in routes/+page.svelte: px-8 py-6, two columns with gap-4, and
 // the tesseract box at least h-96 tall
@@ -46,7 +47,7 @@ const t = {
 };
 
 // the hero title, as written in routes/+page.svelte
-const TITLE = ['Glass Box'];
+const TITLE = 'Glass Box';
 
 // the tesseract graph is 4-regular, so one path can walk every edge once
 function circuit() {
@@ -67,6 +68,9 @@ function circuit() {
 }
 
 const n = (x) => x.toFixed(1).replace(/\.0$/, '');
+// the tesseract is drawn at double size inside a half-scale group, so its keyframe
+// coordinates can be whole numbers (half pixels) instead of decimals
+const h = (x) => String(Math.round(x * 2));
 const route = circuit();
 
 function rotation(a) {
@@ -82,64 +86,68 @@ for (let f = 0; f <= FRAMES; f++) {
 	);
 }
 
+const spline = '.37 0 .63 1;.37 0 .63 1;.37 0 .63 1;.37 0 .63 1';
+
 function tesseract(k, size, alpha) {
 	const d = frames
-		.map((fr) => 'M' + route.map((i) => n(fr[k][i][0]) + ' ' + n(fr[k][i][1])).join('L'))
+		.map((fr) => 'M' + route.map((i) => h(fr[k][i][0]) + ' ' + h(fr[k][i][1])).join('L'))
 		.join(';');
 	// the first frame doubles as the still picture for viewers without SMIL
-	let out = `<path d="${d.split(';')[0]}" fill="none" stroke="${t.line}" stroke-width="1.5" stroke-linejoin="round" opacity="${alpha}">`;
+	let out = `<path d="${d.split(';')[0]}" fill="none" stroke="${t.line}" stroke-width="3" stroke-linejoin="round" opacity="${alpha}">`;
 	out += `<animate attributeName="d" dur="${SECONDS.toFixed(2)}s" repeatCount="indefinite" values="${d}"/></path>`;
+	// Corners share a pulse phase by their x and w bits only, so when the loop swaps
+	// corners around inside the y-z plane, each spot keeps the same pulse. Each phase
+	// is one path of zero-length segments with round caps, one dot per corner, and the
+	// pulse is its stroke width (twice the dot radius, doubled again for the group).
 	const base = size === 1 ? 4.5 : 2.5;
-	for (let i = 0; i < 16; i++) {
-		const xs = frames.map((fr) => n(fr[k][i][0])).join(';');
-		const ys = frames.map((fr) => n(fr[k][i][1])).join(';');
-		// the pulse phase follows the x and w bits only, so when the loop swaps corners
-		// around inside the y-z plane, each spot keeps the same pulse
-		const phase = ((i & 1) + ((i >> 3) & 1) * 2) / 4;
-		out += `<circle cx="${n(frames[0][k][i][0])}" cy="${n(frames[0][k][i][1])}" r="${base}" fill="${t.bright}">`;
-		out += `<animate attributeName="cx" dur="${SECONDS.toFixed(2)}s" repeatCount="indefinite" values="${xs}"/>`;
-		out += `<animate attributeName="cy" dur="${SECONDS.toFixed(2)}s" repeatCount="indefinite" values="${ys}"/>`;
-		out += `<animate attributeName="r" dur="${BEAT.toFixed(2)}s" begin="-${(phase * BEAT).toFixed(2)}s" repeatCount="indefinite" values="${n(base)};${n(base + 1.3)};${n(base)};${n(base - 1.3)};${n(base)}" calcMode="spline" keySplines=".37 0 .63 1;.37 0 .63 1;.37 0 .63 1;.37 0 .63 1"/>`;
-		out += '</circle>';
+	const w = (r) => n(4 * r);
+	for (let g = 0; g < 4; g++) {
+		const ids = BOX.map((_, i) => i).filter((i) => (i & 1) + ((i >> 3) & 1) * 2 === g);
+		const dots = frames
+			.map((fr) => ids.map((i) => 'M' + h(fr[k][i][0]) + ' ' + h(fr[k][i][1]) + 'h0').join(''))
+			.join(';');
+		out += `<path d="${dots.split(';')[0]}" stroke="${t.bright}" stroke-linecap="round" stroke-width="${w(base)}">`;
+		out += `<animate attributeName="d" dur="${SECONDS.toFixed(2)}s" repeatCount="indefinite" values="${dots}"/>`;
+		out += `<animate attributeName="stroke-width" dur="${BEAT.toFixed(2)}s" begin="-${((g / 4) * BEAT).toFixed(2)}s" repeatCount="indefinite" values="${w(base)};${w(base + 1.3)};${w(base)};${w(base - 1.3)};${w(base)}" calcMode="spline" keySplines="${spline}"/></path>`;
 	}
 	return out;
 }
 
-// the left column holds only the title, semibold like the hero's. Each line is
-// sized to WIDTH of the column; JetBrains Mono is 0.6em per character.
+// The left column holds only the title, semibold like the hero's, drawn from letter
+// outlines so the banner carries no font. It spans WIDTH of the column, every letter
+// is one advance wide (a monospace face), and its capitals are centred on the banner.
 const WIDTH = 0.8;
+const CAP = 730; // capital height in font units
 function copy() {
-	const longest = Math.max(...TITLE.map((l) => l.length));
-	const size = Math.floor((COL * WIDTH) / (longest * 0.6));
-	const lead = size * 1.05;
-	return TITLE.map((line, i) => {
-		const y = CY + (i - (TITLE.length - 1) / 2) * lead;
-		return `<text x="${PAD_X}" y="${n(y)}" font-size="${size}" font-weight="600" fill="${t.text}">${line}</text>`;
-	}).join('');
+	const advance = GLYPHS[TITLE[0]][0];
+	const size = Math.floor((COL * WIDTH) / ((TITLE.length * advance) / UPM));
+	const k = size / UPM;
+	const base = CY + (CAP * k) / 2;
+	const letters = [...TITLE]
+		.map((ch, i) => [GLYPHS[ch][1], i * advance])
+		.filter(([d]) => d)
+		.map(([d, x]) => `<path transform="translate(${x})" d="${d}"/>`)
+		.join('');
+	return `<g fill="${t.text}" transform="translate(${PAD_X} ${n(base)}) scale(${k})">${letters}</g>`;
 }
 
 function svg() {
-	const font = readFileSync(FONT).toString('base64');
-	// the ring is an ellipse, 0.4 of the box each way, so each dot rides along it
+	// The ring is an ellipse, 0.4 of the box each way. Its dots are zero-length dashes
+	// with round caps, and moving the dash offset carries them along it.
 	const rx = BOX_W * 0.4;
 	const ry = BOX_H * 0.4;
 	const orbit = `M${CX + rx} ${CY}A${rx} ${ry} 0 1 1 ${CX - rx} ${CY}A${rx} ${ry} 0 1 1 ${CX + rx} ${CY}`;
-	let ring = `<g fill="${t.dim}">`;
-	for (let i = 0; i < RING; i++) {
-		const a = (i / RING) * 2 * Math.PI;
-		ring += `<circle cx="${n(CX + Math.cos(a) * rx)}" cy="${n(CY + Math.sin(a) * ry)}" r="2.5">`;
-		// cx and cy are only the still picture; once moving, the dot follows the orbit alone
-		ring += '<set attributeName="cx" to="0"/><set attributeName="cy" to="0"/>';
-		ring += `<animateMotion path="${orbit}" dur="${SPIN.toFixed(2)}s" begin="-${((i / RING) * SPIN).toFixed(2)}s" repeatCount="indefinite"/></circle>`;
-	}
-	ring += '</g>';
+	const gap = 1000 / RING;
+	let ring = `<path d="${orbit}" pathLength="1000" fill="none" stroke="${t.dim}" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 ${n(gap)}">`;
+	ring += `<animate attributeName="stroke-dashoffset" from="0" to="-${n(gap)}" dur="${(SPIN / RING).toFixed(3)}s" repeatCount="indefinite"/></path>`;
 
-	return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Glass Box">
-<style>@font-face{font-family:"JetBrains Mono";font-weight:100 800;src:url(data:font/woff2;base64,${font}) format("woff2")}text{font-family:"JetBrains Mono",ui-monospace,monospace;dominant-baseline:central}</style>
+	return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${TITLE}">
 <rect width="${W}" height="${H}" rx="12" fill="${t.bg}"/>
 ${ring}
+<g transform="scale(.5)">
 ${tesseract(0, 1, 0.9)}
 ${tesseract(1, 0.5, 0.45)}
+</g>
 ${copy()}
 </svg>
 `;
