@@ -17,7 +17,7 @@
 		errorSeries,
 		compute
 	} from '$lib/quantization-sim.js';
-	import { modules } from '$lib/modules.js';
+	import { where } from '$lib/modules.js';
 	import * as copy from '$lib/quantization-copy.js';
 
 	let gb = $state.raw(null);
@@ -64,13 +64,16 @@
 	}
 
 	const plural = (n) => (n === 1 ? '' : 's');
+	const here = where('quantization');
 </script>
 
 <svelte:head><title>Shrinking a model · Glass Box</title></svelte:head>
 
 <ModulePage
-	n={4}
-	total={modules.length}
+	track={here.track.title}
+	n={here.n}
+	total={here.total}
+	tag={here.tag}
 	title="What happens when an AI model is shrunk?"
 	lead="A model is a huge pile of numbers. To make it small enough for a laptop or a phone, each number is rounded to fewer allowed values. Pick a size and watch what rounding does."
 	whyLead={copy.whyNote}
