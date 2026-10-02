@@ -39,4 +39,10 @@ npm run build
 
 You can preview the production build with `npm run preview`.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## GitHub Pages
+
+This app is set up for GitHub Pages as a project site.
+
+- The build uses `BASE_PATH=/<repo-name>` in CI so asset URLs work under `/glass-box`.
+- `web/static/.nojekyll` is included so GitHub Pages serves SvelteKit’s `_app` assets.
+- The deploy workflow lives in [.github/workflows/deploy-web.yml](../.github/workflows/deploy-web.yml).
