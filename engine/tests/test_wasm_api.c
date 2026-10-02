@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "chain.h"
 #include "check.h"
 #include "gb_wasm.h"
 #include "quantize.h"
@@ -101,6 +102,22 @@ int main(void) {
     CHECK(fabs(no[1] - 0.73269855127492012) < 1e-6 && fabs(no[2] - 0.26634060096578566) < 1e-6,
           "odds after word 0 once trained");
     free(net);
+
+    /* long tasks: rng draws and comparisons only, so the runs match exactly */
+    CHECK(near(gb_chain_odds(0.95, 20, 5, 0.9, 3), 0.88502068381965826), "odds, 20 steps checked every 5");
+    size_t out[3], at[20];
+    double redone = gb_chain_trials(0.95, 20, 5, 0.9, 3, 1000, 7u, out, at);
+    CHECK(out[0] == 891 && out[1] == 104 && out[2] == 5, "1000 runs, seed 7: clean, broken, gave up");
+    CHECK(near(redone, 4.8), "steps redone per run, seed 7");
+    CHECK(at[0] == 8 && at[10] == 2 && at[19] == 6, "where runs broke, seed 7");
+    int ev[64];
+    size_t written;
+    int broke;
+    int outcome = gb_chain_trace(0.8, 12, 4, 0.8, 2, 5u, ev, 64, &written, &broke);
+    const int want[20] = {0, 0, 0, 0, 2, 0, 0, 1, 0, 3, 0, 0, 0, 1, 3, 1, 1, 1, 0, 3};
+    int match = outcome == GB_CHAIN_GAVE_UP && written == 20 && broke == 4;
+    for (int i = 0; match && i < 20; i++) match = ev[i] == want[i];
+    CHECK(match, "trace of one run, seed 5");
 
     free(a);
     free(q);

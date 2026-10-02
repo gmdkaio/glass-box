@@ -12,16 +12,21 @@ export const tracks = [
 	}
 ];
 
-// titles are short so they fit on one line in the sidebar
+// titles are short so they fit on one line in the sidebar. A ready module also has a
+// blurb: one sentence for its card in the README (scripts/readme-modules.mjs)
 export const modules = [
-	{ track: 'using', slug: 'how-it-works', title: 'How it works', ready: true },
-	{ track: 'using', slug: 'sampling', title: 'Why answers vary', ready: true },
-	{ track: 'using', slug: 'compounding', title: 'Long tasks', ready: false },
+	{ track: 'using', slug: 'how-it-works', title: 'How it works', ready: true,
+		blurb: 'A tiny network reads one word and gives odds for the next. Teach it a text and watch it write.' },
+	{ track: 'using', slug: 'sampling', title: 'Why answers vary', ready: true,
+		blurb: 'The model picks each word like weighted dice. See why the same question gets different answers.' },
+	{ track: 'using', slug: 'compounding', title: 'Long tasks', ready: true,
+		blurb: 'Small chances of a slip multiply over many steps. See how checks between steps win them back.' },
 	{ track: 'using', slug: 'context', title: 'Context', ready: false },
 	{ track: 'using', slug: 'tokenization', title: 'Tokenization', ready: false },
 	{ track: 'using', slug: 'calibration', title: 'Calibration', ready: false },
 	{ track: 'using', slug: 'retrieval', title: 'Retrieval', ready: false },
-	{ track: 'under', slug: 'quantization', title: 'Shrinking a model', tag: 'Local models', ready: true },
+	{ track: 'under', slug: 'quantization', title: 'Shrinking a model', tag: 'Local models', ready: true,
+		blurb: 'Round every number in a model to fewer allowed values, and see what it costs.' },
 	{ track: 'under', slug: 'lora', title: 'LoRA', tag: 'Local models', ready: false },
 	{ track: 'under', slug: 'overfitting', title: 'Overfitting', ready: false },
 	{ track: 'under', slug: 'parrot', title: 'Parrot or thinker?', ready: false },
