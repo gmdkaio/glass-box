@@ -77,6 +77,11 @@ check(ct.outcomes.join(" ") === "891 104 5" && near(ct.redone, 4.8), "1000 runs,
 check(ct.brokenAt[0] === 8 && ct.brokenAt[10] === 2 && ct.brokenAt[19] === 6, "where runs broke, seed 7");
 const tr = gb.chainTrace(0.8, 12, 4, 0.8, 2, 5);
 check(tr.outcome === 2 && tr.brokenAt === 4 && tr.events.join("") === "00002001030001311103", "trace of one run, seed 5");
+const cs = gb.contextScores(8, 2, 4.0, 1.0, 2, 3.0, 1.5, 7);
+const cref = [0.98847433231873527, -2.5989496842822479, 2.7755102040816326, 1.5306122448979593, -1.9283573728429033, -0.77167457803428996, 0.80997948647942364, 3];
+check(cref.every((v, i) => near(cs[i], v)), "context scores, seed 7: " + Array.from(cs));
+check(near(gb.contextShare(50, 0.5, 4.0, 1.0, 3, 3.0, 1.5, 200, 11), 0.17823580956305038), "key share in the middle of 50, seed 11");
+check(gb.contextPlace(11, 0.5) === 5, "middle of 11 sentences");
 
 // 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);

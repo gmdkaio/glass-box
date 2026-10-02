@@ -51,6 +51,7 @@ export function replay(events, steps, every, upto) {
 	let i = 0; // step inside the section
 	for (let e = 0; e < upto && e < events.length; e++) {
 		const ev = events[e];
+		if (s * section >= steps) break; // events that do not fit these settings
 		const start = s * section;
 		const len = Math.min(section, steps - start);
 		if (ev === 0 || ev === 1) {

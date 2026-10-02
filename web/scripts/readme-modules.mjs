@@ -177,7 +177,41 @@ function compounding() {
 	return svg(css, body);
 }
 
-const ART = { 'how-it-works': howItWorks, sampling, compounding, quantization };
+// Context: the same question with more and more pasted text. Bars are each
+// sentence's share of attention, the answer is the bright one, and its bar shrinks
+// as sentences are added. Scores follow the page's toy: answer 4, two look-alikes
+// 3.2, the rest seeded noise around 0.
+function context() {
+	const random = rng(3);
+	const normal = () => Math.sqrt(-2 * Math.log(1 - random())) * Math.cos(2 * Math.PI * random());
+	const STAGES = [3, 8, 16, 32];
+	const N = STAGES.at(-1);
+	const KEY = 1;
+	const scores = Array.from({ length: N }, () => normal());
+	scores[KEY] = 4;
+	scores[6] = 3.2;
+	scores[13] = 3.2;
+	const shares = STAGES.map((n) => softmax(scores.slice(0, n)));
+	const x0 = 32, width = 536, base = 200, tall = 130, gap = 2;
+	const bw = width / N - gap;
+	let css = '';
+	let body = `<text x="32" y="42">same question, more pasted text</text>`;
+	body += `<line x1="${x0}" y1="${base}" x2="${x0 + width}" y2="${base}" stroke="${chalk.line}"/>`;
+	for (let i = 0; i < N; i++) {
+		const heights = shares.map((sh) => (i < sh.length ? sh[i] : 0));
+		css += steps(`c${i}`, 'transform', heights.map((h) => `scaleY(${n(Math.max(h, 0.004))})`));
+		css += steps(`o${i}`, 'opacity', heights.map((_, s) => (i < STAGES[s] ? 1 : 0)));
+		css += `.c${i}{transform-origin:50% 100%;animation:c${i} 8s infinite,o${i} 8s infinite}`;
+		const fill = i === KEY ? chalk.bright : scores[i] === 3.2 ? chalk.soft : chalk.line;
+		body += `<rect class="fb c${i}" x="${n(x0 + i * (bw + gap))}" y="${base - tall}" width="${n(bw)}" height="${tall}" fill="${fill}"/>`;
+	}
+	const pct = shares.map((sh) => Math.round(sh[KEY] * 100));
+	body += `<text x="32" y="236" style="font-size:20px;fill:${chalk.bright}">the answer's share: ${pct[0]}% → ${pct.at(-1)}%</text>`;
+	body += `<text x="32" y="276">${STAGES.join(' → ')} sentences</text>`;
+	return svg(css, body);
+}
+
+const ART = { 'how-it-works': howItWorks, sampling, compounding, context, quantization };
 
 function card(m) {
 	const at = where(m.slug);

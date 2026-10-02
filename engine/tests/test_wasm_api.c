@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "chain.h"
+#include "context.h"
 #include "check.h"
 #include "gb_wasm.h"
 #include "quantize.h"
@@ -118,6 +119,17 @@ int main(void) {
     int match = outcome == GB_CHAIN_GAVE_UP && written == 20 && broke == 4;
     for (int i = 0; match && i < 20; i++) match = ev[i] == want[i];
     CHECK(match, "trace of one run, seed 5");
+
+    /* context: normal draws use log and cos, so compare with near() */
+    double cs[8];
+    gb_context_scores(8, 2, 4.0, 1.0, 2, 3.0, 1.5, 7u, cs);
+    const double cref[8] = {0.98847433231873527, -2.5989496842822479, 2.7755102040816326, 1.5306122448979593,
+                            -1.9283573728429033, -0.77167457803428996, 0.80997948647942364, 3};
+    int cmatch = 1;
+    for (int i = 0; i < 8; i++) cmatch &= near(cs[i], cref[i]);
+    CHECK(cmatch, "context scores, seed 7");
+    CHECK(near(gb_context_share(50, 0.5, 4.0, 1.0, 3, 3.0, 1.5, 200, 11u), 0.17823580956305038),
+          "key share in the middle of 50 sentences, seed 11");
 
     free(a);
     free(q);
