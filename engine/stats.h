@@ -20,4 +20,13 @@ size_t gb_histogram(const double *x, size_t n, double lo, double hi,
  */
 void gb_softmax(const double *x, double *out, size_t n, double temperature);
 
+/*
+ * Picks an index from probabilities p[0..n) `draws` times with a seeded
+ * generator, and counts how often each index came up. counts has room for n
+ * entries and is overwritten. A draw never lands on an index with probability
+ * 0, and rounding leftovers go to the last index with a probability above 0.
+ */
+void gb_sample_counts(const double *p, size_t n, size_t draws, unsigned int seed,
+                      size_t *counts);
+
 #endif
