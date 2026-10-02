@@ -261,6 +261,26 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // Context (see engine/context.h): n sentences scored against a question. The key
+    // sentence scores keyScore, `lookalikes` sentences score lookalikeScore, the rest
+    // are noise of size spread, and every sentence loses up to `dip` in the middle.
+    contextScores(n, keyAt, keyScore, spread, lookalikes, lookalikeScore, dip, seed) {
+      const p = m._malloc(n * 8);
+      try {
+        m._gb_context_scores(n, keyAt, keyScore, spread, lookalikes, lookalikeScore, dip, seed >>> 0, p);
+        return get(p, n);
+      } finally {
+        free(p);
+      }
+    },
+
+    // which sentence a place from 0 (first) to 1 (last) lands on
+    contextPlace: (n, place) => m._gb_context_place(n, place),
+
+    // the key's share of attention, averaged over many random contexts
+    contextShare: (n, place, keyScore, spread, lookalikes, lookalikeScore, dip, trials, seed) =>
+      m._gb_context_share(n, place, keyScore, spread, lookalikes, lookalikeScore, dip, trials, seed >>> 0),
+
     latticeCount: (bits, dims) => m._gb_lattice_count(bits, dims),
     quantStep: (maxAbs, bits) => m._gb_quant_step(maxAbs, bits),
     mseTheory: (maxAbs, bits) => m._gb_quant_mse_theory(maxAbs, bits),
