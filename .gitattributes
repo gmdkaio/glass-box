@@ -1,0 +1,7 @@
+# Keep generated and compiled frontend assets out of GitHub's language stats(not needed at all, but it makes the stats more accurate)
+web/build/** linguist-vendored
+web/src/lib/assets/** linguist-generated
+web/src/lib/wasm/*.mjs linguist-generated
+web/src/lib/wasm/*.wasm binary
+**/*.min.js linguist-generated
+**/*.bundle.js linguist-generated
