@@ -34,22 +34,20 @@
 		return () => clearInterval(timer);
 	});
 
-	// a run belongs to the settings it was made with, so changing them clears it
+	// A run belongs to the settings it was made with, so it is only shown while they
+	// still hold. Checking here, not in an effect, keeps an old run from being drawn
+	// against new settings for even one frame.
+	const settings = $derived(`${p} ${steps} ${every} ${catchRate}`);
+	const current = $derived(run && run.settings === settings ? run : null);
 	$effect(() => {
-		p;
-		steps;
-		every;
-		catchRate;
-		clearInterval(timer);
-		run = null;
-		shown = 0;
+		if (!current) clearInterval(timer);
 	});
 
 	// plays the run back one event at a time, in about two and a half seconds
 	function runOne() {
 		clearInterval(timer);
 		seed += 1;
-		run = gb.chainTrace(p, steps, every, catchRate, RETRIES, seed);
+		run = { ...gb.chainTrace(p, steps, every, catchRate, RETRIES, seed), settings };
 		shown = 0;
 		const pace = Math.min(120, Math.max(20, 2500 / run.events.length));
 		timer = setInterval(() => {
@@ -90,7 +88,7 @@
 	{/snippet}
 
 	{#snippet stage()}
-		<ChainStage {steps} {every} {run} {shown} {trials} {odds} {points} />
+		<ChainStage {steps} {every} run={current} {shown} {trials} {odds} {points} />
 	{/snippet}
 
 	{#snippet legend()}
