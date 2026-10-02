@@ -78,6 +78,44 @@ int main(void) {
     CHECK(p3[0] == 0.0 && p3[1] == 1.0 && p3[2] == 0.0, "temperature 0 is one-hot on the first highest");
     gb_softmax(t3, p3, 0, 1.0);
 
+    /* sampling: counts add up, and the shares follow the probabilities */
+    double odds[3] = {0.5, 0.3, 0.2};
+    size_t cnt[3], cnt2[3], cnt3[3];
+    gb_sample_counts(odds, 3, 100000, 7, cnt);
+    CHECK(cnt[0] + cnt[1] + cnt[2] == 100000, "counts add up to the number of draws");
+    CHECK(fabs(cnt[0] / 100000.0 - 0.5) < 0.01 && fabs(cnt[1] / 100000.0 - 0.3) < 0.01 &&
+              fabs(cnt[2] / 100000.0 - 0.2) < 0.01,
+          "shares follow the probabilities within 1%");
+
+    /* same seed gives the same counts, another seed gives different ones */
+    gb_sample_counts(odds, 3, 1000, 7, cnt);
+    gb_sample_counts(odds, 3, 1000, 7, cnt2);
+    gb_sample_counts(odds, 3, 1000, 8, cnt3);
+    CHECK(cnt[0] == cnt2[0] && cnt[1] == cnt2[1] && cnt[2] == cnt2[2], "same seed gives the same counts");
+    CHECK(cnt[0] != cnt3[0] || cnt[1] != cnt3[1], "another seed gives other counts");
+
+    /* an index with probability 0 is never picked, and a sure thing is always picked */
+    double sure[4] = {0.0, 1.0, 0.0, 0.0};
+    size_t cs[4];
+    gb_sample_counts(sure, 4, 5000, 3, cs);
+    CHECK(cs[0] == 0 && cs[1] == 5000 && cs[2] == 0 && cs[3] == 0, "only the index with probability 1 comes up");
+    double gap[3] = {0.5, 0.5, 0.0};
+    size_t cg[3];
+    gb_sample_counts(gap, 3, 5000, 4, cg);
+    CHECK(cg[2] == 0 && cg[0] + cg[1] == 5000, "a trailing zero-probability index is never picked");
+
+    /* temperature 0 turns the scores into a sure thing, so the draws never change */
+    double scores[3] = {3.9, 3.6, 2.1}, hard[3];
+    size_t ch[3];
+    gb_softmax(scores, hard, 3, 0.0);
+    gb_sample_counts(hard, 3, 2000, 5, ch);
+    CHECK(ch[0] == 2000 && ch[1] == 0 && ch[2] == 0, "temperature 0 always picks the top score");
+
+    /* nothing to draw */
+    gb_sample_counts(odds, 3, 0, 1, cnt);
+    CHECK(cnt[0] == 0 && cnt[1] == 0 && cnt[2] == 0, "zero draws gives zero counts");
+    gb_sample_counts(odds, 0, 10, 1, cnt);
+
     free(w);
     free(q);
     free(e);

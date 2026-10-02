@@ -48,6 +48,9 @@ check(sample.length === 12 && refSample.every((v, i) => near(sample[i], v)), "la
 const sm = gb.softmax(new Float64Array([0, Math.log(3)]), 1);
 check(near(sm[0], 0.25) && near(sm[1], 0.75), "softmax of [0, ln 3]");
 check(near(gb.softmax(new Float64Array([1000, 1000]), 1)[0], 0.5), "softmax does not overflow");
+check(gb.sample(new Float64Array([0.5, 0.3, 0.2]), 1000, 7).join(" ") === "525 290 185", "1000 draws from 0.5 / 0.3 / 0.2, seed 7");
+const odds5 = gb.softmax(new Float64Array([3.9, 3.6, 2.1, 0.4, -2.5]), 1);
+check(gb.sample(odds5, 1000, 11).join(" ") === "537 368 77 18 0", "1000 draws from softmax of 5 scores, seed 11");
 check(near(gb.snap(10, 1, 0, 100), 25), "10 at 1 bit snaps to 25");
 check(near(gb.snap(10, 4, 0, 100), 9.375), "10 at 4 bits snaps to 9.375");
 check(near(gb.snap(85, 1, 0, 100), 75), "85 at 1 bit snaps to 75");

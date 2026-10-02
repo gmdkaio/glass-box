@@ -63,6 +63,18 @@ int main(void) {
     for (int i = 0; i < 12; i++) if (!near(s[i], ref_s[i])) sample_ok = 0;
     CHECK(sample_ok, "lattice sample at 6 bits, seed 5");
 
+    /* the sampler uses integers and a seeded generator, so the counts match exactly */
+    double odds[3] = {0.5, 0.3, 0.2};
+    size_t drawn[3];
+    gb_sample_counts(odds, 3, 1000, 7u, drawn);
+    CHECK(drawn[0] == 525 && drawn[1] == 290 && drawn[2] == 185, "1000 draws from 0.5 / 0.3 / 0.2, seed 7");
+    double sc[5] = {3.9, 3.6, 2.1, 0.4, -2.5}, pr[5];
+    size_t k[5];
+    gb_softmax(sc, pr, 5, 1.0);
+    gb_sample_counts(pr, 5, 1000, 11u, k);
+    CHECK(k[0] == 537 && k[1] == 368 && k[2] == 77 && k[3] == 18 && k[4] == 0,
+          "1000 draws from softmax of 5 scores, seed 11");
+
     free(a);
     free(q);
     DONE();
