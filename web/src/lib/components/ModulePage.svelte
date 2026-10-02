@@ -3,8 +3,10 @@
 
 	// Every module page fills the same slots, in this order.
 	let {
+		track,
 		n,
 		total,
+		tag,
 		title,
 		lead,
 		presets,
@@ -22,9 +24,10 @@
 	} = $props();
 </script>
 
-<div class="mx-auto w-full max-w-[1240px] px-5 pb-16">
+<div class="w-full max-w-[1600px] px-6 pb-16 lg:px-8">
 	<section class="pt-6 pb-4">
-		<Badge variant="outline">Module {n} of {total}</Badge>
+		<Badge variant="outline">{track} · {n} of {total}</Badge>
+		{#if tag}<Badge variant="secondary" class="ml-2">{tag}</Badge>{/if}
 		<h1 class="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">{title}</h1>
 		<p class="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">{lead}</p>
 	</section>
