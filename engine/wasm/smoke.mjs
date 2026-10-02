@@ -71,6 +71,13 @@ check(near(gb.snap(85, 1, 0, 100), 75), "85 at 1 bit snaps to 75");
 check(gb.snapLevels(2, 0, 100, 64).join(" ") === "12.5 37.5 62.5 87.5", "2-bit values between 0 and 100");
 check(gb.snapLevels(8, 0, 100, 64).length === 0, "256 values are too many to list under 64");
 
+check(near(gb.chainOdds(0.95, 20, 5, 0.9, 3), 0.88502068381965826), "odds, 20 steps checked every 5");
+const ct = gb.chainTrials(0.95, 20, 5, 0.9, 3, 1000, 7);
+check(ct.outcomes.join(" ") === "891 104 5" && near(ct.redone, 4.8), "1000 runs, seed 7: " + ct.outcomes);
+check(ct.brokenAt[0] === 8 && ct.brokenAt[10] === 2 && ct.brokenAt[19] === 6, "where runs broke, seed 7");
+const tr = gb.chainTrace(0.8, 12, 4, 0.8, 2, 5);
+check(tr.outcome === 2 && tr.brokenAt === 4 && tr.events.join("") === "00002001030001311103", "trace of one run, seed 5");
+
 // 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);
 check(big.length === 2_000_000, "big array length");

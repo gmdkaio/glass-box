@@ -222,6 +222,45 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // Long tasks (see engine/chain.h). A task has `steps` steps, each right with
+    // chance p. With checkEvery > 0 a check after every that many steps catches a
+    // wrong section with chance catchRate and redoes it, at most `retries` times.
+    chainOdds: (p, steps, checkEvery, catchRate, retries) =>
+      m._gb_chain_odds(p, steps, checkEvery, catchRate, retries),
+
+    // one run: what happened in order (0 right, 1 wrong, 2 check passed, 3 check
+    // caught), how it ended (0 clean, 1 broken, 2 gave up), and the step that spoiled it
+    chainTrace(p, steps, checkEvery, catchRate, retries, seed) {
+      const max = steps * (retries + 2) * 2;
+      const pe = m._malloc(max * 4);
+      const pn = m._malloc(4);
+      const pb = m._malloc(4);
+      try {
+        const outcome = m._gb_chain_trace(p, steps, checkEvery, catchRate, retries, seed >>> 0, pe, max, pn, pb);
+        const written = m.HEAPU32[pn / 4];
+        return { events: m.HEAP32.slice(pe / 4, pe / 4 + written), outcome, brokenAt: m.HEAP32[pb / 4] };
+      } finally {
+        free(pe, pn, pb);
+      }
+    },
+
+    // many runs: how many ended clean, broken and gave up, where they broke, and the
+    // average number of steps per run thrown away because a check sent them back
+    chainTrials(p, steps, checkEvery, catchRate, retries, trials, seed) {
+      const po = m._malloc(3 * 4);
+      const pa = m._malloc(steps * 4);
+      try {
+        const redone = m._gb_chain_trials(p, steps, checkEvery, catchRate, retries, trials, seed >>> 0, po, pa);
+        return {
+          outcomes: m.HEAPU32.slice(po / 4, po / 4 + 3),
+          brokenAt: m.HEAPU32.slice(pa / 4, pa / 4 + steps),
+          redone,
+        };
+      } finally {
+        free(po, pa);
+      }
+    },
+
     latticeCount: (bits, dims) => m._gb_lattice_count(bits, dims),
     quantStep: (maxAbs, bits) => m._gb_quant_step(maxAbs, bits),
     mseTheory: (maxAbs, bits) => m._gb_quant_mse_theory(maxAbs, bits),
