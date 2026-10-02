@@ -5,6 +5,8 @@
 #include "gb_wasm.h"
 #include "quantize.h"
 #include "stats.h"
+#include "nn.h"
+#include "text.h"
 
 /*
  * Reference values from the native build. wasm/smoke.mjs checks the same
@@ -74,6 +76,31 @@ int main(void) {
     gb_sample_counts(pr, 5, 1000, 11u, k);
     CHECK(k[0] == 537 && k[1] == 368 && k[2] == 77 && k[3] == 18 && k[4] == 0,
           "1000 draws from softmax of 5 scores, seed 11");
+
+    /* word pairs: integers only, so the counts match exactly */
+    int words[5] = {0, 1, 0, 2, 1};
+    size_t pairs[9];
+    CHECK(gb_pair_counts(words, 5, 3, pairs) == 4, "four word pairs");
+    CHECK(pairs[1] == 1 && pairs[3] == 1 && pairs[2] == 1 && pairs[7] == 1 && pairs[0] == 0,
+          "pair counts for 0 1 0 2 1");
+    size_t row[3] = {0, 3, 1};
+    double row_odds[3];
+    CHECK(gb_row_odds(row, 3, row_odds) == 4 && near(row_odds[1], 0.75) && near(row_odds[2], 0.25), "row odds");
+
+    /* the network uses tanh and exp, so wasm may differ a little: compare with a loose tolerance */
+    int cyc[8] = {0, 1, 0, 1, 0, 1, 0, 2}, seq[80];
+    for (int i = 0; i < 80; i++) seq[i] = cyc[i % 8];
+    double *net = malloc(gb_nn_params(3, 4) * sizeof *net);
+    gb_nn_init(net, 3, 4, 11u);
+    CHECK(fabs(net[0] - -0.020302932507861002) < 1e-12, "first network number, seed 11");
+    CHECK(fabs(gb_nn_loss(net, 3, 4, seq, 80) - 1.1157938749824245) < 1e-9, "untrained network loss");
+    double trained = gb_nn_train(net, 3, 4, seq, 80, 400, 0.1);
+    CHECK(fabs(trained - 0.28560851872361553) < 1e-6, "network loss after 400 passes");
+    double nh[4], no[3];
+    gb_nn_forward(net, 3, 4, 0, nh, no);
+    CHECK(fabs(no[1] - 0.73269855127492012) < 1e-6 && fabs(no[2] - 0.26634060096578566) < 1e-6,
+          "odds after word 0 once trained");
+    free(net);
 
     free(a);
     free(q);
