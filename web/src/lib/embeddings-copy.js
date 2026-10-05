@@ -1,0 +1,72 @@
+// Plain-language text for the embeddings page.
+// The claims here are drafts and each one needs a source before release.
+
+export function say(topics) {
+	if (topics >= 0.85) return 'Words land among others used the same way: transport near transport, food near food.';
+	if (topics >= 0.5) return 'Some groups have formed, but many words still sit among strangers.';
+	return 'With this few numbers, most words look alike, and the map is one blur.';
+}
+
+export function trap({ k, keywordFound, meaningFound }) {
+	if (k <= 2) return 'Two numbers cannot keep five topics apart. Add dimensions and watch the groups pull away from each other.';
+	if (!keywordFound && meaningFound)
+		return 'The question shares no words with the right notice, so a keyword search finds nothing. The meaning search finds it anyway, because its words sit near the notice\'s words.';
+	if (k >= 16) return 'More numbers past a point add little here: a few dozen sentences only teach so much.';
+	return 'Nobody told the model that a coach is like a bus. It worked that out from the words that come before and after each.';
+}
+
+export const parts = [
+	{
+		title: 'You know a word by its neighbours',
+		text: 'Count which words appear near each word. Bus and coach both appear near ticket, driver and station, so their counts look alike.'
+	},
+	{
+		title: 'Squeeze the counts into a few numbers',
+		text: 'The count table has a column for every word. Breaking it into its main directions keeps the pattern in a handful of numbers per word: its embedding.'
+	},
+	{
+		title: 'Close in numbers, close in use',
+		text: 'Two words whose numbers point the same way are used alike. The angle between them (cosine similarity) is the measure every meaning search uses.'
+	}
+];
+
+export const trapCard =
+	'Close in numbers means used alike, which usually lines up with meaning alike. Opposites like early and late appear in the same kinds of sentence, so they end up neighbours too: try "early" above.';
+
+export const why = [
+	{
+		title: 'Search by meaning',
+		text: 'Embedding search finds passages that say the same thing in other words. It is what lets a document assistant answer "earliest coach" from a page about the first bus.'
+	},
+	{
+		title: 'Mind the opposites',
+		text: 'Words used in the same places sit together even when they mean opposite things. Check meaning-search results where early and late, or allowed and banned, both match.'
+	},
+	{
+		title: 'Same model, same space',
+		text: 'Vectors from different embedding models do not line up. Search with the same model that embedded your documents, and re-embed everything when you switch.'
+	},
+	{
+		title: 'Mix it with keywords',
+		text: 'Names, codes and exact numbers match better by keyword. Many setups run both searches and combine the results.'
+	}
+];
+
+export const whyLead = 'Embeddings power search by meaning, in your own tools and in local document setups. A few things to know when you rely on them.';
+
+export const whyDraft =
+	'Draft copy. Before release, source how embedding models are trained today (with prediction objectives, which reach the same idea as counting) and the advice on hybrid search and mixing embedding models.';
+
+export const hoodNote =
+	'Real models learn their embeddings during training, by predicting words, and give each token a few hundred to a few thousand numbers. Counting neighbours and breaking the table into directions, as here, reaches the same kind of space, and early word vectors were built this way.';
+
+export const next = [
+	{
+		title: 'Next: sampling settings',
+		text: 'At the other end, the model turns its numbers back into odds for every token. Settings decide which one it picks.'
+	},
+	{
+		title: 'Then: LoRA',
+		text: 'Settings change how it picks. To change what it knows, you change the model itself, without retraining all of it.'
+	}
+];

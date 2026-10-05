@@ -467,6 +467,90 @@ export async function loadEngine(createModule) {
     memMaxTokens: (budget, weights, overhead, layers, kvHeads, headDim, bits) =>
       m._gb_mem_max_tokens(budget, weights, overhead, layers, kvHeads, headDim, bits),
 
+    // Embeddings (see engine/embed.h). Learns from a text of word numbers (a
+    // negative number ends a sentence): counts, weighted with PPMI, then every
+    // eigenvalue and eigenvector, largest first. vectors is n x n, row per word.
+    embedLearn(ids, vocab, window) {
+      const n = vocab;
+      const pi = putInts(ids);
+      const pc = m._malloc(n * n * 8);
+      const pv = m._malloc(n * 8);
+      const pe = m._malloc(n * n * 8);
+      try {
+        m._gb_cooc(pi, ids.length, n, window, pc);
+        m._gb_ppmi(pc, n, pc);
+        if (m._gb_sym_eigen(pc, n, pv, pe) !== 0) throw new Error("out of memory");
+        return { values: get(pv, n), vectors: get(pe, n * n) };
+      } finally {
+        free(pi, pc, pv, pe);
+      }
+    },
+
+    // word vectors from the first k eigenvectors: n x k, each row of length 1
+    embedTake(values, vectors, k) {
+      const n = values.length;
+      const pv = put(values);
+      const pe = put(vectors);
+      const po = m._malloc(n * k * 8);
+      try {
+        m._gb_embed_take(pv, pe, n, k, po);
+        return get(po, n * k);
+      } finally {
+        free(pv, pe, po);
+      }
+    },
+
+    // cosine similarity of q with every row of rows (n x dim)
+    cosineRows(rows, dim, q) {
+      const n = rows.length / dim;
+      const pr = put(rows);
+      const pq = put(q);
+      const po = m._malloc(n * 8);
+      try {
+        m._gb_cosine_rows(pr, n, dim, pq, po);
+        return get(po, n);
+      } finally {
+        free(pr, pq, po);
+      }
+    },
+
+    // the average of the listed rows
+    meanRows(rows, dim, ids) {
+      const pr = put(rows);
+      const pi = putInts(ids);
+      const po = m._malloc(dim * 8);
+      try {
+        m._gb_mean_rows(pr, dim, pi, ids.length, po);
+        return get(po, dim);
+      } finally {
+        free(pr, pi, po);
+      }
+    },
+
+    // share of each word's `near` nearest neighbours that share its label
+    neighbourAgreement(rows, dim, labels, near) {
+      const pr = put(rows);
+      const pl = putInts(labels);
+      try {
+        return m._gb_neighbour_agreement(pr, rows.length / dim, dim, pl, near);
+      } finally {
+        free(pr, pl);
+      }
+    },
+
+    // a flat map of the rows along their two main directions: n x 2
+    project2d(rows, dim) {
+      const n = rows.length / dim;
+      const pr = put(rows);
+      const po = m._malloc(n * 2 * 8);
+      try {
+        if (m._gb_project_2d(pr, n, dim, po) !== 0) throw new Error("out of memory");
+        return get(po, n * 2);
+      } finally {
+        free(pr, po);
+      }
+    },
+
     latticeCount: (bits, dims) => m._gb_lattice_count(bits, dims),
     quantStep: (maxAbs, bits) => m._gb_quant_step(maxAbs, bits),
     mseTheory: (maxAbs, bits) => m._gb_quant_mse_theory(maxAbs, bits),

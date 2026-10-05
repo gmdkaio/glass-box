@@ -99,6 +99,9 @@ check(rref.every((v, i) => near(rsc[i], v)), "bm25 scores, four pages: " + Array
 check(near(gb.pickShare(rsc, 3, 3, 1.5), 0.34619056439312412) && gb.rankOf(rsc, 3) === 0, "pick share and rank of the top page");
 check(gb.memWeights(8.2e9, 4, 0.5) === 4612500000 && gb.memKv(64, 8, 128, 32768, 16) === 8589934592, "memory: weights and cache");
 check(gb.memMaxTokens(12884901888, 4612500000, 536870912, 36, 8, 128, 16) === 52459, "memory: longest chat on 12 GiB");
+const emb = gb.embedLearn([0, 1, 2, -1, 0, 1, 3, -1, 2, 3, 1], 4, 2);
+const embref = [0.82987762569897638, -0.11778303565638339, -0.11778303565638341, -0.59431155438620931];
+check(embref.every((v, i) => Math.abs(emb.values[i] - v) <= 1e-12), "embedding eigenvalues: " + Array.from(emb.values));
 
 // 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);

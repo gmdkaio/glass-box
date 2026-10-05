@@ -5,6 +5,7 @@
 #include "calib.h"
 #include "chain.h"
 #include "context.h"
+#include "embed.h"
 #include "check.h"
 #include "gb_wasm.h"
 #include "memory.h"
@@ -185,6 +186,17 @@ int main(void) {
     CHECK(gb_mem_weights(8.2e9, 4.0, 0.5) == 4612500000.0, "Qwen3-8B at 4 bits plus scales");
     CHECK(gb_mem_kv(64, 8, 128, 32768.0, 16.0) == 8589934592.0, "Qwen3-32B, 32k tokens: 8 GiB");
     CHECK(gb_mem_max_tokens(12884901888.0, 4612500000.0, 536870912.0, 36, 8, 128, 16.0) == 52459.0, "longest chat on 12 GiB");
+
+    /* embeddings: counts, PPMI (log) and eigenvalues; compare with near() */
+    const int et[11] = {0, 1, 2, -1, 0, 1, 3, -1, 2, 3, 1};
+    double ec[16], eval[4], evec[16];
+    gb_cooc(et, 11, 4, 2, ec);
+    gb_ppmi(ec, 4, ec);
+    gb_sym_eigen(ec, 4, eval, evec);
+    const double evref[4] = {0.82987762569897638, -0.11778303565638339, -0.11778303565638341, -0.59431155438620931};
+    int em = 1;
+    for (int i = 0; i < 4; i++) em &= fabs(eval[i] - evref[i]) <= 1e-12;
+    CHECK(em, "embedding eigenvalues, small text");
 
     free(a);
     free(q);
