@@ -9,6 +9,11 @@ import { tracks, modules, where } from '../src/lib/modules.js';
 import { TEXTS, tokenize } from '../src/lib/text-model.js';
 import { WORDS, PROMPTS } from '../src/lib/sampling-sim.js';
 import { chalk } from '../src/lib/colors.js';
+import { CORPUS } from '../src/lib/tokenization-corpus.js';
+import { loadEngine } from '../src/lib/engine.js';
+import createModule from '../src/lib/wasm/glassbox.mjs';
+
+const gb = await loadEngine(createModule);
 
 const SITE = 'https://gmdkaio.github.io/glass-box';
 const ASSETS = 'assets/modules';
@@ -31,7 +36,9 @@ ${body}
 // keyframes that hold each value for its share of the cycle, then jump to the next
 function steps(name, prop, values) {
 	const k = values.length;
-	const frames = values.map((v, i) => `${n((i / k) * 100)}%,${n(((i + 1) / k) * 100 - 0.01)}%{${prop}:${v}}`);
+	// two decimals, or the hold's end rounds onto the next start and the browser fades instead
+	const at = (x) => String(+x.toFixed(2));
+	const frames = values.map((v, i) => `${at((i / k) * 100)}%,${at(((i + 1) / k) * 100 - 0.01)}%{${prop}:${v}}`);
 	return `@keyframes ${name}{${frames.join('')}}`;
 }
 
@@ -211,7 +218,44 @@ function context() {
 	return svg(css, body);
 }
 
-const ART = { 'how-it-works': howItWorks, sampling, compounding, context, quantization };
+// Tokenization: the strawberry question cut by the page's tokenizer with more and
+// more merges, from one chip per byte to whole words. Tokens come from the engine,
+// trained on the page's corpus.
+function tokenization() {
+	const TEXT = "How many r's are in strawberry?";
+	const pairs = gb.bpeTrain(CORPUS, 3000);
+	const dec = new TextDecoder();
+	const STAGES = [0, 30, 150, pairs.length / 2];
+	const cw = 12.1, pad = 8, gap = 4, x0 = 32, width = 536, y0 = 62, row = 42;
+	let css = '';
+	let body = `<text x="32" y="42">the same question, as the model reads it</text>`;
+	STAGES.forEach((k, s) => {
+		const ids = gb.bpeEncode(TEXT, pairs, k);
+		css += steps(`t${s}`, 'opacity', STAGES.map((_, i) => (i === s ? 1 : 0)));
+		css += `.t${s}{animation:t${s} 8s infinite}`;
+		let g = '';
+		let x = x0, y = y0;
+		ids.forEach((id, i) => {
+			const label = dec.decode(gb.bpeTokenBytes(pairs, id)).replace(/ /g, '·');
+			const w = label.length * cw + pad;
+			if (x + w > x0 + width) {
+				x = x0;
+				y += row;
+			}
+			g += `<rect x="${n(x)}" y="${y}" width="${n(w)}" height="34" rx="4" fill="${i % 2 ? chalk.divider : chalk.grid}" stroke="${chalk.line}"/>`;
+			g += `<text x="${n(x + pad / 2)}" y="${y + 24}" style="font-size:20px;fill:${chalk.bright}">${label}</text>`;
+			x += w + gap;
+		});
+		const got = Array.from(ids).join(' ');
+		g += `<text x="32" y="${y + row + 36}">model gets: ${got.length > 46 ? got.slice(0, got.lastIndexOf(' ', 45)) + ' …' : got}</text>`;
+		g += `<text x="32" y="236" style="font-size:20px;fill:${chalk.bright}">${ids.length} tokens</text>`;
+		g += `<text x="32" y="276">${k === 0 ? 'no merges: one token per byte' : `after ${k} merges`}</text>`;
+		body += `<g class="t${s}">${g}</g>`;
+	});
+	return svg(css, body);
+}
+
+const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, quantization };
 
 function card(m) {
 	const at = where(m.slug);

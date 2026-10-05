@@ -82,6 +82,11 @@ const cref = [0.98847433231873527, -2.5989496842822479, 2.7755102040816326, 1.53
 check(cref.every((v, i) => near(cs[i], v)), "context scores, seed 7: " + Array.from(cs));
 check(near(gb.contextShare(50, 0.5, 4.0, 1.0, 3, 3.0, 1.5, 200, 11), 0.17823580956305038), "key share in the middle of 50, seed 11");
 check(gb.contextPlace(11, 0.5) === 5, "middle of 11 sentences");
+const bp = gb.bpeTrain("the cat sat on the mat. the cat ran to the hat.", 20);
+check(bp.join(",") === "97,116,32,116,104,101,257,258,32,99,260,256", "bpe merges: " + Array.from(bp));
+check(gb.bpeEncode("the rat sat on the cat", bp, 99).join(",") === "116,258,32,114,256,32,115,256,32,111,110,259,261", "bpe tokens, merges capped");
+check(gb.bpeCurve("the rat sat on the cat", bp, 6).join(",") === "22,19,18,16,15,14,13", "bpe curve");
+check(new TextDecoder().decode(gb.bpeTokenBytes(bp, 261)) === " cat", "token 261 spells space cat");
 
 // 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);
