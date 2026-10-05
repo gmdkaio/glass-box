@@ -15,6 +15,17 @@ export async function loadEngine(createModule) {
   };
   const get = (p, n) => m.HEAPF64.slice(p / 8, p / 8 + n);
   const free = (...ps) => ps.forEach((p) => m._free(p));
+  const utf8 = new TextEncoder();
+  const putBytes = (bytes) => {
+    const p = m._malloc(Math.max(bytes.length, 1));
+    m.HEAPU8.set(bytes, p);
+    return p;
+  };
+  const putInts = (ints) => {
+    const p = m._malloc(Math.max(ints.length, 1) * 4);
+    m.HEAP32.set(ints, p / 4);
+    return p;
+  };
   const pairCall = (fn, a, b) => {
     const pa = put(a);
     const pb = put(b);
@@ -280,6 +291,64 @@ export async function loadEngine(createModule) {
     // the key's share of attention, averaged over many random contexts
     contextShare: (n, place, keyScore, spread, lookalikes, lookalikeScore, dip, trials, seed) =>
       m._gb_context_share(n, place, keyScore, spread, lookalikes, lookalikeScore, dip, trials, seed >>> 0),
+
+    // Byte pair encoding (see engine/bpe.h). Text goes in as UTF-8 bytes, and the
+    // merges come back as pairs: merge k makes token 256 + k from pairs[2k], pairs[2k + 1].
+    bpeTrain(text, merges) {
+      const bytes = utf8.encode(text);
+      const pt = putBytes(bytes);
+      const pp = m._malloc(Math.max(merges, 1) * 8);
+      try {
+        const learned = m._gb_bpe_train(pt, bytes.length, merges, pp);
+        return m.HEAP32.slice(pp / 4, pp / 4 + 2 * learned);
+      } finally {
+        free(pt, pp);
+      }
+    },
+
+    // the tokens of text with the first `merges` merges (at most as many as pairs holds)
+    bpeEncode(text, pairs, merges) {
+      merges = Math.min(merges, pairs.length / 2);
+      const bytes = utf8.encode(text);
+      const pt = putBytes(bytes);
+      const pp = putInts(pairs);
+      const pi = m._malloc(Math.max(bytes.length, 1) * 4);
+      try {
+        const n = m._gb_bpe_encode(pt, bytes.length, pp, merges, pi);
+        return m.HEAP32.slice(pi / 4, pi / 4 + n);
+      } finally {
+        free(pt, pp, pi);
+      }
+    },
+
+    // how many tokens text becomes with 0, 1, ... merges merges
+    bpeCurve(text, pairs, merges) {
+      merges = Math.min(merges, pairs.length / 2);
+      const bytes = utf8.encode(text);
+      const pt = putBytes(bytes);
+      const pp = putInts(pairs);
+      const pc = m._malloc((merges + 1) * 4);
+      try {
+        m._gb_bpe_curve(pt, bytes.length, pp, merges, pc);
+        return m.HEAPU32.slice(pc / 4, pc / 4 + merges + 1);
+      } finally {
+        free(pt, pp, pc);
+      }
+    },
+
+    // the bytes a token stands for
+    bpeTokenBytes(pairs, token) {
+      const merges = pairs.length / 2;
+      const pp = putInts(pairs);
+      const cap = 256;
+      const po = m._malloc(cap);
+      try {
+        const n = m._gb_bpe_token_bytes(pp, merges, token, po, cap);
+        return m.HEAPU8.slice(po, po + Math.min(n, cap));
+      } finally {
+        free(pp, po);
+      }
+    },
 
     latticeCount: (bits, dims) => m._gb_lattice_count(bits, dims),
     quantStep: (maxAbs, bits) => m._gb_quant_step(maxAbs, bits),
