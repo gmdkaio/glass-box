@@ -73,11 +73,16 @@ Rounding every number in a model to fewer values saves memory and costs accuracy
 <sub>Under the hood · 2 of 8 · Local models</sub><br>
 A model needs memory for its numbers and for a cache that grows with every token of the chat.
 </td>
-<td width="50%"></td>
+<td width="50%" valign="top">
+<a href="https://gmdkaio.github.io/glass-box/embeddings"><img src=".github/assets/modules/embeddings.svg" alt="Embeddings" width="100%"></a><br>
+<b><a href="https://gmdkaio.github.io/glass-box/embeddings">Embeddings</a></b><br>
+<sub>Under the hood · 3 of 8</sub><br>
+Words used in similar places get similar numbers, which is how search by meaning works.
+</td>
 </tr>
 </table>
 
-Coming next. **Under the hood:** Embeddings · Sampling settings · LoRA · Learning rate · Overfitting · Evaluating a model
+Coming next. **Under the hood:** Sampling settings · LoRA · Learning rate · Overfitting · Evaluating a model
 <!-- modules:end -->
 
 ## Engine

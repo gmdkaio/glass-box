@@ -12,6 +12,7 @@ import { chalk } from '../src/lib/colors.js';
 import { CORPUS } from '../src/lib/tokenization-corpus.js';
 import { PAGES, QUESTIONS, search } from '../src/lib/retrieval-sim.js';
 import { budget as memBudget, MODELS as MEM_MODELS } from '../src/lib/memory-sim.js';
+import { VOCAB as EMB_VOCAB, LABELS as EMB_LABELS, learn as embLearn, space as embSpace } from '../src/lib/embeddings-sim.js';
 import { loadEngine } from '../src/lib/engine.js';
 import createModule from '../src/lib/wasm/glassbox.mjs';
 
@@ -355,7 +356,38 @@ function memory() {
 	return svg(css, body);
 }
 
-const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory };
+// Embeddings: the page's word map at 2, 3, 4 and 6 numbers per word. Each dot is a
+// word, shaded by topic; a few words are named. The groups pull apart as numbers are
+// added. Positions come from the engine, learned from the page's sentences.
+function embeddings() {
+	const learned = embLearn(gb);
+	const STAGES = [2, 3, 4, 6];
+	const SHADES = [chalk.bright, chalk.soft, chalk.dim, '#d4d4d8', '#52525b'];
+	const NAMED = ['bus', 'coach', 'bread', 'cat', 'rain', 'town'];
+	const x0 = 40, w = 330, y0 = 50, h = 210;
+	let css = '';
+	let body = `<text x="32" y="32">words used alike end up close</text>`;
+	STAGES.forEach((k, s) => {
+		const m = embSpace(gb, learned, k).map;
+		let lo = [Infinity, Infinity], hi = [-Infinity, -Infinity];
+		for (let i = 0; i < m.length; i += 2) for (const d of [0, 1]) { lo[d] = Math.min(lo[d], m[i + d]); hi[d] = Math.max(hi[d], m[i + d]); }
+		const px = (v) => x0 + ((v - lo[0]) / (hi[0] - lo[0] || 1)) * w;
+		const py = (v) => y0 + h - ((v - lo[1]) / (hi[1] - lo[1] || 1)) * h;
+		css += steps(`e${s}`, 'opacity', STAGES.map((_, i) => (i === s ? 1 : 0)));
+		css += `.e${s}{animation:e${s} 8s infinite}`;
+		let g = '';
+		EMB_VOCAB.forEach((word, i) => {
+			g += `<circle cx="${n(px(m[i * 2]))}" cy="${n(py(m[i * 2 + 1]))}" r="4" fill="${SHADES[EMB_LABELS[i]] ?? chalk.line}"/>`;
+			if (NAMED.includes(word)) g += `<text x="${n(px(m[i * 2]) + 7)}" y="${n(py(m[i * 2 + 1]) + 5)}" style="fill:${chalk.bright}">${word}</text>`;
+		});
+		g += `<text x="420" y="140" style="font-size:20px;fill:${chalk.bright}">${k} ${k === 1 ? 'number' : 'numbers'}</text>`;
+		g += `<text x="420" y="170">per word</text>`;
+		body += `<g class="e${s}">${g}</g>`;
+	});
+	return svg(css, body);
+}
+
+const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings };
 
 function card(m) {
 	const at = where(m.slug);
