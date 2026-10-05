@@ -15,13 +15,13 @@ Each module is one simulation. Click a picture to open it.
 <a href="https://gmdkaio.github.io/glass-box/how-it-works"><img src=".github/assets/modules/how-it-works.svg" alt="How it works" width="100%"></a><br>
 <b><a href="https://gmdkaio.github.io/glass-box/how-it-works">How it works</a></b><br>
 <sub>Using AI · 1 of 7</sub><br>
-A tiny network reads one word and gives odds for the next. Teach it a text and watch it write.
+A tiny network reads one word and gives odds for the next, one word at a time.
 </td>
 <td width="50%" valign="top">
 <a href="https://gmdkaio.github.io/glass-box/sampling"><img src=".github/assets/modules/sampling.svg" alt="Why answers vary" width="100%"></a><br>
 <b><a href="https://gmdkaio.github.io/glass-box/sampling">Why answers vary</a></b><br>
 <sub>Using AI · 2 of 7</sub><br>
-The model picks each word like weighted dice. See why the same question gets different answers.
+The model picks each word like weighted dice, so the same question gets different answers.
 </td>
 </tr>
 <tr>
@@ -29,13 +29,13 @@ The model picks each word like weighted dice. See why the same question gets dif
 <a href="https://gmdkaio.github.io/glass-box/compounding"><img src=".github/assets/modules/compounding.svg" alt="Long tasks" width="100%"></a><br>
 <b><a href="https://gmdkaio.github.io/glass-box/compounding">Long tasks</a></b><br>
 <sub>Using AI · 3 of 7</sub><br>
-Small chances of a slip multiply over many steps. See how checks between steps win them back.
+Small chances of a slip multiply over many steps, and checks between steps win them back.
 </td>
 <td width="50%" valign="top">
 <a href="https://gmdkaio.github.io/glass-box/context"><img src=".github/assets/modules/context.svg" alt="Context" width="100%"></a><br>
 <b><a href="https://gmdkaio.github.io/glass-box/context">Context</a></b><br>
 <sub>Using AI · 4 of 7</sub><br>
-Paste more text and the sentence that holds the answer gets a smaller share of attention.
+The more text you paste, the smaller the share of attention the answer gets.
 </td>
 </tr>
 <tr>
@@ -43,28 +43,32 @@ Paste more text and the sentence that holds the answer gets a smaller share of a
 <a href="https://gmdkaio.github.io/glass-box/tokenization"><img src=".github/assets/modules/tokenization.svg" alt="Tokenization" width="100%"></a><br>
 <b><a href="https://gmdkaio.github.io/glass-box/tokenization">Tokenization</a></b><br>
 <sub>Using AI · 5 of 7</sub><br>
-The model reads text as numbered chunks. See why it miscounts the r in strawberry and why other languages cost more.
+The model reads text as numbered chunks, so the letters inside them are hidden from it.
 </td>
 <td width="50%" valign="top">
 <a href="https://gmdkaio.github.io/glass-box/calibration"><img src=".github/assets/modules/calibration.svg" alt="Calibration" width="100%"></a><br>
 <b><a href="https://gmdkaio.github.io/glass-box/calibration">Calibration</a></b><br>
 <sub>Using AI · 6 of 7</sub><br>
-Of all the answers a model gives at 80% confidence, how many are right? See where its confidence and its record drift apart.
+How sure a model sounds, compared with how often it is right.
 </td>
 </tr>
 <tr>
 <td width="50%" valign="top">
+<a href="https://gmdkaio.github.io/glass-box/retrieval"><img src=".github/assets/modules/retrieval.svg" alt="Retrieval" width="100%"></a><br>
+<b><a href="https://gmdkaio.github.io/glass-box/retrieval">Retrieval</a></b><br>
+<sub>Using AI · 7 of 7</sub><br>
+Before the model answers from documents, a search picks the few pages it gets to read.
+</td>
+<td width="50%" valign="top">
 <a href="https://gmdkaio.github.io/glass-box/quantization"><img src=".github/assets/modules/quantization.svg" alt="Shrinking a model" width="100%"></a><br>
 <b><a href="https://gmdkaio.github.io/glass-box/quantization">Shrinking a model</a></b><br>
 <sub>Under the hood · 1 of 7 · Local models</sub><br>
-Round every number in a model to fewer allowed values, and see what it costs.
+Rounding every number in a model to fewer values saves memory and costs accuracy.
 </td>
-<td width="50%"></td>
 </tr>
 </table>
 
-Coming next. **Using AI:** Retrieval<br>
-**Under the hood:** LoRA · Overfitting · Parrot or thinker? · Scaling laws · Double descent · Contamination
+Coming next. **Under the hood:** LoRA · Overfitting · Parrot or thinker? · Scaling laws · Double descent · Contamination
 <!-- modules:end -->
 
 ## Engine

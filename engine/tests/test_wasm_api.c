@@ -8,6 +8,7 @@
 #include "check.h"
 #include "gb_wasm.h"
 #include "quantize.h"
+#include "retrieve.h"
 #include "stats.h"
 #include "nn.h"
 #include "text.h"
@@ -165,6 +166,19 @@ int main(void) {
     CHECK(near(gb_calib_error(bc2, by2, 2000, 10), 0.21624595124530882), "calibration gap, seed 11");
     free(bc2);
     free(by2);
+
+    /* retrieval: BM25 uses log, so compare with near() */
+    const int rt[10] = {0, 1, 0, 2, 2, 3, 2, 3, 3, 1};
+    const size_t rs[5] = {0, 2, 5, 6, 10};
+    const int rq[3] = {0, 2, 3};
+    const double rw[3] = {1.0, 0.5, 1.0};
+    double rsc[4];
+    gb_bm25(rt, rs, 4, 4, rq, rw, 3, 1.2, 0.75, rsc);
+    const double rref[4] = {0.75491277090687114, 1.0918851713062039, 0.91862879351318039, 1.0937380371652208};
+    int rm = 1;
+    for (int i = 0; i < 4; i++) rm &= near(rsc[i], rref[i]);
+    CHECK(rm, "bm25 scores, four pages");
+    CHECK(near(gb_pick_share(rsc, 4, 3, 3, 1.5), 0.34619056439312412), "pick share of the top page among three");
 
     free(a);
     free(q);

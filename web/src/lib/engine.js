@@ -420,6 +420,46 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // Retrieval (see engine/retrieve.h). pages: arrays of word numbers. query:
+    // word numbers, with an optional weight each. Returns one BM25 score per page.
+    bm25(pages, vocab, query, weights, k1 = 1.2, b = 0.75) {
+      const terms = pages.flat();
+      const start = [0];
+      for (const p of pages) start.push(start.at(-1) + p.length);
+      const pt = putInts(terms);
+      const ps = m._malloc(start.length * 4);
+      m.HEAPU32.set(start, ps / 4);
+      const pq = putInts(query);
+      const pw = weights ? put(weights) : 0;
+      const po = m._malloc(pages.length * 8);
+      try {
+        m._gb_bm25(pt, ps, pages.length, vocab, pq, pw, query.length, k1, b, po);
+        return get(po, pages.length);
+      } finally {
+        free(pt, ps, pq, po);
+        if (pw) free(pw);
+      }
+    },
+
+    // where a page ranks (0 is the top), and the chance the model answers from it
+    // when handed the top k pages
+    rankOf(scores, page) {
+      const p = put(scores);
+      try {
+        return m._gb_rank_of(p, scores.length, page);
+      } finally {
+        free(p);
+      }
+    },
+    pickShare(scores, page, k, temperature) {
+      const p = put(scores);
+      try {
+        return m._gb_pick_share(p, scores.length, page, k, temperature);
+      } finally {
+        free(p);
+      }
+    },
+
     latticeCount: (bits, dims) => m._gb_lattice_count(bits, dims),
     quantStep: (maxAbs, bits) => m._gb_quant_step(maxAbs, bits),
     mseTheory: (maxAbs, bits) => m._gb_quant_mse_theory(maxAbs, bits),

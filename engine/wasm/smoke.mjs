@@ -93,6 +93,10 @@ check(calref.every((v, i) => near(cal.conf[i], v)) && cal.correct.join("") === "
 const cbig = gb.calibSample(2000, 0.5, 1.2, 1.5, 11);
 check(near(gb.calibFitShift(cbig.conf, cbig.correct), -1.4101332385950771), "fitted correction, seed 11");
 check(near(gb.calibError(cbig.conf, cbig.correct, 10), 0.21624595124530882), "calibration gap, seed 11");
+const rsc = gb.bm25([[0, 1], [0, 2, 2], [3], [2, 3, 3, 1]], 4, [0, 2, 3], [1, 0.5, 1]);
+const rref = [0.75491277090687114, 1.0918851713062039, 0.91862879351318039, 1.0937380371652208];
+check(rref.every((v, i) => near(rsc[i], v)), "bm25 scores, four pages: " + Array.from(rsc));
+check(near(gb.pickShare(rsc, 3, 3, 1.5), 0.34619056439312412) && gb.rankOf(rsc, 3) === 0, "pick share and rank of the top page");
 
 // 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);
