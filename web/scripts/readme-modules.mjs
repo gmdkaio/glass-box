@@ -10,6 +10,7 @@ import { TEXTS, tokenize } from '../src/lib/text-model.js';
 import { WORDS, PROMPTS } from '../src/lib/sampling-sim.js';
 import { chalk } from '../src/lib/colors.js';
 import { CORPUS } from '../src/lib/tokenization-corpus.js';
+import { PAGES, QUESTIONS, search } from '../src/lib/retrieval-sim.js';
 import { loadEngine } from '../src/lib/engine.js';
 import createModule from '../src/lib/wasm/glassbox.mjs';
 
@@ -290,7 +291,43 @@ function calibration() {
 	return svg(css, body);
 }
 
-const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, quantization };
+// Retrieval: the first-bus question searched three ways. Bars are the top pages'
+// search scores; the handed-over pages are bright, the right page is ticked, and the
+// line under them says what the model most likely answers. Scores come from the engine.
+function retrieval() {
+	const q = QUESTIONS[0];
+	const STAGES = [
+		{ text: q.same, meaning: false, old: true, note: 'old timetable kept' },
+		{ text: q.same, meaning: false, old: false, note: 'old timetable removed' },
+		{ text: q.other, meaning: false, old: false, note: 'asked with other words' }
+	];
+	const k = 2, rows = 4, x0 = 32, barX = 250, barW = 260, y0 = 72, gap = 34;
+	let css = '';
+	let body = `<text x="32" y="36">the search picks the pages, the model answers from them</text>`;
+	STAGES.forEach((st, s) => {
+		const r = search(gb, st.text, st.meaning, st.old, k);
+		const most = Math.max(r[0].score, 1e-9);
+		const best = r.filter((x) => x.handed).sort((a, b) => b.share - a.share)[0];
+		const said = best ? q.answers[best.page] ?? 'a guess' : 'a guess';
+		css += steps(`r${s}`, 'opacity', STAGES.map((_, i) => (i === s ? 1 : 0)));
+		css += `.r${s}{animation:r${s} 9s infinite}`;
+		let g = '';
+		r.slice(0, rows).forEach((x, i) => {
+			const y = y0 + i * gap;
+			const bright = x.handed ? chalk.bright : chalk.line;
+			const title = PAGES[x.page].title + (x.page === q.page ? ' ✓' : '');
+			g += `<text x="${x0}" y="${y + 13}" style="fill:${x.handed ? chalk.bright : chalk.dim}">${title}</text>`;
+			g += `<rect x="${barX}" y="${y}" width="${n(Math.max((x.score / most) * barW, 2))}" height="16" rx="2" fill="${bright}"/>`;
+		});
+		const right = best && best.page === q.page;
+		g += `<text x="${x0}" y="236" style="font-size:20px;fill:${chalk.bright}">answers "${said}" ${right ? '✓' : '✗'}</text>`;
+		g += `<text x="${x0}" y="270">${st.note}</text>`;
+		body += `<g class="r${s}">${g}</g>`;
+	});
+	return svg(css, body);
+}
+
+const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization };
 
 function card(m) {
 	const at = where(m.slug);
