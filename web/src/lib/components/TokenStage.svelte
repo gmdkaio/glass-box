@@ -1,6 +1,7 @@
 <script>
 	import { scale } from 'svelte/transition';
 	import { eased } from '$lib/motion.svelte.js';
+	import PlayButton from '$lib/components/PlayButton.svelte';
 
 	const still = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -8,7 +9,8 @@
 	// merges. langs: the same sentence in each language, with its own curve.
 	// merges: how many merges are in use. learned: how many there are.
 	// pace: how long each change eases, shorter while a sweep plays.
-	let { pieces, curve, langs, merges, learned, pace = 450 } = $props();
+	// play: the sweep's button, shown in the merges chart's header.
+	let { pieces, curve, langs, merges, learned, play, pace = 450 } = $props();
 
 	const line = eased(() => (curve ? Array.from(curve) : null), () => pace);
 	const at = eased(() => merges, () => pace);
@@ -60,7 +62,10 @@
 	</div>
 
 	<div class="border-b px-4 py-3.5 lg:border-r lg:border-b-0">
-		<h3 class="text-xs font-medium">More merges, fewer pieces</h3>
+		<div class="flex items-start justify-between gap-2">
+			<h3 class="text-xs font-medium">More merges, fewer pieces</h3>
+			<PlayButton {play} />
+		</div>
 		<p class="mt-3 text-xs text-muted-foreground">Tokens in your text, by how many merges the tokenizer has learned.</p>
 		<div role="img" aria-label="The token count falls as the tokenizer learns more merges.">
 			<svg viewBox="0 0 300 175" class="w-full">

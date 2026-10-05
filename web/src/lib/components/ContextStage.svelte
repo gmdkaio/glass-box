@@ -1,4 +1,5 @@
 <script>
+	import PlayButton from '$lib/components/PlayButton.svelte';
 	import { QUESTION, MAX_SENTENCES, TRIALS, percent } from '$lib/context-sim.js';
 	import { eased } from '$lib/motion.svelte.js';
 
@@ -6,7 +7,8 @@
 	// lengths, places: the key's average share by context length and by place.
 	// n, place: the current length and place, for the rings.
 	// pace: how long each change eases, shorter while a sweep plays.
-	let { sentences, lengths, places, n, place, pace = 450 } = $props();
+	// play: the sweep's button, shown in the length chart's header.
+	let { sentences, lengths, places, n, place, play, pace = 450 } = $props();
 
 	// the curves and the share bars ease to new values; the bars jump when the count changes
 	const curves = eased(
@@ -80,7 +82,10 @@
 	</div>
 
 	<div class="border-b px-4 py-3.5 lg:border-r lg:border-b-0">
-		<h3 class="text-xs font-medium">More text, a smaller share</h3>
+		<div class="flex items-start justify-between gap-2">
+			<h3 class="text-xs font-medium">More text, a smaller share</h3>
+			<PlayButton {play} />
+		</div>
 		<p class="mt-3 text-xs text-muted-foreground">The answer's share of attention, by how many sentences you paste.</p>
 		<div role="img" aria-label="The answer's share of attention falls as the context gets longer.">
 			<svg viewBox="0 0 300 175" class="w-full">

@@ -1,11 +1,13 @@
 <script>
 	import { QUESTIONS, HARD, SURE, HARD_STEPS, SURE_STEPS, phrase, percent } from '$lib/calibration-sim.js';
 	import { eased } from '$lib/motion.svelte.js';
+	import PlayButton from '$lib/components/PlayButton.svelte';
 
 	// answers: one typical answer each from an easy, a middling and a hard quiz.
 	// q: the quiz set by the sliders. hard, shift: the two settings, for the rings.
 	// hardCurve, boldCurve: says and right along each setting. pace: easing time.
-	let { answers, q, hard, shift, hardCurve, boldCurve, pace = 450 } = $props();
+	// play: the sweep's button, shown in the boldness chart's header.
+	let { answers, q, hard, shift, hardCurve, boldCurve, play, pace = 450 } = $props();
 
 	// the bands from 50% up, where a confident answer sits
 	const bands = $derived(
@@ -54,8 +56,11 @@
 	</div>
 {/snippet}
 
-{#snippet chart(title, xf, says, right, ringX, ringSays, ringRight, ticks, xlabel, aria)}
-	<h3 class="text-xs font-medium">{title}</h3>
+{#snippet chart(title, xf, says, right, ringX, ringSays, ringRight, ticks, xlabel, aria, button)}
+	<div class="flex items-start justify-between gap-2">
+		<h3 class="text-xs font-medium">{title}</h3>
+		<PlayButton play={button} />
+	</div>
 	<div role="img" aria-label={aria}>
 		<svg viewBox="0 0 {W} 116" class="mt-1.5 w-full">
 			<g class="stroke-border" stroke-width="1">
@@ -153,7 +158,8 @@
 					at(SURE_STEPS, c.br, rings.current.shift),
 					[0, 1, 2, 3].map((t) => ({ x: toX(t, SURE.min, SURE.max), label: t === 0 ? 'honest' : `+${t}`, anchor: t === 0 ? 'start' : t === 3 ? 'end' : 'middle' })),
 					'how much surer than its record it sounds',
-					'As the model gets bolder, how sure it sounds rises while how often it is right stays the same.'
+					'As the model gets bolder, how sure it sounds rises while how often it is right stays the same.',
+					play
 				)}
 			</div>
 			<div class="mt-1 text-xs text-muted-foreground">Solid: how sure it sounds. Dashed: how often it is right. The rings mark your settings.</div>

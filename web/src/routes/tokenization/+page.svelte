@@ -93,7 +93,15 @@
 	{/snippet}
 
 	{#snippet stage()}
-		<TokenStage {pieces} {curve} {langs} {merges} {learned} pace={sweep.playing ? 140 : 450} />
+		<TokenStage
+			{pieces}
+			{curve}
+			{langs}
+			{merges}
+			{learned}
+			play={{ playing: sweep.playing, label: 'Train the tokenizer', onclick: playSweep, disabled: !gb }}
+			pace={sweep.playing ? 140 : 450}
+		/>
 	{/snippet}
 
 	{#snippet legend()}
@@ -120,7 +128,6 @@
 				</div>
 				<Slider type="single" bind:value={merges} min={0} max={Math.max(learned, 1)} step={1} disabled={!gb} onValueChange={() => sweep.stop()} />
 				<div class="mt-3 flex flex-wrap gap-1.5">
-					<Button size="sm" onclick={playSweep} disabled={!gb}>{sweep.playing ? 'Stop' : 'Train the tokenizer'}</Button>
 					<Button size="sm" variant="outline" onclick={() => (sweep.stop(), (merges = 0))} disabled={!gb}>No merges</Button>
 					<Button size="sm" variant="outline" onclick={() => (sweep.stop(), (merges = learned))} disabled={!gb}>All merges</Button>
 				</div>
