@@ -31,16 +31,16 @@ export const parts = [
 ];
 
 export const trapCard =
-	'Pasting everything feels safe, because nothing is left out. But the model does not read like a careful person with a highlighter. More text gives the one line that matters a smaller share.';
+	'Pasting everything feels safe, because nothing is left out. But every extra line takes a share of the attention, so the one line that matters gets less.';
 
 export const why = [
 	{
 		title: 'Paste less',
-		text: 'Give the part of the document that matters, not the whole thing. A shorter context leaves a bigger share for each line in it.'
+		text: 'Give only the part of the document that matters. A shorter context leaves a bigger share for each line in it.'
 	},
 	{
 		title: 'Put it first or last',
-		text: 'If you have to paste something long, put your question and the key passage at the start or the end, not buried in the middle.'
+		text: 'If you have to paste something long, put your question and the key passage at the start or the end, where they get the most attention.'
 	},
 	{
 		title: 'Point at it',
@@ -52,7 +52,7 @@ export const why = [
 	}
 ];
 
-export const whyLead = 'You decide what goes into the context. Less, better placed and clearly pointed at beats more.';
+export const whyLead = 'You decide what goes into the context: keep it short, put the key part first or last, and say where to look.';
 
 export const whyDraft =
 	'Draft copy. Before release, source the claim about the middle of long inputs (the "lost in the middle" studies) and check how much current long-context models still show it, which varies by model.';
@@ -63,7 +63,7 @@ export const hoodNote =
 export const next = [
 	{
 		title: 'Next: tokenization',
-		text: 'The model reads pieces of words, not letters or sentences. Why it miscounts letters, and why some languages cost more.'
+		text: 'The model reads text as pieces of words. Why it miscounts letters, and why some languages cost more.'
 	},
 	{
 		title: 'Then: calibration',

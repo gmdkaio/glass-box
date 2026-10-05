@@ -13,7 +13,7 @@ export function say(variety, chance) {
 }
 
 export function trap(variety) {
-	if (variety === 0) return 'Same every time is not the same as right. If the top pick is wrong, it is wrong every time.';
+	if (variety === 0) return 'If the top pick is wrong, it is wrong every time.';
 	return 'A clearer question does more than anything else you can change: it moves the odds toward what you meant.';
 }
 
@@ -38,24 +38,24 @@ export const shapes = [
 export const why = [
 	{
 		title: 'Say what you mean',
-		text: 'The model cannot read your mind. A vague question spreads the odds over answers you did not intend. Name the topic, the format and the limits, like the specific question above.'
+		text: 'A vague question spreads the odds over answers you did not intend. Name the topic, the format and the limits, like the specific question above.'
 	},
 	{
 		title: 'Ask twice',
-		text: 'If two answers to the same question disagree, treat the answer as uncertain and check it. If they agree it is a better sign, but not proof: the model can repeat the same mistake.'
+		text: 'If two answers to the same question disagree, treat the answer as uncertain and check it. If they agree it is a better sign, though the model can repeat the same mistake.'
 	},
 	{
 		title: 'Check what matters',
-		text: 'A smooth answer is not a verified one. For facts, numbers and names, ask for sources or look them up.'
+		text: 'A smooth answer can still be wrong. For facts, numbers and names, ask for sources or look them up.'
 	},
 	{
 		title: 'One answer is one roll',
-		text: 'A wrong answer does not mean the model can never get it right, and a right answer does not mean it always will. Judge it over a few tries.'
+		text: 'One answer says little about the next one. Judge the model over a few tries.'
 	}
 ];
 
 export const whyLead =
-	'You cannot see the odds, and you usually cannot change the variety setting. You can change what you write and how you check the result.';
+	'What you write and how you check the result are the parts you control.';
 
 export const whyDraft =
 	"Draft copy. Before release, check each product's docs for whether a variety or temperature setting is exposed, its range and default, and whether other settings such as top-p apply. These differ by provider and model.";

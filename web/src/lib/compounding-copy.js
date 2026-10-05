@@ -13,7 +13,7 @@ export function say(odds) {
 
 export function trap(every, plain, checked) {
 	if (every === 0)
-		return 'Each step on its own looks reliable. The chance that every one of them is right is what shrinks.';
+		return 'Each step on its own looks reliable, but the chance that all of them are right shrinks with every step.';
 	if (checked - plain < 0.02)
 		return 'The checks barely help here. A check can only send work back if it notices the mistake.';
 	return 'The checks win back most of what the length cost, by sending a section back while the mistake is still nearby.';
@@ -34,7 +34,7 @@ export function runSay(outcome, brokenAt, every, redos) {
 export const parts = [
 	{
 		title: 'Small odds multiply',
-		text: 'Every step has to be right. 95% times 95% is already 90%, and twenty of them make 36%. The chain is only as good as all its links together.'
+		text: 'Every step has to be right. 95% times 95% is already 90%, and twenty of them make 36%.'
 	},
 	{
 		title: 'Early mistakes cost the most',
@@ -47,7 +47,7 @@ export const parts = [
 ];
 
 export const trapCard =
-	'A check that misses a mistake looks exactly like a check that passed. Weak checks give you confidence without the safety, so test your checks too.';
+	'A check that misses a mistake looks exactly like a check that passed, so test your checks too: give them a known mistake and see if they catch it.';
 
 export const why = [
 	{
@@ -56,7 +56,7 @@ export const why = [
 	},
 	{
 		title: 'Check early',
-		text: 'Look at the plan or the first file before the model builds on it. A mistake caught at step 2 costs two steps to fix, not twenty.'
+		text: 'Look at the plan or the first file before the model builds on it. A mistake caught at step 2 costs two steps to redo; one caught at step 20 costs twenty.'
 	},
 	{
 		title: 'Give it a way to check itself',
@@ -69,10 +69,10 @@ export const why = [
 ];
 
 export const whyLead =
-	'You cannot make each step perfect. You can make chains shorter and put checks in between.';
+	'Two things help most: shorter chains, and checks in between.';
 
 export const whyDraft =
-	'Draft copy. Real steps are not independent coin flips: some mistakes get fixed by later steps, and others make later ones more likely. Before release, find sources on how agent success rates fall with task length, and on how often self-checks catch errors.';
+	'Draft copy. Real steps depend on each other: some mistakes get fixed by later steps, and others make later ones more likely. Before release, find sources on how agent success rates fall with task length, and on how often self-checks catch errors.';
 
 export const hoodNote =
 	'Steps here are independent and equally reliable, and a missed mistake always spoils the task. Real tasks are messier: some steps are harder than others, and a later step can sometimes repair an earlier one.';
@@ -84,6 +84,6 @@ export const next = [
 	},
 	{
 		title: 'Then: tokenization',
-		text: 'The model reads pieces of words, not letters. Why it miscounts letters, and why some languages cost more.'
+		text: 'The model reads text as pieces of words. Why it miscounts letters, and why some languages cost more.'
 	}
 ];

@@ -43,7 +43,7 @@ Paste more text and the sentence that holds the answer gets a smaller share of a
 <a href="https://gmdkaio.github.io/glass-box/tokenization"><img src=".github/assets/modules/tokenization.svg" alt="Tokenization" width="100%"></a><br>
 <b><a href="https://gmdkaio.github.io/glass-box/tokenization">Tokenization</a></b><br>
 <sub>Using AI · 5 of 7</sub><br>
-The model reads numbered chunks, not letters. See why it miscounts the r in strawberry and why other languages cost more.
+The model reads text as numbered chunks. See why it miscounts the r in strawberry and why other languages cost more.
 </td>
 <td width="50%" valign="top">
 <a href="https://gmdkaio.github.io/glass-box/quantization"><img src=".github/assets/modules/quantization.svg" alt="Shrinking a model" width="100%"></a><br>

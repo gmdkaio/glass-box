@@ -31,7 +31,7 @@ export function trap(bits) {
 	if (bits >= 7) return 'More precision costs memory and buys almost nothing you could see.';
 	if (bits >= 3)
 		return 'This is the zone where shrinking pays off: a lot of memory saved for a small loss.';
-	return 'Fewer choices did not make it safer. Each number is now far from where it should be.';
+	return 'With so few choices, each number is now far from where it should be.';
 }
 
 export const why = [
@@ -41,7 +41,7 @@ export const why = [
 	},
 	{
 		title: 'Guardrails',
-		text: 'Check the output instead of trusting it: validate formats, run the code it writes, compare numbers against the source. Rounded models drift in small ways, so checks matter more.'
+		text: 'Check the output: validate formats, run the code it writes, compare numbers against the source. Rounded models drift in small ways, so checks matter more.'
 	},
 	{
 		title: 'Harness',
@@ -61,7 +61,7 @@ export const floatNote =
 export const next = [
 	{
 		title: 'Next: overfitting and grokking',
-		text: 'Too few bits throws away detail. Too much capacity can memorize instead of understand. The question there is the reverse: when does more stop helping?'
+		text: 'Too few bits throws away detail. Too much capacity can memorize the training text. The question there is when more stops helping.'
 	},
 	{
 		title: 'Then: calibration and LoRA',

@@ -18,7 +18,7 @@ export function say(word, isStart, top, networkP, textP) {
 }
 
 export const trap =
-	'The network picks words that tend to follow each other. It does not check whether the result is true. A smooth sentence can describe something that never happened, and the sentences below are made that way.';
+	'The network picks words that tend to follow each other, whether or not the result is true. A smooth sentence can describe something that never happened, and the sentences below are made that way.';
 
 export const why = [
 	{
@@ -26,12 +26,12 @@ export const why = [
 		text: 'Your message is the start of the text the model keeps writing. How you begin shapes where it goes.'
 	},
 	{
-		title: 'Likely is not the same as true',
+		title: 'Likely can still be wrong',
 		text: 'It picks words that tend to follow, so a smooth sentence can still be wrong. Check the things that matter.'
 	},
 	{
-		title: 'It picks, it does not look up',
-		text: 'No answer is sitting in a database. Each word is chosen from odds, which is why the same question can get different answers.'
+		title: 'It picks from odds',
+		text: 'Each word is chosen from odds, which is why the same question can get different answers.'
 	},
 	{
 		title: 'It reuses what it has seen',
@@ -55,7 +55,7 @@ export const teachingNote =
 	'Teaching: for every pair of words in the text, nudge every number a little in the direction that makes the right next word likelier (gradient descent). Repeat over the whole text many times.';
 
 export const hoodNote =
-	'A real model has billions of these numbers, reads far more than the last word, and is taught on far more text. Its parts are arranged differently (transformers, with attention), but the idea is the same: numbers that were nudged until the odds fit the text.';
+	'A real model has billions of these numbers, reads far more than the last word, and is taught on far more text. Its parts are arranged differently (transformers, with attention), and it is still a set of numbers nudged until the odds fit the text.';
 
 export const next = [
 	{

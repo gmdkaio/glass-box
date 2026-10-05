@@ -24,7 +24,7 @@ export const modules = [
 	{ track: 'using', slug: 'context', title: 'Context', ready: true,
 		blurb: 'Paste more text and the sentence that holds the answer gets a smaller share of attention.' },
 	{ track: 'using', slug: 'tokenization', title: 'Tokenization', ready: true,
-		blurb: 'The model reads numbered chunks, not letters. See why it miscounts the r in strawberry and why other languages cost more.' },
+		blurb: 'The model reads text as numbered chunks. See why it miscounts the r in strawberry and why other languages cost more.' },
 	{ track: 'using', slug: 'calibration', title: 'Calibration', ready: false },
 	{ track: 'using', slug: 'retrieval', title: 'Retrieval', ready: false },
 	{ track: 'under', slug: 'quantization', title: 'Shrinking a model', tag: 'Local models', ready: true,

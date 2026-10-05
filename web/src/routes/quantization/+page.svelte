@@ -214,7 +214,7 @@
 			<div class="rounded-lg border px-4 py-3.5">
 				<h3 class="mb-1.5 text-xs font-medium">The trap</h3>
 				<p class="text-sm leading-relaxed text-muted-foreground">
-					Fewer bits means fewer values to choose from, which sounds simpler and safer. It is not. With fewer choices each number lands further from where it should be, and the model's answers depend on those exact values.
+					Fewer bits means fewer values to choose from, so each number lands further from where it should be, and the model's answers depend on those exact values.
 				</p>
 			</div>
 		</div>

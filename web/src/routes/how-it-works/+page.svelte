@@ -132,7 +132,7 @@
 	total={here.total}
 	tag={here.tag}
 	title="What is an AI actually doing when it answers?"
-	lead="A chat assistant seems to think, but underneath it does one simple thing again and again: a neural network turns the words so far into odds for the next word, one is picked, and the loop repeats. This is a tiny network you can teach and watch."
+	lead="A chat assistant runs one loop: a neural network turns the words so far into odds for the next word, one word is picked, and the loop starts again. This is a tiny network you can teach and watch."
 	whyLead={copy.whyLead}
 >
 	{#snippet presets()}
@@ -222,7 +222,7 @@
 				</p>
 			{/if}
 			<p class="mt-1 text-sm text-muted-foreground">
-				It does not plan the sentence. It only ever decides the next word, from the one before it.
+				It decides one word at a time, from the word before it.
 			</p>
 		{:else}
 			<p class="text-muted-foreground">Loading the engine…</p>

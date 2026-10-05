@@ -72,7 +72,7 @@
 	total={here.total}
 	tag={here.tag}
 	title="Why does the same question give different answers?"
-	lead="A language model does not look up one answer. For every possible next word it works out how well that word fits, turns that into odds, and picks one like weighted dice. Change how you ask, and watch the odds move."
+	lead="For every possible next word, a language model works out how well that word fits, turns that into odds, and picks one like weighted dice. Change how you ask, and watch the odds move."
 	whyLead={copy.whyLead}
 >
 	{#snippet presets()}

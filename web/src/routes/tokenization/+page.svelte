@@ -61,7 +61,7 @@
 	total={here.total}
 	tag={here.tag}
 	title="Why can't the model count the r's in strawberry?"
-	lead="A model never sees your letters. Before it reads anything, the text is cut into tokens, common chunks learned from lots of text, and each token is swapped for a number. Familiar words stay whole; rare words, long numbers and other languages come apart into many small pieces."
+	lead="Before a model reads anything, your text is cut into tokens, common chunks learned from lots of text, and each token is swapped for a number. Familiar words stay whole; rare words, long numbers and other languages come apart into many small pieces."
 	whyLead={copy.whyLead}
 >
 	{#snippet presets()}

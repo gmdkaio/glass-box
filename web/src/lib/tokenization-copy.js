@@ -10,8 +10,8 @@ export function say(perToken) {
 
 export function trap({ digits, foreign, letters }) {
 	if (letters)
-		return 'The model never sees the letters of "strawberry", only a few numbers for its pieces. To count the r\'s it has to remember how each piece is spelled.';
-	if (digits) return 'Long numbers are cut wherever the merges happen to fall, not into ones, tens and hundreds, which makes sums harder than they look.';
+		return 'The model sees "strawberry" as a few numbers, one for each piece. To count the r\'s it has to remember how each piece is spelled.';
+	if (digits) return 'Long numbers are cut wherever the merges happen to fall, so 12,450 can become 1, 2, a comma, 4 and 50. That makes sums harder than they look.';
 	if (foreign)
 		return 'A tokenizer that learned mostly from English has few merges for other languages, so the same meaning takes more tokens. Letters like ã take two bytes, and they can be split.';
 	return 'Frequent English words get one token each. Rare words, names and typos fall apart into pieces.';
@@ -28,12 +28,12 @@ export const parts = [
 	},
 	{
 		title: 'Letters are inside the pieces',
-		text: 'Once "berry" is one token, the letters b, e, r, r, y are not in what the model reads. It can only know them if it has learned how that token is spelled.'
+		text: 'Once "berry" is one token, the model reads it as one number with the letters b, e, r, r, y hidden inside. It can only know them if it has learned how that token is spelled.'
 	}
 ];
 
 export const trapCard =
-	'We read letters, so a question about letters feels trivial. The model reads token numbers, so counting letters, reversing a word or doing sums digit by digit means working on something it cannot directly see.';
+	'A question about letters feels trivial to a person reading letters. The model reads token numbers, so counting letters, reversing a word or doing sums digit by digit means working with something hidden inside them.';
 
 export const why = [
 	{
@@ -54,13 +54,13 @@ export const why = [
 	}
 ];
 
-export const whyLead = 'You cannot change the tokenizer, but you can work around what it hides.';
+export const whyLead = 'A few habits get around what the tokenizer hides.';
 
 export const whyDraft =
 	'Draft copy. Before release, source the language gap (studies of tokenizer cost across languages) with numbers for current tokenizers, and check how today\'s models do on letter counting, which has improved.';
 
 export const hoodNote =
-	'Real tokenizers work the same way but learn from far more text in many languages and keep tens of thousands to a few hundred thousand tokens. Their gap between languages is smaller than in this English-only toy, but it is still there.';
+	'Real tokenizers work the same way but learn from far more text in many languages and keep tens of thousands to a few hundred thousand tokens. Their gap between languages is smaller than in this English-only toy, and it is still there.';
 
 export const next = [
 	{

@@ -49,7 +49,7 @@
 			{#if answers[0] === WANTED}
 				They agree and they are right, which is what you hope for.
 			{:else}
-				They agree, but they are wrong. Agreement is not proof.
+				They agree, and they are all wrong. Asking again shows what the model tends to say, which can be a mistake.
 			{/if}
 		{:else}
 			{wrong} of {ASKS} answers were not what you wanted, and there were {distinct} different answers. If two

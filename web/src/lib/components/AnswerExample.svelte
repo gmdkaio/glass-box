@@ -168,6 +168,6 @@
 		{/if}
 	</p>
 	<p class="mt-2 text-xs text-muted-foreground">
-		A real model stores billions of numbers, not one rule, and some of the errors cancel out. The point is that rounding changes what is stored, and the answers follow it.
+		A real model stores billions of numbers, and some of the errors cancel out. Rounding still changes what is stored, and the answers follow it.
 	</p>
 </div>
