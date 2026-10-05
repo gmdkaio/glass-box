@@ -101,7 +101,7 @@
 	{/snippet}
 
 	{#snippet stage()}
-		<Stage {w} {t} {data} />
+		<Stage {w} {t} {data} play={{ playing: sweeping, label: 'Shrink it step by step', onclick: toggleSweep }} />
 	{/snippet}
 
 	{#snippet legend()}
@@ -132,7 +132,6 @@
 					{/each}
 				</div>
 			</div>
-			<Button onclick={toggleSweep}>{sweeping ? 'Stop' : 'Shrink it step by step'}</Button>
 			<Button variant="outline" onclick={shuffle} disabled={!gb}>New random numbers</Button>
 		</div>
 	{/snippet}

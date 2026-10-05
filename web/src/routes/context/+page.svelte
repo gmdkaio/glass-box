@@ -87,7 +87,15 @@
 	{/snippet}
 
 	{#snippet stage()}
-		<ContextStage {sentences} {lengths} {places} {n} {place} pace={sweep.playing ? 260 : 450} />
+		<ContextStage
+			{sentences}
+			{lengths}
+			{places}
+			{n}
+			{place}
+			play={{ playing: sweep.playing, label: 'Keep pasting', onclick: () => sweep.toggle(SWEEP_LENGTHS, 240, (v) => (n = v)), disabled: !gb }}
+			pace={sweep.playing ? 260 : 450}
+		/>
 	{/snippet}
 
 	{#snippet legend()}
@@ -127,8 +135,7 @@
 					<Button size="sm" variant={middle ? 'default' : 'outline'} onclick={() => (middle = true)}>On</Button>
 					<Button size="sm" variant={middle ? 'outline' : 'default'} onclick={() => (middle = false)}>Off</Button>
 					<span class="w-3"></span>
-					<Button size="sm" onclick={() => sweep.toggle(SWEEP_LENGTHS, 240, (v) => (n = v))} disabled={!gb}>{sweep.playing ? 'Stop' : 'Keep pasting'}</Button>
-					<Button size="sm" variant="outline" onclick={() => (seed += 1)} disabled={!gb} title="Shuffle the other sentences">Shuffle</Button>
+					<Button size="sm" variant="outline" onclick={() => (seed += 1)} disabled={!gb}>Shuffle the other sentences</Button>
 				</div>
 			</div>
 		</div>

@@ -1,4 +1,5 @@
 <script>
+	import PlayButton from '$lib/components/PlayButton.svelte';
 	import { onMount } from 'svelte';
 	import { chalk } from '$lib/colors.js';
 	import { BOX, rotation, project } from '$lib/tesseract.js';
@@ -6,7 +7,8 @@
 
 	// w: the model's numbers. t: the 4 numbers for the tesseract panes.
 	// data: engine results from quantization-sim.js, null until the engine loads.
-	let { w, t, data } = $props();
+	// play: the sweep's button, shown in the stage's corner.
+	let { w, t, data, play } = $props();
 	let canvas;
 
 	const WIDTH = 1900;
@@ -207,4 +209,5 @@
 		<b class="font-medium text-foreground">How far off</b>
 		{#if data}<br />miss {data.dist.toFixed(2)}{/if}
 	</div>
+	<div class="absolute right-3 bottom-2.5 rounded-md bg-background"><PlayButton {play} /></div>
 </div>

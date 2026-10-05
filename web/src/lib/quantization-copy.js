@@ -60,11 +60,11 @@ export const floatNote =
 
 export const next = [
 	{
-		title: 'Next: overfitting and grokking',
-		text: 'Too few bits throws away detail. Too much capacity can memorize the training text. The question there is when more stops helping.'
+		title: 'Next: fitting in memory',
+		text: 'Smaller numbers make the model fit. But every word in the conversation needs memory too, and long chats need a lot of it.'
 	},
 	{
-		title: 'Then: calibration and LoRA',
-		text: 'How sure a model sounds compared with how often it is right, and how a small patch can change a big model without touching most of its numbers.'
+		title: 'Then: embeddings',
+		text: 'That memory holds one list of numbers per word piece. Those lists are how the model represents meaning.'
 	}
 ];

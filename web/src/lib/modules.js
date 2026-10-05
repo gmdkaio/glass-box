@@ -8,7 +8,7 @@ export const tracks = [
 	{
 		id: 'under',
 		title: 'Under the hood',
-		blurb: 'How models are trained, shrunk and adapted. For anyone who has run a model locally or wants to see the machinery.'
+		blurb: 'How a model runs, reads and is fine-tuned. For anyone who runs models locally, fine-tunes them, or wants to start.'
 	}
 ];
 
@@ -31,12 +31,14 @@ export const modules = [
 		blurb: "Before the model answers from documents, a search picks the few pages it gets to read." },
 	{ track: 'under', slug: 'quantization', title: 'Shrinking a model', tag: 'Local models', ready: true,
 		blurb: "Rounding every number in a model to fewer values saves memory and costs accuracy." },
-	{ track: 'under', slug: 'lora', title: 'LoRA', tag: 'Local models', ready: false },
-	{ track: 'under', slug: 'overfitting', title: 'Overfitting', ready: false },
-	{ track: 'under', slug: 'parrot', title: 'Parrot or thinker?', ready: false },
-	{ track: 'under', slug: 'scaling', title: 'Scaling laws', ready: false },
-	{ track: 'under', slug: 'double-descent', title: 'Double descent', ready: false },
-	{ track: 'under', slug: 'contamination', title: 'Contamination', ready: false }
+	{ track: 'under', slug: 'memory', title: 'Fitting in memory', tag: 'Local models', ready: true,
+		blurb: "A model needs memory for its numbers and for a cache that grows with every token of the chat." },
+	{ track: 'under', slug: 'embeddings', title: 'Embeddings', ready: false },
+	{ track: 'under', slug: 'sampling-settings', title: 'Sampling settings', tag: 'Local models', ready: false },
+	{ track: 'under', slug: 'lora', title: 'LoRA', tag: 'Fine-tuning', ready: false },
+	{ track: 'under', slug: 'learning-rate', title: 'Learning rate', tag: 'Fine-tuning', ready: false },
+	{ track: 'under', slug: 'overfitting', title: 'Overfitting', tag: 'Fine-tuning', ready: false },
+	{ track: 'under', slug: 'evaluation', title: 'Evaluating a model', ready: false }
 ];
 
 export function inTrack(id) {

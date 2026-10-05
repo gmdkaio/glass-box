@@ -7,6 +7,7 @@
 #include "context.h"
 #include "check.h"
 #include "gb_wasm.h"
+#include "memory.h"
 #include "quantize.h"
 #include "retrieve.h"
 #include "stats.h"
@@ -179,6 +180,11 @@ int main(void) {
     for (int i = 0; i < 4; i++) rm &= near(rsc[i], rref[i]);
     CHECK(rm, "bm25 scores, four pages");
     CHECK(near(gb_pick_share(rsc, 4, 3, 3, 1.5), 0.34619056439312412), "pick share of the top page among three");
+
+    /* memory: plain arithmetic, so the wasm build must match exactly */
+    CHECK(gb_mem_weights(8.2e9, 4.0, 0.5) == 4612500000.0, "Qwen3-8B at 4 bits plus scales");
+    CHECK(gb_mem_kv(64, 8, 128, 32768.0, 16.0) == 8589934592.0, "Qwen3-32B, 32k tokens: 8 GiB");
+    CHECK(gb_mem_max_tokens(12884901888.0, 4612500000.0, 536870912.0, 36, 8, 128, 16.0) == 52459.0, "longest chat on 12 GiB");
 
     free(a);
     free(q);

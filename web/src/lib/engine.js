@@ -460,6 +460,13 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // Memory (see engine/memory.h), in bytes: the model's numbers, the context
+    // cache for some number of tokens, and the most tokens that fit in a budget
+    memWeights: (params, bits, extraBits) => m._gb_mem_weights(params, bits, extraBits),
+    memKv: (layers, kvHeads, headDim, tokens, bits) => m._gb_mem_kv(layers, kvHeads, headDim, tokens, bits),
+    memMaxTokens: (budget, weights, overhead, layers, kvHeads, headDim, bits) =>
+      m._gb_mem_max_tokens(budget, weights, overhead, layers, kvHeads, headDim, bits),
+
     latticeCount: (bits, dims) => m._gb_lattice_count(bits, dims),
     quantStep: (maxAbs, bits) => m._gb_quant_step(maxAbs, bits),
     mseTheory: (maxAbs, bits) => m._gb_quant_mse_theory(maxAbs, bits),

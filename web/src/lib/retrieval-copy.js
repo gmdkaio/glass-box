@@ -64,10 +64,10 @@ export const hoodNote =
 export const next = [
 	{
 		title: 'Next: shrinking a model',
-		text: 'Under the hood: round every number in a model to fewer allowed values, and see what it costs.'
+		text: 'Under the hood starts with the numbers a model is made of: round each one to fewer allowed values, and see what it costs.'
 	},
 	{
-		title: 'Then: LoRA',
-		text: 'How a small patch can change a big model without touching most of its numbers.'
+		title: 'Then: fitting in memory',
+		text: 'What decides whether a model runs on your machine: its size, its precision and how long the conversation gets.'
 	}
 ];

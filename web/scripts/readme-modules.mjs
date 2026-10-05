@@ -11,6 +11,7 @@ import { WORDS, PROMPTS } from '../src/lib/sampling-sim.js';
 import { chalk } from '../src/lib/colors.js';
 import { CORPUS } from '../src/lib/tokenization-corpus.js';
 import { PAGES, QUESTIONS, search } from '../src/lib/retrieval-sim.js';
+import { budget as memBudget, MODELS as MEM_MODELS } from '../src/lib/memory-sim.js';
 import { loadEngine } from '../src/lib/engine.js';
 import createModule from '../src/lib/wasm/glassbox.mjs';
 
@@ -327,7 +328,34 @@ function retrieval() {
 	return svg(css, body);
 }
 
-const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization };
+// Fitting in memory: Qwen3-32B at 4 bits on a 24 GB card while the chat grows. The
+// bar is the model's numbers plus the context cache; the bright line is the card.
+// At 32k tokens it no longer fits. Sizes come from the engine.
+function memory() {
+	const STAGES = [4096, 16384, 32768, 65536];
+	const GIB = 1024 ** 3;
+	const x0 = 32, width = 536, scale = width / (36 * GIB), y = 96, h = 56;
+	let css = '';
+	let body = `<text x="32" y="36">${MEM_MODELS[2].name} at 4 bits on a 24 GB card</text>`;
+	STAGES.forEach((ctx, s) => {
+		const b = memBudget(gb, 2, 4, ctx, 24, 16);
+		css += steps(`m${s}`, 'opacity', STAGES.map((_, i) => (i === s ? 1 : 0)));
+		css += `.m${s}{animation:m${s} 8s infinite}`;
+		const ww = b.weights * scale, cw = b.cache * scale, ow = b.overhead * scale;
+		let g = `<rect x="${x0}" y="${y}" width="${n(ww)}" height="${h}" rx="3" fill="${chalk.bright}"/>`;
+		g += `<rect x="${n(x0 + ww + 2)}" y="${y}" width="${n(cw)}" height="${h}" fill="${chalk.soft}"/>`;
+		g += `<rect x="${n(x0 + ww + cw + 4)}" y="${y}" width="${n(ow)}" height="${h}" fill="${chalk.line}"/>`;
+		g += `<text x="32" y="216" style="font-size:20px;fill:${chalk.bright}">${(b.total / GIB).toFixed(1)} GB ${b.fits ? 'fits ✓' : 'does not fit ✗'}</text>`;
+		g += `<text x="32" y="250">${ctx / 1024}k tokens of chat: cache ${(b.cache / GIB).toFixed(1)} GB</text>`;
+		body += `<g class="m${s}">${g}</g>`;
+	});
+	const card = n(x0 + 24 * GIB * scale);
+	body += `<line x1="${card}" y1="${y - 14}" x2="${card}" y2="${y + h + 14}" stroke="${chalk.bright}" stroke-width="3"/>`;
+	body += `<text x="${card}" y="${y - 22}" text-anchor="middle" style="fill:${chalk.bright}">24 GB</text>`;
+	return svg(css, body);
+}
+
+const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory };
 
 function card(m) {
 	const at = where(m.slug);

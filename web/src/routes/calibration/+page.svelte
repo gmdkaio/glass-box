@@ -79,7 +79,16 @@
 	{/snippet}
 
 	{#snippet stage()}
-		<CalibStage {answers} {q} {hard} {shift} {hardCurve} {boldCurve} pace={sweep.playing ? 160 : 450} />
+		<CalibStage
+			{answers}
+			{q}
+			{hard}
+			{shift}
+			{hardCurve}
+			{boldCurve}
+			play={{ playing: sweep.playing, label: 'Make it bolder', onclick: playSweep, disabled: !gb }}
+			pace={sweep.playing ? 160 : 450}
+		/>
 	{/snippet}
 
 	{#snippet legend()}
@@ -121,9 +130,8 @@
 				</div>
 			</div>
 			<div>
-				<div class="mb-2 text-xs text-muted-foreground">Watch it change</div>
+				<div class="mb-2 text-xs text-muted-foreground">Questions</div>
 				<div class="flex flex-wrap gap-1.5">
-					<Button size="sm" onclick={playSweep} disabled={!gb}>{sweep.playing ? 'Stop' : 'Make it bolder'}</Button>
 					<Button size="sm" variant="outline" onclick={() => (seed += 1)} disabled={!gb}>New set of questions</Button>
 				</div>
 			</div>

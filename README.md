@@ -62,13 +62,22 @@ Before the model answers from documents, a search picks the few pages it gets to
 <td width="50%" valign="top">
 <a href="https://gmdkaio.github.io/glass-box/quantization"><img src=".github/assets/modules/quantization.svg" alt="Shrinking a model" width="100%"></a><br>
 <b><a href="https://gmdkaio.github.io/glass-box/quantization">Shrinking a model</a></b><br>
-<sub>Under the hood · 1 of 7 · Local models</sub><br>
+<sub>Under the hood · 1 of 8 · Local models</sub><br>
 Rounding every number in a model to fewer values saves memory and costs accuracy.
 </td>
 </tr>
+<tr>
+<td width="50%" valign="top">
+<a href="https://gmdkaio.github.io/glass-box/memory"><img src=".github/assets/modules/memory.svg" alt="Fitting in memory" width="100%"></a><br>
+<b><a href="https://gmdkaio.github.io/glass-box/memory">Fitting in memory</a></b><br>
+<sub>Under the hood · 2 of 8 · Local models</sub><br>
+A model needs memory for its numbers and for a cache that grows with every token of the chat.
+</td>
+<td width="50%"></td>
+</tr>
 </table>
 
-Coming next. **Under the hood:** LoRA · Overfitting · Parrot or thinker? · Scaling laws · Double descent · Contamination
+Coming next. **Under the hood:** Embeddings · Sampling settings · LoRA · Learning rate · Overfitting · Evaluating a model
 <!-- modules:end -->
 
 ## Engine

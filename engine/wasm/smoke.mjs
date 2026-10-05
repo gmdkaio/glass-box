@@ -97,6 +97,8 @@ const rsc = gb.bm25([[0, 1], [0, 2, 2], [3], [2, 3, 3, 1]], 4, [0, 2, 3], [1, 0.
 const rref = [0.75491277090687114, 1.0918851713062039, 0.91862879351318039, 1.0937380371652208];
 check(rref.every((v, i) => near(rsc[i], v)), "bm25 scores, four pages: " + Array.from(rsc));
 check(near(gb.pickShare(rsc, 3, 3, 1.5), 0.34619056439312412) && gb.rankOf(rsc, 3) === 0, "pick share and rank of the top page");
+check(gb.memWeights(8.2e9, 4, 0.5) === 4612500000 && gb.memKv(64, 8, 128, 32768, 16) === 8589934592, "memory: weights and cache");
+check(gb.memMaxTokens(12884901888, 4612500000, 536870912, 36, 8, 128, 16) === 52459, "memory: longest chat on 12 GiB");
 
 // 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);
