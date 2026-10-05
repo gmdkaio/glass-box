@@ -6,6 +6,7 @@
 	import { Slider } from '$lib/components/ui/slider/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import { getEngine } from '$lib/engine-loader.js';
+	import { Sweep } from '$lib/motion.svelte.js';
 	import {
 		SETUPS,
 		SCORE,
@@ -34,12 +35,17 @@
 	const lengths = $derived(gb ? lengthCurve(gb, place, alike, middle) : null);
 	const places = $derived(gb ? placeCurve(gb, n, alike, middle) : null);
 	const here = where('context');
+	const sweep = new Sweep();
+	// lengths for the sweep, closer together where the share changes fastest
+	const SWEEP_LENGTHS = [1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 175, 200];
 
 	onMount(() => {
 		getEngine().then((engine) => (gb = engine));
+		return () => sweep.stop();
 	});
 
 	function setup(s) {
+		sweep.stop();
 		n = s.n;
 		place = s.place;
 		lookalikes = s.lookalikes;
@@ -81,7 +87,7 @@
 	{/snippet}
 
 	{#snippet stage()}
-		<ContextStage {sentences} {lengths} {places} {n} {place} />
+		<ContextStage {sentences} {lengths} {places} {n} {place} pace={sweep.playing ? 260 : 450} />
 	{/snippet}
 
 	{#snippet legend()}
@@ -99,32 +105,32 @@
 					<span>Sentences in the context: {n}</span>
 					<span>1 to {MAX_SENTENCES}</span>
 				</div>
-				<Slider type="single" bind:value={n} min={1} max={MAX_SENTENCES} step={1} />
+				<Slider type="single" bind:value={n} min={1} max={MAX_SENTENCES} step={1} onValueChange={() => sweep.stop()} />
 			</div>
 			<div>
 				<div class="mb-2 flex justify-between text-xs text-muted-foreground">
 					<span>The answer sits {placeName(place)}</span>
 					<span>start to end</span>
 				</div>
-				<Slider type="single" bind:value={place} min={0} max={1} step={0.05} />
+				<Slider type="single" bind:value={place} min={0} max={1} step={0.05} onValueChange={() => sweep.stop()} />
 			</div>
 			<div>
 				<div class="mb-2 flex justify-between text-xs text-muted-foreground">
 					<span>Look-alike sentences: {alike}</span>
 					<span>0 to {MAX_LOOKALIKES}</span>
 				</div>
-				<Slider type="single" bind:value={lookalikes} min={0} max={MAX_LOOKALIKES} step={1} />
+				<Slider type="single" bind:value={lookalikes} min={0} max={MAX_LOOKALIKES} step={1} onValueChange={() => sweep.stop()} />
 			</div>
 			<div>
 				<div class="mb-2 text-xs text-muted-foreground">The middle gets less attention</div>
 				<div class="flex flex-wrap gap-1.5">
 					<Button size="sm" variant={middle ? 'default' : 'outline'} onclick={() => (middle = true)}>On</Button>
 					<Button size="sm" variant={middle ? 'outline' : 'default'} onclick={() => (middle = false)}>Off</Button>
+					<span class="w-3"></span>
+					<Button size="sm" onclick={() => sweep.toggle(SWEEP_LENGTHS, 240, (v) => (n = v))} disabled={!gb}>{sweep.playing ? 'Stop' : 'Keep pasting'}</Button>
+					<Button size="sm" variant="outline" onclick={() => (seed += 1)} disabled={!gb} title="Shuffle the other sentences">Shuffle</Button>
 				</div>
 			</div>
-		</div>
-		<div class="mt-5 flex flex-wrap gap-2.5">
-			<Button variant="outline" onclick={() => (seed += 1)} disabled={!gb}>Shuffle the other sentences</Button>
 		</div>
 	{/snippet}
 

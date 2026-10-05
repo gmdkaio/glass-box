@@ -1,12 +1,22 @@
 <script>
 	import { QUESTION, MAX_SENTENCES, TRIALS, percent } from '$lib/context-sim.js';
+	import { eased } from '$lib/motion.svelte.js';
 
 	// sentences: one context, each with its text, kind and share of attention.
 	// lengths, places: the key's average share by context length and by place.
 	// n, place: the current length and place, for the rings.
-	let { sentences, lengths, places, n, place } = $props();
+	// pace: how long each change eases, shorter while a sweep plays.
+	let { sentences, lengths, places, n, place, pace = 450 } = $props();
 
-	const most = $derived(sentences ? Math.max(...sentences.map((s) => s.share)) : 1);
+	// the curves and the share bars ease to new values; the bars jump when the count changes
+	const curves = eased(
+		() => (lengths && places ? { lengths: lengths.map((p) => p.share), places: places.map((p) => p.share) } : null),
+		() => pace
+	);
+	const bars = eased(() => (sentences ? sentences.map((s) => s.share) : null), () => pace);
+	const ring = eased(() => ({ n, place }), () => pace);
+
+	const most = $derived(bars.current ? Math.max(...bars.current, 1e-9) : 1);
 	const top = $derived(sentences ? [...sentences].sort((a, b) => b.share - a.share).slice(0, 5) : []);
 	const key = $derived(sentences ? sentences.find((s) => s.kind === 'key') : null);
 	const keyRank = $derived(key ? top.indexOf(key) : -1);
@@ -15,8 +25,18 @@
 	const lx = (v) => 30 + (Math.log(v) / Math.log(MAX_SENTENCES)) * 260;
 	const px = (v) => 30 + v * 260;
 	const y = (s) => 140 - s * 130;
-	const nowLength = $derived(lengths ? lengths.reduce((a, b) => (Math.abs(b.n - n) < Math.abs(a.n - n) ? b : a)) : null);
-	const nowPlace = $derived(places ? places.reduce((a, b) => (Math.abs(b.place - place) < Math.abs(a.place - place) ? b : a)) : null);
+	// the rings sit on the curve at your exact setting, read between the computed points
+	function along(xs, ys, v) {
+		if (!ys) return null;
+		if (v <= xs[0]) return ys[0];
+		for (let i = 1; i < xs.length; i++)
+			if (v <= xs[i]) return ys[i - 1] + ((ys[i] - ys[i - 1]) * (v - xs[i - 1])) / (xs[i] - xs[i - 1]);
+		return ys.at(-1);
+	}
+	const lengthXs = $derived(lengths ? lengths.map((p) => Math.log(p.n)) : []);
+	const placeXs = $derived(places ? places.map((p) => p.place) : []);
+	const nowLength = $derived(curves.current ? along(lengthXs, curves.current.lengths, Math.log(ring.current.n)) : null);
+	const nowPlace = $derived(curves.current ? along(placeXs, curves.current.places, ring.current.place) : null);
 </script>
 
 <div class="overflow-hidden rounded-lg border lg:grid lg:min-h-80 lg:grid-cols-[1.3fr_1fr_1fr]">
@@ -28,7 +48,7 @@
 				<line x1="0" y1="52" x2="300" y2="52" class="stroke-border" />
 				{#each sentences as s (s.i)}
 					{@const w = 300 / sentences.length}
-					{@const h = Math.max(1, (s.share / most) * 48)}
+					{@const h = Math.max(1, ((bars.current?.[s.i] ?? s.share) / most) * 48)}
 					<rect
 						x={s.i * w + (w > 3 ? 0.5 : 0)}
 						y={52 - h}
@@ -79,15 +99,15 @@
 					<text x="26" y="143" text-anchor="end">0%</text>
 					<text x="160" y="171" text-anchor="middle">sentences (log scale)</text>
 				</g>
-				{#if lengths}
-					<polyline points={lengths.map((p) => `${lx(p.n)},${y(p.share)}`).join(' ')} fill="none" class="stroke-foreground" stroke-width="2" />
-					{#if nowLength}
-						<circle cx={lx(nowLength.n)} cy={y(nowLength.share)} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
+				{#if lengths && curves.current}
+					<polyline points={lengths.map((p, i) => `${lx(p.n)},${y(curves.current.lengths[i])}`).join(' ')} fill="none" class="stroke-foreground" stroke-width="2" />
+					{#if nowLength !== null}
+						<circle cx={lx(ring.current.n)} cy={y(nowLength)} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
 					{/if}
 				{/if}
 			</svg>
 		</div>
-		<div class="text-xs text-muted-foreground">Averaged over {TRIALS} random contexts per point. The ring marks the nearest length to yours.</div>
+		<div class="text-xs text-muted-foreground">Averaged over {TRIALS} random contexts per point. The ring marks your length.</div>
 	</div>
 
 	<div class="px-4 py-3.5">
@@ -109,10 +129,10 @@
 					<text x="26" y="14" text-anchor="end">100%</text>
 					<text x="26" y="143" text-anchor="end">0%</text>
 				</g>
-				{#if places}
-					<polyline points={places.map((p) => `${px(p.place)},${y(p.share)}`).join(' ')} fill="none" class="stroke-foreground" stroke-width="2" />
-					{#if nowPlace}
-						<circle cx={px(nowPlace.place)} cy={y(nowPlace.share)} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
+				{#if places && curves.current}
+					<polyline points={places.map((p, i) => `${px(p.place)},${y(curves.current.places[i])}`).join(' ')} fill="none" class="stroke-foreground" stroke-width="2" />
+					{#if nowPlace !== null}
+						<circle cx={px(ring.current.place)} cy={y(nowPlace)} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
 					{/if}
 				{/if}
 			</svg>

@@ -1,9 +1,14 @@
 <script>
 	import { WORDS, WANTED, SILLY, T_MAX } from '$lib/sampling-sim.js';
+	import { eased } from '$lib/motion.svelte.js';
 
 	// points: the odds of the wanted and the silliest word at each variety setting.
 	// variety and odds: the current setting and the odds at it, for the rings.
 	let { points, variety, odds } = $props();
+
+	// the rings slide along the curves instead of jumping
+	const ring = eased(() => (odds ? { t: variety, wanted: odds[WANTED], silly: odds[SILLY] } : null), 300);
+	const r = $derived(ring.current);
 
 	const x = (t) => 30 + (t / T_MAX) * 260;
 	const y = (p) => 140 - p * 130;
@@ -30,9 +35,9 @@
 		{#if points}
 			<polyline points={line('wanted')} fill="none" class="stroke-foreground" stroke-width="2" />
 			<polyline points={line('silly')} fill="none" class="stroke-muted-foreground" stroke-width="2" stroke-dasharray="5 4" />
-			{#if odds}
-				<circle cx={x(variety)} cy={y(odds[WANTED])} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
-				<circle cx={x(variety)} cy={y(odds[SILLY])} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
+			{#if r}
+				<circle cx={x(r.t)} cy={y(r.wanted)} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
+				<circle cx={x(r.t)} cy={y(r.silly)} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
 			{/if}
 		{/if}
 	</svg>
