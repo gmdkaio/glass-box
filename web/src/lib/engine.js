@@ -350,6 +350,76 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // Calibration (see engine/calib.h): n answers, each with a stated confidence
+    // and whether it was right. shift > 0 makes the model sound surer than it is.
+    calibSample(n, mean, spread, shift, seed) {
+      const pc = m._malloc(n * 8);
+      const py = m._malloc(n * 4);
+      try {
+        m._gb_calib_sample(n, mean, spread, shift, seed >>> 0, pc, py);
+        return { conf: get(pc, n), correct: m.HEAP32.slice(py / 4, py / 4 + n) };
+      } finally {
+        free(pc, py);
+      }
+    },
+
+    // per bin of stated confidence: how many answers, their average confidence, the share right
+    calibBins(conf, correct, bins) {
+      const n = conf.length;
+      const pc = put(conf);
+      const py = putInts(correct);
+      const pk = m._malloc(bins * 4);
+      const ps = m._malloc(bins * 8);
+      const pr = m._malloc(bins * 8);
+      try {
+        m._gb_calib_bins(pc, py, n, bins, pk, ps, pr);
+        return { count: m.HEAPU32.slice(pk / 4, pk / 4 + bins), stated: get(ps, bins), right: get(pr, bins) };
+      } finally {
+        free(pc, py, pk, ps, pr);
+      }
+    },
+
+    calibError(conf, correct, bins) {
+      const pc = put(conf);
+      const py = putInts(correct);
+      try {
+        return m._gb_calib_error(pc, py, conf.length, bins);
+      } finally {
+        free(pc, py);
+      }
+    },
+
+    calibBrier(conf, correct) {
+      const pc = put(conf);
+      const py = putInts(correct);
+      try {
+        return m._gb_calib_brier(pc, py, conf.length);
+      } finally {
+        free(pc, py);
+      }
+    },
+
+    // the log-odds shift that makes the confidences fit the outcomes best
+    calibFitShift(conf, correct) {
+      const pc = put(conf);
+      const py = putInts(correct);
+      try {
+        return m._gb_calib_fit_shift(pc, py, conf.length);
+      } finally {
+        free(pc, py);
+      }
+    },
+
+    calibApply(conf, shift) {
+      const pc = put(conf);
+      try {
+        m._gb_calib_apply(pc, conf.length, shift, pc);
+        return get(pc, conf.length);
+      } finally {
+        free(pc);
+      }
+    },
+
     latticeCount: (bits, dims) => m._gb_lattice_count(bits, dims),
     quantStep: (maxAbs, bits) => m._gb_quant_step(maxAbs, bits),
     mseTheory: (maxAbs, bits) => m._gb_quant_mse_theory(maxAbs, bits),

@@ -87,6 +87,12 @@ check(bp.join(",") === "97,116,32,116,104,101,257,258,32,99,260,256", "bpe merge
 check(gb.bpeEncode("the rat sat on the cat", bp, 99).join(",") === "116,258,32,114,256,32,115,256,32,111,110,259,261", "bpe tokens, merges capped");
 check(gb.bpeCurve("the rat sat on the cat", bp, 6).join(",") === "22,19,18,16,15,14,13", "bpe curve");
 check(new TextDecoder().decode(gb.bpeTokenBytes(bp, 261)) === " cat", "token 261 spells space cat");
+const cal = gb.calibSample(6, 0.5, 1.2, 1.5, 7);
+const calref = [0.96031046943995801, 0.61853342625539787, 0.79655089648119859, 0.95192758624797036, 0.97923714021587704, 0.95690572240863769];
+check(calref.every((v, i) => near(cal.conf[i], v)) && cal.correct.join("") === "011011", "calibration answers, seed 7");
+const cbig = gb.calibSample(2000, 0.5, 1.2, 1.5, 11);
+check(near(gb.calibFitShift(cbig.conf, cbig.correct), -1.4101332385950771), "fitted correction, seed 11");
+check(near(gb.calibError(cbig.conf, cbig.correct, 10), 0.21624595124530882), "calibration gap, seed 11");
 
 // 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);
