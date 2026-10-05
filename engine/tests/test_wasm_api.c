@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "bpe.h"
 #include "chain.h"
 #include "context.h"
 #include "check.h"
@@ -130,6 +131,21 @@ int main(void) {
     CHECK(cmatch, "context scores, seed 7");
     CHECK(near(gb_context_share(50, 0.5, 4.0, 1.0, 3, 3.0, 1.5, 200, 11u), 0.17823580956305038),
           "key share in the middle of 50 sentences, seed 11");
+
+    /* bpe: whole numbers only, so the wasm build must match exactly */
+    const unsigned char *bt = (const unsigned char *)"the cat sat on the mat. the cat ran to the hat.";
+    int bp[40];
+    CHECK(gb_bpe_train(bt, 47, 20, bp) == 6, "six merges from the cat text");
+    const int bpref[12] = {97, 116, 32, 116, 104, 101, 257, 258, 32, 99, 260, 256};
+    int bmatch = 1;
+    for (int i = 0; i < 12; i++) bmatch &= bp[i] == bpref[i];
+    CHECK(bmatch, "merges: at, space t, he, space the, space c, space cat");
+    int bi[22];
+    const int biref[13] = {116, 258, 32, 114, 256, 32, 115, 256, 32, 111, 110, 259, 261};
+    CHECK(gb_bpe_encode((const unsigned char *)"the rat sat on the cat", 22, bp, 6, bi) == 13, "13 tokens");
+    bmatch = 1;
+    for (int i = 0; i < 13; i++) bmatch &= bi[i] == biref[i];
+    CHECK(bmatch, "tokens of the rat sat on the cat");
 
     free(a);
     free(q);
