@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "bpe.h"
+#include "calib.h"
 #include "chain.h"
 #include "context.h"
 #include "check.h"
@@ -146,6 +147,24 @@ int main(void) {
     bmatch = 1;
     for (int i = 0; i < 13; i++) bmatch &= bi[i] == biref[i];
     CHECK(bmatch, "tokens of the rat sat on the cat");
+
+    /* calibration: sigmoid and normal draws use libm, so compare with near() */
+    double cc[6];
+    int cy[6];
+    gb_calib_sample(6, 0.5, 1.2, 1.5, 7u, cc, cy);
+    const double ccref[6] = {0.96031046943995801, 0.61853342625539787, 0.79655089648119859,
+                             0.95192758624797036, 0.97923714021587704, 0.95690572240863769};
+    const int cyref[6] = {0, 1, 1, 0, 1, 1};
+    int cm = 1;
+    for (int i = 0; i < 6; i++) cm &= near(cc[i], ccref[i]) && cy[i] == cyref[i];
+    CHECK(cm, "calibration answers, seed 7");
+    double *bc2 = malloc(2000 * sizeof *bc2);
+    int *by2 = malloc(2000 * sizeof *by2);
+    gb_calib_sample(2000, 0.5, 1.2, 1.5, 11u, bc2, by2);
+    CHECK(near(gb_calib_fit_shift(bc2, by2, 2000), -1.4101332385950771), "fitted correction, seed 11");
+    CHECK(near(gb_calib_error(bc2, by2, 2000, 10), 0.21624595124530882), "calibration gap, seed 11");
+    free(bc2);
+    free(by2);
 
     free(a);
     free(q);

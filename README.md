@@ -46,15 +46,24 @@ Paste more text and the sentence that holds the answer gets a smaller share of a
 The model reads text as numbered chunks. See why it miscounts the r in strawberry and why other languages cost more.
 </td>
 <td width="50%" valign="top">
+<a href="https://gmdkaio.github.io/glass-box/calibration"><img src=".github/assets/modules/calibration.svg" alt="Calibration" width="100%"></a><br>
+<b><a href="https://gmdkaio.github.io/glass-box/calibration">Calibration</a></b><br>
+<sub>Using AI · 6 of 7</sub><br>
+Of all the answers a model gives at 80% confidence, how many are right? See where its confidence and its record drift apart.
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
 <a href="https://gmdkaio.github.io/glass-box/quantization"><img src=".github/assets/modules/quantization.svg" alt="Shrinking a model" width="100%"></a><br>
 <b><a href="https://gmdkaio.github.io/glass-box/quantization">Shrinking a model</a></b><br>
 <sub>Under the hood · 1 of 7 · Local models</sub><br>
 Round every number in a model to fewer allowed values, and see what it costs.
 </td>
+<td width="50%"></td>
 </tr>
 </table>
 
-Coming next. **Using AI:** Calibration · Retrieval<br>
+Coming next. **Using AI:** Retrieval<br>
 **Under the hood:** LoRA · Overfitting · Parrot or thinker? · Scaling laws · Double descent · Contamination
 <!-- modules:end -->
 

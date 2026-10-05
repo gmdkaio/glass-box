@@ -132,7 +132,7 @@
 					{/each}
 				</div>
 			</div>
-			<Button onclick={toggleSweep}>{sweeping ? 'Stop' : 'Play sweep'}</Button>
+			<Button onclick={toggleSweep}>{sweeping ? 'Stop' : 'Shrink it step by step'}</Button>
 			<Button variant="outline" onclick={shuffle} disabled={!gb}>New random numbers</Button>
 		</div>
 	{/snippet}

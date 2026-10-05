@@ -1,13 +1,29 @@
 <script>
+	import { scale } from 'svelte/transition';
+	import { eased } from '$lib/motion.svelte.js';
+
+	const still = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 	// pieces: the current text as tokens. curve: its token count after 0, 1, ...
 	// merges. langs: the same sentence in each language, with its own curve.
 	// merges: how many merges are in use. learned: how many there are.
-	let { pieces, curve, langs, merges, learned } = $props();
+	// pace: how long each change eases, shorter while a sweep plays.
+	let { pieces, curve, langs, merges, learned, pace = 450 } = $props();
+
+	const line = eased(() => (curve ? Array.from(curve) : null), () => pace);
+	const at = eased(() => merges, () => pace);
 
 	const x = (k) => 30 + (k / Math.max(learned, 1)) * 260;
 	const top = $derived(curve ? Math.max(curve[0], 1) : 1);
 	const y = (v) => 140 - (v / top) * 130;
-	const nowTokens = $derived(curve ? curve[Math.min(merges, curve.length - 1)] : 0);
+	// the ring rides the curve, read between whole merges while it moves
+	const nowTokens = $derived.by(() => {
+		const c = line.current;
+		if (!c) return 0;
+		const k = Math.min(Math.max(at.current, 0), c.length - 1);
+		const lo = Math.floor(k);
+		return lo + 1 < c.length ? c[lo] + (c[lo + 1] - c[lo]) * (k - lo) : c[lo];
+	});
 
 	const bills = $derived(langs ? langs.map((l) => ({ name: l.name, tokens: l.curve[Math.min(merges, l.curve.length - 1)] })) : []);
 	const english = $derived(bills.length ? bills[0].tokens : 1);
@@ -21,8 +37,9 @@
 		<h3 class="text-xs font-medium">What the model reads</h3>
 		{#if pieces}
 			<div class="mt-3 flex flex-wrap gap-1 font-mono text-sm" aria-label="The text cut into tokens">
-				{#each pieces as p (p.i)}
+				{#each pieces as p (`${p.start}:${p.size}`)}
 					<span
+						in:scale={{ start: 0.6, duration: still ? 0 : 220 }}
 						title={tip(p)}
 						class="rounded border px-1 py-0.5 whitespace-pre {p.part
 							? 'border-dashed text-muted-foreground'
@@ -61,8 +78,8 @@
 					<text x="160" y="171" text-anchor="middle">merges learned</text>
 				</g>
 				{#if curve}
-					<polyline points={Array.from(curve, (v, k) => `${x(k)},${y(v)}`).join(' ')} fill="none" class="stroke-foreground" stroke-width="2" />
-					<circle cx={x(merges)} cy={y(nowTokens)} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
+					<polyline points={Array.from(line.current ?? curve, (v, k) => `${x(k)},${y(v)}`).join(' ')} fill="none" class="stroke-foreground" stroke-width="2" />
+					<circle cx={x(at.current)} cy={y(nowTokens)} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
 				{/if}
 			</svg>
 		</div>

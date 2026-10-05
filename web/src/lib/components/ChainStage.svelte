@@ -1,12 +1,19 @@
 <script>
 	import { MAX_STEPS, TRIALS, OUTCOME, replay, percent } from '$lib/compounding-sim.js';
 	import { runSay } from '$lib/compounding-copy.js';
+	import { eased } from '$lib/motion.svelte.js';
 
 	// steps, every: the task length and how often a check runs (0 is never).
 	// run: one run from the engine, or null. shown: how many of its events have played.
 	// trials: the 1,000 runs. odds: the exact chance of finishing clean.
 	// points: the chance of finishing clean at every length, for the curve.
-	let { steps, every, run, shown, trials, odds, points } = $props();
+	// pace: how long each change eases, shorter while a sweep plays.
+	let { steps, every, run, shown, trials, odds, points, pace = 450 } = $props();
+
+	// the curves, the rings and the spoil counts ease to new values
+	const curves = eased(() => (points ? { plain: points.map((p) => p.plain), checked: points.map((p) => p.checked) } : null), () => pace);
+	const at = eased(() => steps, () => pace);
+	const spoilBars = eased(() => (trials ? Array.from(trials.brokenAt) : null), () => pace);
 
 	const done = $derived(run && shown >= run.events.length);
 	const state = $derived(run ? replay(run.events, steps, every, shown) : replay([], steps, every, 0));
@@ -49,12 +56,19 @@
 				]
 			: []
 	);
-	const most = $derived(trials ? Math.max(1, ...trials.brokenAt) : 1);
+	const most = $derived(spoilBars.current ? Math.max(1, ...spoilBars.current) : 1);
 
 	const cx = (n) => 30 + ((n - 1) / (MAX_STEPS - 1)) * 260;
 	const cy = (p) => 140 - p * 130;
-	const line = (key) => (points ? points.map((p) => `${cx(p.n)},${cy(p[key])}`).join(' ') : '');
-	const here = $derived(points ? points[steps - 1] : null);
+	const line = (key) => (points && curves.current ? points.map((p, i) => `${cx(p.n)},${cy(curves.current[key][i])}`).join(' ') : '');
+	// the rings ride the curves at the eased length, read between whole steps
+	function on(key) {
+		const c = curves.current;
+		if (!c) return 0;
+		const k = Math.min(Math.max(at.current - 1, 0), c[key].length - 1);
+		const lo = Math.floor(k);
+		return lo + 1 < c[key].length ? c[key][lo] + (c[key][lo + 1] - c[key][lo]) * (k - lo) : c[key][lo];
+	}
 </script>
 
 <div class="overflow-hidden rounded-lg border lg:grid lg:min-h-80 lg:grid-cols-[1.3fr_1fr_1fr]">
@@ -114,7 +128,7 @@
 			<h4 class="mt-4 text-xs font-medium">Where the spoiling mistake happened</h4>
 			<svg viewBox="0 0 300 70" class="mt-1.5 w-full" role="img" aria-label="Runs spoiled at each step">
 				<line x1="0" y1="56" x2="300" y2="56" class="stroke-border" />
-				{#each trials.brokenAt as c, i (i)}
+				{#each spoilBars.current ?? trials.brokenAt as c, i (i)}
 					<rect
 						x={(i / steps) * 300 + 0.5}
 						y={56 - (c / most) * 52}
@@ -154,10 +168,10 @@
 					{#if every > 0}
 						<polyline points={line('checked')} fill="none" class="stroke-muted-foreground" stroke-width="2" stroke-dasharray="5 4" />
 					{/if}
-					{#if here}
-						<circle cx={cx(steps)} cy={cy(here.plain)} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
+					{#if curves.current}
+						<circle cx={cx(at.current)} cy={cy(on('plain'))} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
 						{#if every > 0}
-							<circle cx={cx(steps)} cy={cy(here.checked)} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
+							<circle cx={cx(at.current)} cy={cy(on('checked'))} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
 						{/if}
 					{/if}
 				{/if}

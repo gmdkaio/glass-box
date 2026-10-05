@@ -255,7 +255,42 @@ function tokenization() {
 	return svg(css, body);
 }
 
-const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, quantization };
+// Calibration: the page's "harder questions, wider gap" chart. How sure the model
+// sounds (solid) and how often it is right (dashed), from very hard questions to easy
+// ones, at the page's default boldness. The rings step from easy to very hard, and
+// the numbers beside them change with each step. Answers come from the engine.
+function calibration() {
+	const avg = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+	const at = (hard) => {
+		const { conf, correct } = gb.calibSample(2000, hard, 1.2, 1.5, 1);
+		return [avg(conf), avg(correct)];
+	};
+	const HARD = Array.from({ length: 31 }, (_, i) => -1.5 + (4.5 * i) / 30);
+	const pts = HARD.map(at);
+	const x0 = 40, width = 330, base = 236, tall = 190;
+	const x = (h) => n(x0 + ((h + 1.5) / 4.5) * width);
+	const y = (v) => n(base - v * tall);
+	const line = (k) => HARD.map((h, i) => `${x(h)},${y(pts[i][k])}`).join(' ');
+	let body = `<text x="32" y="28">harder questions, wider gap</text>`;
+	body += `<line x1="${x0}" y1="${base}" x2="${x0 + width}" y2="${base}" stroke="${chalk.line}"/>`;
+	body += `<polyline points="${line(0)}" fill="none" stroke="${chalk.bright}" stroke-width="3"/>`;
+	body += `<polyline points="${line(1)}" fill="none" stroke="${chalk.soft}" stroke-width="3" stroke-dasharray="8 6"/>`;
+	body += `<text x="${x0}" y="${base + 22}">very hard</text><text x="${x0 + width}" y="${base + 22}" text-anchor="end">easy</text>`;
+	const STOPS = [3, 1.5, 0, -1.5];
+	let css = '';
+	STOPS.forEach((h, s) => {
+		const [says, right] = at(h);
+		css += steps(`q${s}`, 'opacity', STOPS.map((_, i) => (i === s ? 1 : 0)));
+		css += `.q${s}{animation:q${s} 8s infinite}`;
+		body += `<g class="q${s}"><circle cx="${x(h)}" cy="${y(says)}" r="8" fill="none" stroke="${chalk.bright}" stroke-width="2.5"/>`;
+		body += `<circle cx="${x(h)}" cy="${y(right)}" r="8" fill="none" stroke="${chalk.bright}" stroke-width="2.5"/>`;
+		body += `<text x="404" y="120" style="font-size:20px;fill:${chalk.bright}">says ${Math.round(says * 100)}%</text>`;
+		body += `<text x="404" y="152" style="font-size:20px;fill:${chalk.soft}">right ${Math.round(right * 100)}%</text></g>`;
+	});
+	return svg(css, body);
+}
+
+const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, quantization };
 
 function card(m) {
 	const at = where(m.slug);

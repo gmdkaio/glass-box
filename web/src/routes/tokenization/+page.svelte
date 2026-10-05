@@ -7,6 +7,7 @@
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import { getEngine } from '$lib/engine-loader.js';
+	import { Sweep, range } from '$lib/motion.svelte.js';
 	import {
 		SAMPLES,
 		MAX_TEXT,
@@ -41,6 +42,14 @@
 	const steps = $derived(gb && pairs && word ? buildUp(gb, pairs, word, merges) : []);
 	const merged = $derived(gb && pairs ? firstMerges(gb, pairs, 24) : []);
 	const here = where('tokenization');
+	const sweep = new Sweep();
+
+	// learns the merges in front of you, from bytes to whole words. Most of the
+	// visible change comes from the early merges, so the steps start small.
+	function playSweep() {
+		const steps = [...new Set(range(0, 1, 70).map((t) => Math.round(learned * t * t)))];
+		sweep.toggle(steps, 110, (v) => (merges = v));
+	}
 
 	onMount(() => {
 		getEngine().then((engine) => {
@@ -48,6 +57,7 @@
 			merges = pairs.length / 2;
 			gb = engine;
 		});
+		return () => sweep.stop();
 	});
 
 	const sample = $derived(SAMPLES.find((s) => s.text === text));
@@ -70,7 +80,7 @@
 			{#each SAMPLES as s (s.label)}
 				<button
 					type="button"
-					onclick={() => (text = s.text)}
+					onclick={() => (sweep.stop(), (text = s.text))}
 					class="rounded-lg border bg-sidebar px-3.5 py-3 text-left text-sm text-muted-foreground transition-colors hover:border-foreground/40 {sample === s
 						? 'border-foreground bg-muted'
 						: ''}"
@@ -83,7 +93,7 @@
 	{/snippet}
 
 	{#snippet stage()}
-		<TokenStage {pieces} {curve} {langs} {merges} {learned} />
+		<TokenStage {pieces} {curve} {langs} {merges} {learned} pace={sweep.playing ? 140 : 450} />
 	{/snippet}
 
 	{#snippet legend()}
@@ -108,10 +118,11 @@
 					<span>Merges the tokenizer has learned: {merges}</span>
 					<span>0 to {learned}</span>
 				</div>
-				<Slider type="single" bind:value={merges} min={0} max={Math.max(learned, 1)} step={1} disabled={!gb} />
+				<Slider type="single" bind:value={merges} min={0} max={Math.max(learned, 1)} step={1} disabled={!gb} onValueChange={() => sweep.stop()} />
 				<div class="mt-3 flex flex-wrap gap-1.5">
-					<Button size="sm" variant={merges === 0 ? 'default' : 'outline'} onclick={() => (merges = 0)} disabled={!gb}>No merges</Button>
-					<Button size="sm" variant={merges === learned ? 'default' : 'outline'} onclick={() => (merges = learned)} disabled={!gb}>All merges</Button>
+					<Button size="sm" onclick={playSweep} disabled={!gb}>{sweep.playing ? 'Stop' : 'Train the tokenizer'}</Button>
+					<Button size="sm" variant="outline" onclick={() => (sweep.stop(), (merges = 0))} disabled={!gb}>No merges</Button>
+					<Button size="sm" variant="outline" onclick={() => (sweep.stop(), (merges = learned))} disabled={!gb}>All merges</Button>
 				</div>
 			</div>
 		</div>
