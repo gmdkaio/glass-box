@@ -244,6 +244,14 @@ int main(void) {
     CHECK(near(nc[0], 0.98606571256616204) && near(nc[2], 0.86419171247107551), "the loss after passes 1 and 3");
     CHECK(near(gb_lr_at(0.2, GB_LR_COSINE, 3, 10), 0.15877852522924732), "cosine step at pass 4 of 10");
 
+    /* overfitting: watched training and writing; tanh, exp and log, so near() */
+    const int wh[5] = {0, 2, 1, 0, 2}, wo[4] = {1, 0, 1, 0};
+    double wp[64], wtr[4], whl[4], wol[4], wpo[16];
+    gb_nn_init(wp, 3, 4, 5u);
+    gb_nn_train_watch(wp, 3, 4, nt9, 9, wh, 5, wo, 4, wh, 5, 4, 0.2, wtr, whl, wol, wpo);
+    CHECK(near(wtr[3], 0.73182118307926136) && near(whl[3], 1.2557414403293203) && near(wol[3], 1.5004351290954077), "three losses after pass 4");
+    CHECK(near((wpo[12] + wpo[13] + wpo[14] + wpo[15]) / 4.0, 1.2557414403293203), "word surprises of the probe average to its loss");
+
     free(a);
     free(q);
     DONE();

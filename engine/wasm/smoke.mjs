@@ -127,6 +127,10 @@ check(gb.diff(Float64Array.from([1, 2.5, -1]), Float64Array.from([0.5, 2.5, 1]))
 const ncv = gb.nnTrainCurve(gb.nnInit(3, 4, 2), 3, 4, Int32Array.from([0, 1, 2, 0, 1, 2, 0, 2, 1]), 5, 0.3, "cosine");
 check(near(ncv.loss, 0.82580176811655104) && near(ncv.curve[0], 0.98606571256616204) && near(ncv.curve[2], 0.86419171247107551), "cosine, 5 passes: " + Array.from(ncv.curve));
 check(near(gb.lrAt(0.2, "cosine", 3, 10), 0.15877852522924732), "cosine step at pass 4 of 10");
+const wnet = gb.nnInit(3, 4, 5);
+const wat = gb.nnTrainWatch(wnet, 3, 4, Int32Array.from([0, 1, 2, 0, 1, 2, 0, 2, 1]), Int32Array.from([0, 2, 1, 0, 2]), Int32Array.from([1, 0, 1, 0]), Int32Array.from([0, 2, 1, 0, 2]), 4, 0.2);
+const wsum = wat.probe.slice(12, 16).reduce((a, b) => a + b, 0) / 4;
+check(near(wat.train[3], 0.73182118307926136) && near(wat.held[3], 1.2557414403293203) && near(wat.old[3], 1.5004351290954077) && near(wsum, 1.2557414403293203), "three losses and the probe's words, pass 4");
 
 // 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);

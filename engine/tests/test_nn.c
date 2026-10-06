@@ -103,6 +103,33 @@ int main(void) {
     free(s1);
     free(s2);
 
+    /* watching: the three losses and the probe's odds after every pass */
+    const int heldt[5] = {0, 2, 1, 0, 2}, oldt[4] = {1, 0, 1, 0};
+    double *w1 = malloc(n34 * sizeof *w1), *w2 = malloc(n34 * sizeof *w2);
+    double tr[4], hl[4], ol[4], po[16], hid[4], od[3], wl[4];
+    gb_nn_init(w1, 3, 4, 5u);
+    gb_nn_init(w2, 3, 4, 5u);
+    gb_nn_train_watch(w1, 3, 4, sched, 9, heldt, 5, oldt, 4, heldt, 5, 4, 0.2, tr, hl, ol, po);
+    int watched = 1;
+    for (size_t e = 0; e < 4; e++) {
+        watched &= gb_nn_train(w2, 3, 4, sched, 9, 1, 0.2) == tr[e];
+        watched &= gb_nn_loss(w2, 3, 4, heldt, 5) == hl[e] && gb_nn_loss(w2, 3, 4, oldt, 4) == ol[e];
+        gb_nn_word_loss(w2, 3, 4, heldt, 5, wl);
+        for (int i = 0; i < 4; i++) watched &= wl[i] == po[e * 4 + i];
+    }
+    CHECK(watched, "watch: same as training and measuring by hand, pass by pass");
+    gb_nn_init(w1, 3, 4, 5u);
+    CHECK(gb_nn_train_watch(w1, 3, 4, sched, 9, NULL, 0, NULL, 0, NULL, 0, 2, 0.2, NULL, NULL, NULL, NULL) > 0.0, "every output may be left out");
+
+    /* word loss: the per-word surprises average to the text's loss */
+    gb_nn_word_loss(w2, 3, 4, heldt, 5, wl);
+    gb_nn_forward(w2, 3, 4, 0, hid, od);
+    CHECK(fabs(wl[0] + log(od[2])) < 1e-12, "word 1: -ln of its odds after word 0");
+    CHECK(fabs((wl[0] + wl[1] + wl[2] + wl[3]) / 4.0 - gb_nn_loss(w2, 3, 4, heldt, 5)) < 1e-12, "the average is the loss");
+
+    free(w1);
+    free(w2);
+
     free(a);
     free(b);
     free(c);

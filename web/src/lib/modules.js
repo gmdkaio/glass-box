@@ -41,7 +41,8 @@ export const modules = [
 		blurb: "LoRA trains a thin patch beside a frozen model, and a low rank is enough for most changes." },
 	{ track: 'under', slug: 'learning-rate', title: 'Learning rate', tag: 'Fine-tuning', ready: true,
 		blurb: "The learning rate sets how big each training step is: too small barely learns, too big overshoots." },
-	{ track: 'under', slug: 'overfitting', title: 'Overfitting', tag: 'Fine-tuning', ready: false },
+	{ track: 'under', slug: 'overfitting', title: 'Overfitting', tag: 'Fine-tuning', ready: true,
+		blurb: "Trained too long on too little text, a model learns it by heart and gets worse at everything else." },
 	{ track: 'under', slug: 'evaluation', title: 'Evaluating a model', ready: false }
 ];
 
