@@ -20,7 +20,7 @@
 							<Sidebar.MenuItem>
 								<!-- a module with ready: true needs a route named after its slug -->
 								{#if m.ready}
-									<Sidebar.MenuButton isActive={page.url.pathname.includes('/' + m.slug)}>
+									<Sidebar.MenuButton isActive={page.url.pathname.replace(/\/$/, '').endsWith('/' + m.slug)}>
 										{#snippet child({ props })}
 											<a href={resolve(`/${m.slug}`)} {...props}>
 												<span class="w-4 text-muted-foreground">{i + 1}</span>
