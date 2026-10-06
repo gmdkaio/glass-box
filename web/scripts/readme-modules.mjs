@@ -36,14 +36,29 @@ ${body}
 `;
 }
 
-// keyframes that hold each value for its share of the cycle, then jump to the next
-function steps(name, prop, values) {
+// the easing between keyframes: slow out, slow in, so every change glides
+const EASE = 'cubic-bezier(.65,0,.35,1)';
+const pc = (x) => `${+(x * 100).toFixed(2)}%`;
+const run = (name, dur) => `.${name}{animation:${name} ${dur}s infinite ${EASE}}`;
+
+// keyframes that hold each value for most of its share of the cycle, then ease into
+// the next one; the last value eases back into the first
+function tween(name, prop, values, hold = 0.75) {
 	const k = values.length;
-	// two decimals, or the hold's end rounds onto the next start and the browser fades instead
-	const at = (x) => String(+x.toFixed(2));
-	const frames = values.map((v, i) => `${at((i / k) * 100)}%,${at(((i + 1) / k) * 100 - 0.01)}%{${prop}:${v}}`);
-	return `@keyframes ${name}{${frames.join('')}}`;
+	const frames = values.map((v, i) => `${pc(i / k)},${pc((i + hold) / k)}{${prop}:${v}}`);
+	return `@keyframes ${name}{${frames.join('')}100%{${prop}:${values[0]}}}`;
 }
+
+// opacity for scene s of k: shown during its hold, then it fades out in the first half
+// of the gap and the next scene fades in during the second half, so text never overlaps
+function scene(name, k, s, hold = 0.75) {
+	const out = (s + hold) / k, gone = (s + hold + (1 - hold) / 2) / k;
+	if (s === 0) return `@keyframes ${name}{0%,${pc(out)}{opacity:1}${pc(gone)},${pc(1 - (1 - hold) / 2 / k)}{opacity:0}100%{opacity:1}}`;
+	const from = (s - 1 + hold + (1 - hold) / 2) / k;
+	return `@keyframes ${name}{0%,${pc(from)}{opacity:0}${pc(s / k)},${pc(out)}{opacity:1}${pc(gone)},100%{opacity:0}}`;
+}
+// later scenes start hidden, so a still picture (reduced motion) shows only the first
+const hidden = (s) => (s ? ' opacity="0"' : '');
 
 function softmax(scores) {
 	const top = Math.max(...scores);
@@ -81,17 +96,17 @@ function howItWorks() {
 	body += `<line x1="${bx - 8}" y1="${base}" x2="${bx + BARS * (bw + gap)}" y2="${base}" stroke="${chalk.line}"/>`;
 	for (let j = 0; j < BARS; j++) {
 		const x = bx + j * (bw + gap);
-		css += steps(`b${j}`, 'transform', rows.map((r) => `scaleY(${n(r[j].p / most)})`));
-		css += `.b${j}{transform-origin:50% 100%;animation:b${j} 8s infinite}`;
-		css += steps(`h${j}`, 'opacity', rows.map((r) => (r[j].picked ? 1 : 0)));
-		css += `.h${j}{animation:h${j} 8s infinite}`;
+		css += tween(`b${j}`, 'transform', rows.map((r) => `scaleY(${n(r[j].p / most)})`));
+		css += `.b${j}{transform-origin:50% 100%}` + run(`b${j}`, 8);
+		css += tween(`h${j}`, 'opacity', rows.map((r) => (r[j].picked ? 1 : 0)));
+		css += run(`h${j}`, 8);
 		body += `<rect class="fb b${j}" x="${x}" y="${top}" width="${bw}" height="${base - top}" fill="${chalk.line}"/>`;
 		body += `<g class="h${j}"><rect class="fb b${j}" x="${x}" y="${top}" width="${bw}" height="${base - top}" fill="${chalk.bright}"/></g>`;
 	}
 	body += `<text x="${bx - 8}" y="${base + 22}">odds for the next word</text>`;
 	sentence.forEach((word, s) => {
-		css += steps(`w${s}`, 'opacity', sentence.map((_, i) => (i >= s ? 1 : 0)));
-		css += `.w${s}{animation:w${s} 8s infinite}`;
+		// each word fades in as the bars move on to the odds after it
+		if (s) css += tween(`w${s}`, 'opacity', sentence.map((_, i) => (i >= s ? 1 : 0))) + run(`w${s}`, 8);
 		body += `<text class="w${s}" x="${32 + s * 62}" y="150" style="font-size:22px;fill:${chalk.bright}">${word}</text>`;
 	});
 	body += `<rect x="28" y="168" width="250" height="1" fill="${chalk.line}"/>`;
@@ -111,7 +126,10 @@ function sampling() {
 		return i;
 	});
 	const bx = 60, bw = 70, gap = 30, base = 190, tall = 110;
-	const dur = rolls.length * 0.75;
+	// each roll gets a slot: the ball drops, lands, leaves a mark and fades; a short
+	// pause at the end clears the marks before the next round
+	const SLOT = 0.75, PAUSE = 2, slots = rolls.length + PAUSE, dur = slots * SLOT;
+	const at = (i) => i / slots;
 	let body = `<text x="32" y="42">${PROMPTS[1].text} … rolled 12 times</text>`;
 	body += `<line x1="${bx - 10}" y1="${base}" x2="${bx + p.length * (bw + gap) - 20}" y2="${base}" stroke="${chalk.line}"/>`;
 	p.forEach((v, j) => {
@@ -120,16 +138,22 @@ function sampling() {
 		body += `<rect x="${x}" y="${n(base - h)}" width="${bw}" height="${n(h)}" fill="${chalk.line}"/>`;
 		body += `<text x="${x}" y="${base + 20}">${WORDS[j]}</text>`;
 	});
-	let css = steps('die', 'transform', rolls.map((j) => `translate(${bx + j * (bw + gap) + bw / 2}px,0)`));
-	css += `.die{animation:die ${dur}s infinite}`;
-	css += `@keyframes drop{0%{transform:translateY(-26px);opacity:0}25%{opacity:1}55%,100%{transform:translateY(0);opacity:1}}`;
-	css += `.drop{animation:drop .75s infinite ease-in}`;
-	body += `<g class="die"><circle class="drop" cx="0" cy="${base - tall - 18}" r="7" fill="${chalk.bright}"/></g>`;
+	// the ball moves sideways only while it is hidden, between two drops
+	const over = (j) => `translate(${bx + j * (bw + gap) + bw / 2}px,0)`;
+	const moves = rolls.map((j, i) => `${pc(at(i))},${pc(at(i + 1) - 0.0001)}{transform:${over(j)};opacity:1}`);
+	let css = `@keyframes die{${moves.join('')}${pc(at(rolls.length))},100%{transform:${over(rolls.at(-1))};opacity:0}}`;
+	css += `.die{animation:die ${dur}s infinite linear}`;
+	css += `@keyframes drop{0%{transform:translateY(-18px);animation-timing-function:cubic-bezier(.55,0,1,.45)}55%,100%{transform:translateY(0)}}`;
+	css += `@keyframes glow{0%{opacity:0}20%,70%{opacity:1}100%{opacity:0}}`;
+	css += `.drop{animation:drop ${SLOT}s infinite,glow ${SLOT}s infinite ease-out}`;
+	body += `<g class="die"><circle class="drop" cx="0" cy="${base - tall - 12}" r="7" fill="${chalk.bright}"/></g>`;
 	const seen = p.map(() => 0);
 	rolls.forEach((j, i) => {
 		const slot = seen[j]++;
-		css += steps(`t${i}`, 'opacity', rolls.map((_, k) => (k >= i ? 1 : 0)));
-		css += `.t${i}{animation:t${i} ${dur}s infinite}`;
+		// the mark appears as the ball lands and stays until the pause
+		const land = at(i + 0.55);
+		css += `@keyframes t${i}{0%,${pc(land)}{opacity:0}${pc(at(i + 0.75))},${pc(at(rolls.length + 0.4))}{opacity:1}${pc(at(slots - 0.4))},100%{opacity:0}}`;
+		css += `.t${i}{animation:t${i} ${dur}s infinite ease-out}`;
 		const x = bx + j * (bw + gap) + (slot % 5) * 13;
 		body += `<rect class="t${i}" x="${x}" y="${base + 34 + Math.floor(slot / 5) * 13}" width="9" height="9" fill="${chalk.soft}"/>`;
 	});
@@ -174,7 +198,7 @@ function compounding() {
 	for (let i = 0; i < STEPS; i++) {
 		const on = n(4 + (i / STEPS) * 60), x = x0 + i * (size + gap);
 		const lit = wrong >= 0 && i > wrong ? 0.2 : 1;
-		css += `@keyframes s${i}{0%,${on}%{opacity:.12}${n(+on + 1)}%,92%{opacity:${lit}}100%{opacity:.12}}.s${i}{animation:s${i} ${dur}s infinite}`;
+		css += `@keyframes s${i}{0%,${on}%{opacity:.12}${n(+on + 2.5)}%,90%{opacity:${lit}}100%{opacity:.12}}.s${i}{animation:s${i} ${dur}s infinite ease-out}`;
 		body +=
 			i === wrong
 				? `<g class="s${i}"><rect x="${x + 1}" y="${y + 1}" width="${size - 2}" height="${size - 2}" fill="none" stroke="${chalk.bright}" stroke-width="2"/><path d="M${x + 5} ${y + 5}L${x + size - 5} ${y + size - 5}M${x + size - 5} ${y + 5}L${x + 5} ${y + size - 5}" stroke="${chalk.bright}" stroke-width="2"/></g>`
@@ -209,9 +233,9 @@ function context() {
 	body += `<line x1="${x0}" y1="${base}" x2="${x0 + width}" y2="${base}" stroke="${chalk.line}"/>`;
 	for (let i = 0; i < N; i++) {
 		const heights = shares.map((sh) => (i < sh.length ? sh[i] : 0));
-		css += steps(`c${i}`, 'transform', heights.map((h) => `scaleY(${n(Math.max(h, 0.004))})`));
-		css += steps(`o${i}`, 'opacity', heights.map((_, s) => (i < STAGES[s] ? 1 : 0)));
-		css += `.c${i}{transform-origin:50% 100%;animation:c${i} 8s infinite,o${i} 8s infinite}`;
+		css += tween(`c${i}`, 'transform', heights.map((h) => `scaleY(${n(Math.max(h, 0.004))})`));
+		css += tween(`o${i}`, 'opacity', heights.map((_, s) => (i < STAGES[s] ? 1 : 0)));
+		css += `.c${i}{transform-origin:50% 100%;animation:c${i} 8s infinite ${EASE},o${i} 8s infinite ${EASE}}`;
 		const fill = i === KEY ? chalk.bright : scores[i] === 3.2 ? chalk.soft : chalk.line;
 		body += `<rect class="fb c${i}" x="${n(x0 + i * (bw + gap))}" y="${base - tall}" width="${n(bw)}" height="${tall}" fill="${fill}"/>`;
 	}
@@ -234,8 +258,7 @@ function tokenization() {
 	let body = `<text x="32" y="42">the same question, as the model reads it</text>`;
 	STAGES.forEach((k, s) => {
 		const ids = gb.bpeEncode(TEXT, pairs, k);
-		css += steps(`t${s}`, 'opacity', STAGES.map((_, i) => (i === s ? 1 : 0)));
-		css += `.t${s}{animation:t${s} 8s infinite}`;
+		css += scene(`t${s}`, STAGES.length, s) + run(`t${s}`, 8);
 		let g = '';
 		let x = x0, y = y0;
 		ids.forEach((id, i) => {
@@ -253,7 +276,7 @@ function tokenization() {
 		g += `<text x="32" y="${y + row + 36}">model gets: ${got.length > 46 ? got.slice(0, got.lastIndexOf(' ', 45)) + ' …' : got}</text>`;
 		g += `<text x="32" y="236" style="font-size:20px;fill:${chalk.bright}">${ids.length} tokens</text>`;
 		g += `<text x="32" y="276">${k === 0 ? 'no merges: one token per byte' : `after ${k} merges`}</text>`;
-		body += `<g class="t${s}">${g}</g>`;
+		body += `<g class="t${s}"${hidden(s)}>${g}</g>`;
 	});
 	return svg(css, body);
 }
@@ -279,15 +302,33 @@ function calibration() {
 	body += `<polyline points="${line(0)}" fill="none" stroke="${chalk.bright}" stroke-width="3"/>`;
 	body += `<polyline points="${line(1)}" fill="none" stroke="${chalk.soft}" stroke-width="3" stroke-dasharray="8 6"/>`;
 	body += `<text x="${x0}" y="${base + 22}">very hard</text><text x="${x0 + width}" y="${base + 22}" text-anchor="end">easy</text>`;
-	const STOPS = [3, 1.5, 0, -1.5];
+	// stops are points of HARD (3, 1.5, 0, -1.5), so the rings sit exactly on the drawn lines
+	const STOPS = [30, 20, 10, 0];
+	const K = STOPS.length, HOLD = 0.75, MOVES = 16;
+	// a point on line k at a fractional index into HARD
+	const on = (k, f) => {
+		const i = Math.min(Math.floor(f), HARD.length - 2), t = f - i;
+		return [+x(HARD[i] + (HARD[i + 1] - HARD[i]) * t), +y(pts[i][k] + (pts[i + 1][k] - pts[i][k]) * t)];
+	};
+	const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 	let css = '';
-	STOPS.forEach((h, s) => {
-		const [says, right] = at(h);
-		css += steps(`q${s}`, 'opacity', STOPS.map((_, i) => (i === s ? 1 : 0)));
-		css += `.q${s}{animation:q${s} 8s infinite}`;
-		body += `<g class="q${s}"><circle cx="${x(h)}" cy="${y(says)}" r="8" fill="none" stroke="${chalk.bright}" stroke-width="2.5"/>`;
-		body += `<circle cx="${x(h)}" cy="${y(right)}" r="8" fill="none" stroke="${chalk.bright}" stroke-width="2.5"/>`;
-		body += `<text x="404" y="120" style="font-size:20px;fill:${chalk.bright}">says ${Math.round(says * 100)}%</text>`;
+	for (const k of [0, 1]) {
+		const [sx, sy] = on(k, STOPS[0]);
+		const to = ([px, py]) => `{transform:translate(${n(px - sx)}px,${n(py - sy)}px)}`;
+		let frames = '';
+		STOPS.forEach((f, s) => {
+			frames += `${pc(s / K)},${pc((s + HOLD) / K)}${to(on(k, f))}`;
+			// glide along the line to the next stop in short straight steps
+			const next = STOPS[(s + 1) % K];
+			for (let j = 1; j < MOVES; j++) frames += `${pc((s + HOLD + ((1 - HOLD) * j) / MOVES) / K)}${to(on(k, f + (next - f) * ease(j / MOVES)))}`;
+		});
+		css += `@keyframes g${k}{${frames}100%${to(on(k, STOPS[0]))}}.g${k}{animation:g${k} 8s infinite linear}`;
+		body += `<circle class="g${k}" cx="${n(sx)}" cy="${n(sy)}" r="8" fill="none" stroke="${chalk.bright}" stroke-width="2.5"/>`;
+	}
+	STOPS.forEach((f, s) => {
+		const [says, right] = pts[f];
+		css += scene(`q${s}`, K, s, HOLD) + run(`q${s}`, 8);
+		body += `<g class="q${s}"${hidden(s)}><text x="404" y="120" style="font-size:20px;fill:${chalk.bright}">says ${Math.round(says * 100)}%</text>`;
 		body += `<text x="404" y="152" style="font-size:20px;fill:${chalk.soft}">right ${Math.round(right * 100)}%</text></g>`;
 	});
 	return svg(css, body);
@@ -311,8 +352,7 @@ function retrieval() {
 		const most = Math.max(r[0].score, 1e-9);
 		const best = r.filter((x) => x.handed).sort((a, b) => b.share - a.share)[0];
 		const said = best ? q.answers[best.page] ?? 'a guess' : 'a guess';
-		css += steps(`r${s}`, 'opacity', STAGES.map((_, i) => (i === s ? 1 : 0)));
-		css += `.r${s}{animation:r${s} 9s infinite}`;
+		css += scene(`r${s}`, STAGES.length, s) + run(`r${s}`, 9);
 		let g = '';
 		r.slice(0, rows).forEach((x, i) => {
 			const y = y0 + i * gap;
@@ -324,7 +364,7 @@ function retrieval() {
 		const right = best && best.page === q.page;
 		g += `<text x="${x0}" y="236" style="font-size:20px;fill:${chalk.bright}">answers "${said}" ${right ? '✓' : '✗'}</text>`;
 		g += `<text x="${x0}" y="270">${st.note}</text>`;
-		body += `<g class="r${s}">${g}</g>`;
+		body += `<g class="r${s}"${hidden(s)}>${g}</g>`;
 	});
 	return svg(css, body);
 }
@@ -336,19 +376,20 @@ function memory() {
 	const STAGES = [4096, 16384, 32768, 65536];
 	const GIB = 1024 ** 3;
 	const x0 = 32, width = 536, scale = width / (36 * GIB), y = 96, h = 56;
-	let css = '';
+	const all = STAGES.map((ctx) => memBudget(gb, 2, 4, ctx, 24, 16));
+	// the weights stay put; the cache stretches and pushes the overhead along
+	const ww = all[0].weights * scale, ow = all[0].overhead * scale, c0 = all[0].cache * scale;
+	let css = tween('mc', 'transform', all.map((b) => `scaleX(${n((b.cache * scale) / c0)})`)) + '.mc{transform-origin:0 50%}' + run('mc', 8);
+	css += tween('mo', 'transform', all.map((b) => `translateX(${n(b.cache * scale - c0)}px)`)) + run('mo', 8);
 	let body = `<text x="32" y="36">${MEM_MODELS[2].name} at 4 bits on a 24 GB card</text>`;
-	STAGES.forEach((ctx, s) => {
-		const b = memBudget(gb, 2, 4, ctx, 24, 16);
-		css += steps(`m${s}`, 'opacity', STAGES.map((_, i) => (i === s ? 1 : 0)));
-		css += `.m${s}{animation:m${s} 8s infinite}`;
-		const ww = b.weights * scale, cw = b.cache * scale, ow = b.overhead * scale;
-		let g = `<rect x="${x0}" y="${y}" width="${n(ww)}" height="${h}" rx="3" fill="${chalk.bright}"/>`;
-		g += `<rect x="${n(x0 + ww + 2)}" y="${y}" width="${n(cw)}" height="${h}" fill="${chalk.soft}"/>`;
-		g += `<rect x="${n(x0 + ww + cw + 4)}" y="${y}" width="${n(ow)}" height="${h}" fill="${chalk.line}"/>`;
-		g += `<text x="32" y="216" style="font-size:20px;fill:${chalk.bright}">${(b.total / GIB).toFixed(1)} GB ${b.fits ? 'fits ✓' : 'does not fit ✗'}</text>`;
-		g += `<text x="32" y="250">${ctx / 1024}k tokens of chat: cache ${(b.cache / GIB).toFixed(1)} GB</text>`;
-		body += `<g class="m${s}">${g}</g>`;
+	body += `<rect x="${x0}" y="${y}" width="${n(ww)}" height="${h}" rx="3" fill="${chalk.bright}"/>`;
+	body += `<rect class="fb mc" x="${n(x0 + ww + 2)}" y="${y}" width="${n(c0)}" height="${h}" fill="${chalk.soft}"/>`;
+	body += `<rect class="mo" x="${n(x0 + ww + c0 + 4)}" y="${y}" width="${n(ow)}" height="${h}" fill="${chalk.line}"/>`;
+	all.forEach((b, s) => {
+		css += scene(`m${s}`, STAGES.length, s) + run(`m${s}`, 8);
+		let g = `<text x="32" y="216" style="font-size:20px;fill:${chalk.bright}">${(b.total / GIB).toFixed(1)} GB ${b.fits ? 'fits ✓' : 'does not fit ✗'}</text>`;
+		g += `<text x="32" y="250">${STAGES[s] / 1024}k tokens of chat: cache ${(b.cache / GIB).toFixed(1)} GB</text>`;
+		body += `<g class="m${s}"${hidden(s)}>${g}</g>`;
 	});
 	const card = n(x0 + 24 * GIB * scale);
 	body += `<line x1="${card}" y1="${y - 14}" x2="${card}" y2="${y + h + 14}" stroke="${chalk.bright}" stroke-width="3"/>`;
@@ -367,23 +408,44 @@ function embeddings() {
 	const x0 = 40, w = 330, y0 = 50, h = 210;
 	let css = '';
 	let body = `<text x="32" y="32">words used alike end up close</text>`;
-	STAGES.forEach((k, s) => {
+	// each stage's map, scaled to 0..1 on both axes
+	const maps = STAGES.map((k) => {
 		const m = embSpace(gb, learned, k).map;
 		let lo = [Infinity, Infinity], hi = [-Infinity, -Infinity];
 		for (let i = 0; i < m.length; i += 2) for (const d of [0, 1]) { lo[d] = Math.min(lo[d], m[i + d]); hi[d] = Math.max(hi[d], m[i + d]); }
-		const px = (v) => x0 + ((v - lo[0]) / (hi[0] - lo[0] || 1)) * w;
-		const py = (v) => y0 + h - ((v - lo[1]) / (hi[1] - lo[1] || 1)) * h;
-		css += steps(`e${s}`, 'opacity', STAGES.map((_, i) => (i === s ? 1 : 0)));
-		css += `.e${s}{animation:e${s} 8s infinite}`;
-		let g = '';
-		EMB_VOCAB.forEach((word, i) => {
-			g += `<circle cx="${n(px(m[i * 2]))}" cy="${n(py(m[i * 2 + 1]))}" r="4" fill="${SHADES[EMB_LABELS[i]] ?? chalk.line}"/>`;
-			if (NAMED.includes(word)) g += `<text x="${n(px(m[i * 2]) + 7)}" y="${n(py(m[i * 2 + 1]) + 5)}" style="fill:${chalk.bright}">${word}</text>`;
-		});
-		g += `<text x="420" y="140" style="font-size:20px;fill:${chalk.bright}">${k} ${k === 1 ? 'number' : 'numbers'}</text>`;
-		g += `<text x="420" y="170">per word</text>`;
-		body += `<g class="e${s}">${g}</g>`;
+		return EMB_VOCAB.map((_, i) => [0, 1].map((d) => (m[i * 2 + d] - lo[d]) / (hi[d] - lo[d] || 1)));
 	});
+	// a flat map can come out mirrored or with its axes swapped; keep the version closest
+	// to the map before it, so each dot travels only as far as its meaning moved
+	for (let s = 1; s < maps.length; s++) {
+		const ways = [];
+		for (const swap of [false, true])
+			for (const fx of [false, true])
+				for (const fy of [false, true])
+					ways.push(maps[s].map(([a, b]) => {
+						const [u, v] = swap ? [b, a] : [a, b];
+						return [fx ? 1 - u : u, fy ? 1 - v : v];
+					}));
+		const cost = (m) => m.reduce((sum, [u, v], i) => sum + (u - maps[s - 1][i][0]) ** 2 + (v - maps[s - 1][i][1]) ** 2, 0);
+		maps[s] = ways.reduce((a, b) => (cost(b) < cost(a) ? b : a));
+	}
+	const place = ([u, v]) => [x0 + u * w, y0 + h - v * h];
+	EMB_VOCAB.forEach((word, i) => {
+		const [sx, sy] = place(maps[0][i]);
+		const moves = maps.map((m) => {
+			const [px, py] = place(m[i]);
+			return `translate(${n(px - sx)}px,${n(py - sy)}px)`;
+		});
+		css += tween(`d${i}`, 'transform', moves) + run(`d${i}`, 8);
+		let g = `<circle cx="${n(sx)}" cy="${n(sy)}" r="4" fill="${SHADES[EMB_LABELS[i]] ?? chalk.line}"/>`;
+		if (NAMED.includes(word)) g += `<text x="${n(sx + 7)}" y="${n(sy + 5)}" style="fill:${chalk.bright}">${word}</text>`;
+		body += `<g class="d${i}">${g}</g>`;
+	});
+	STAGES.forEach((k, s) => {
+		css += scene(`e${s}`, STAGES.length, s) + run(`e${s}`, 8);
+		body += `<text class="e${s}"${hidden(s)} x="420" y="140" style="font-size:20px;fill:${chalk.bright}">${k} ${k === 1 ? 'number' : 'numbers'}</text>`;
+	});
+	body += `<text x="420" y="170">per word</text>`;
 	return svg(css, body);
 }
 
