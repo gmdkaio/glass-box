@@ -119,5 +119,14 @@ int main(void) {
     free(w);
     free(q);
     free(e);
+    /* lean: a push on one answer's score */
+    const double ls[3] = {2.0, 1.0, 0.0};
+    double lo[3], ref[3];
+    double share = gb_lean(ls, 3, 1, 1.5, lo);
+    const double pushed[3] = {2.0, 2.5, 0.0};
+    gb_softmax(pushed, ref, 3, 1.0);
+    CHECK(fabs(share - ref[1]) < 1e-15 && fabs(lo[0] - ref[0]) < 1e-15 && fabs(lo[2] - ref[2]) < 1e-15, "lean: softmax of the pushed scores");
+    CHECK(gb_lean(ls, 3, 1, 0.0, lo) < 0.5 && gb_lean(ls, 3, 1, 3.0, lo) > 0.5, "a bigger push takes over");
+    CHECK(gb_lean(ls, 3, 7, 1.0, lo) == 0.0 && fabs(lo[0] + lo[1] + lo[2] - 1.0) < 1e-15, "no such answer: plain odds");
     DONE();
 }

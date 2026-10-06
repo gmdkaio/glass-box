@@ -15,6 +15,7 @@ import { budget as memBudget, MODELS as MEM_MODELS } from '../src/lib/memory-sim
 import { VOCAB as EMB_VOCAB, LABELS as EMB_LABELS, learn as embLearn, space as embSpace } from '../src/lib/embeddings-sim.js';
 import { SPOTS as SET_SPOTS } from '../src/lib/settings-sim.js';
 import { TEXTS as LORA_TEXTS, RANKS as LORA_RANKS, W2 as LORA_W2, HIDDEN as LORA_H, V as LORA_V, strips as loraStrips, trainBase as loraBase, fineTune as loraTune, patchOf as loraPatch } from '../src/lib/lora-sim.js';
+import { LEVELS as AG_LEVELS, NUDGES as AG_NUDGES, map as agMap } from '../src/lib/agree-sim.js';
 import { trainBase as evBase, sit as evSit, QUESTIONS as EV_Q, PUBLIC as EV_PUBLIC, PASSES as EV_PASSES } from '../src/lib/eval-sim.js';
 import { trainBase as ofBase, watch as ofWatch, EPOCHS as OF_EPOCHS } from '../src/lib/overfit-sim.js';
 import { train as lrTrain, start as lrStart, EPOCHS as LR_EPOCHS, CAP as LR_CAP } from '../src/lib/lr-sim.js';
@@ -637,7 +638,29 @@ function evaluation() {
 	return svg(css, body);
 }
 
-const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings, 'sampling-settings': samplingSettings, lora, 'learning-rate': learningRate, overfitting, evaluation };
+// What you want to hear: the "where it gives in" map, how often the model takes your
+// side by how sure it is (down) and how many nudges push it (across), with a frame
+// that moves across as nudges are added. Every cell is the engine's.
+function agreement() {
+	const grid = agMap(gb);
+	const x0 = 150, y0 = 60, cw = 58, ch = 27, gap = 4;
+	let body = `<text x="32" y="36">how often it takes your side</text>`;
+	AG_LEVELS.forEach((level, r) => {
+		body += `<text x="${x0 - 10}" y="${y0 + r * (ch + gap) + 20}" text-anchor="end" style="font-size:13px">${level.label}</text>`;
+		grid[r].forEach((v, c) => {
+			body += `<rect x="${x0 + c * (cw + gap)}" y="${y0 + r * (ch + gap)}" width="${cw}" height="${ch}" rx="3" fill="${chalk.bright}" fill-opacity="${n(0.05 + v * 0.9)}"/>`;
+		});
+	});
+	const cols = AG_NUDGES.length + 1;
+	for (let k = 0; k < cols; k++) body += `<text x="${x0 + k * (cw + gap) + cw / 2}" y="${y0 + AG_LEVELS.length * (ch + gap) + 16}" text-anchor="middle" style="font-size:13px">${k}</text>`;
+	body += `<text x="${x0}" y="292" style="font-size:13px">nudges toward your answer</text>`;
+	const STAGES = [0, 2, 4, 6];
+	let css = tween('fr', 'transform', STAGES.map((k) => `translateX(${k * (cw + gap)}px)`)) + run('fr', 8);
+	body += `<rect class="fr" x="${x0 - 2}" y="${y0 - 2}" width="${cw + 4}" height="${AG_LEVELS.length * (ch + gap)}" rx="4" fill="none" stroke="${chalk.bright}" stroke-width="2"/>`;
+	return svg(css, body);
+}
+
+const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings, 'sampling-settings': samplingSettings, lora, 'learning-rate': learningRate, overfitting, evaluation, agreement };
 
 function card(m) {
 	const at = where(m.slug);
@@ -664,7 +687,8 @@ function gallery(ready) {
 			return left.length ? `**${t.title}:** ${left.join(' · ')}` : '';
 		})
 		.filter(Boolean);
-	return `<table>\n${rows.join('\n')}\n</table>\n\nComing next. ${soon.join('<br>\n')}`;
+	const table = `<table>\n${rows.join('\n')}\n</table>`;
+	return soon.length ? `${table}\n\nComing next. ${soon.join('<br>\n')}` : table;
 }
 
 const ready = tracks.flatMap((t) => modules.filter((m) => m.track === t.id && m.ready));

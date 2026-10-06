@@ -29,4 +29,11 @@ void gb_softmax(const double *x, double *out, size_t n, double temperature);
 void gb_sample_counts(const double *p, size_t n, size_t draws, unsigned int seed,
                       size_t *counts);
 
+/*
+ * Odds that lean toward one answer: softmax at temperature 1 of the scores with
+ * `push` added to the score of answer `yours`. out has room for n entries.
+ * Returns the odds of `yours`, or 0 if yours >= n (and out is then the plain softmax).
+ */
+double gb_lean(const double *scores, size_t n, size_t yours, double push, double *out);
+
 #endif
