@@ -87,11 +87,16 @@ Words used in similar places get similar numbers, which is how search by meaning
 <sub>Under the hood · 4 of 8 · Local models</sub><br>
 Before each pick, top-k, top-p and min-p drop unlikely words, and a repeat penalty lowers words already used.
 </td>
-<td width="50%"></td>
+<td width="50%" valign="top">
+<a href="https://gmdkaio.github.io/glass-box/lora"><img src=".github/assets/modules/lora.svg" alt="LoRA" width="100%"></a><br>
+<b><a href="https://gmdkaio.github.io/glass-box/lora">LoRA</a></b><br>
+<sub>Under the hood · 5 of 8 · Fine-tuning</sub><br>
+LoRA trains a thin patch beside a frozen model, and a low rank is enough for most changes.
+</td>
 </tr>
 </table>
 
-Coming next. **Under the hood:** LoRA · Learning rate · Overfitting · Evaluating a model
+Coming next. **Under the hood:** Learning rate · Overfitting · Evaluating a model
 <!-- modules:end -->
 
 ## Engine

@@ -37,7 +37,8 @@ export const modules = [
 		blurb: "Words used in similar places get similar numbers, which is how search by meaning works." },
 	{ track: 'under', slug: 'sampling-settings', title: 'Sampling settings', tag: 'Local models', ready: true,
 		blurb: "Before each pick, top-k, top-p and min-p drop unlikely words, and a repeat penalty lowers words already used." },
-	{ track: 'under', slug: 'lora', title: 'LoRA', tag: 'Fine-tuning', ready: false },
+	{ track: 'under', slug: 'lora', title: 'LoRA', tag: 'Fine-tuning', ready: true,
+		blurb: "LoRA trains a thin patch beside a frozen model, and a low rank is enough for most changes." },
 	{ track: 'under', slug: 'learning-rate', title: 'Learning rate', tag: 'Fine-tuning', ready: false },
 	{ track: 'under', slug: 'overfitting', title: 'Overfitting', tag: 'Fine-tuning', ready: false },
 	{ track: 'under', slug: 'evaluation', title: 'Evaluating a model', ready: false }
