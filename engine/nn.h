@@ -79,4 +79,13 @@ double gb_nn_train_watch(double *params, size_t V, size_t H, const int *ids, siz
                          size_t np, size_t epochs, double rate, double *train, double *held_loss,
                          double *old_loss, double *probe_loss);
 
+/*
+ * A fill-in-the-blank exam: for question i the network reads the word before the
+ * blank, context[i], and its top guess (the word with the highest odds; ties go to
+ * the lower number) is written to guess[i] (may be NULL). Returns how many guesses
+ * equal answer[i]. A context outside 0..V-1 counts as wrong, with guess -1.
+ */
+size_t gb_nn_quiz(const double *params, size_t V, size_t H, const int *context,
+                  const int *answer, size_t n, int *guess);
+
 #endif

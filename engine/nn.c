@@ -128,6 +128,27 @@ double gb_nn_train_watch(double *params, size_t V, size_t H, const int *ids, siz
     return loss;
 }
 
+size_t gb_nn_quiz(const double *params, size_t V, size_t H, const int *context,
+                  const int *answer, size_t n, int *guess) {
+    double *buffer = malloc((H + V) * sizeof *buffer);
+    if (!buffer) return 0;
+    double *hidden = buffer, *odds = buffer + H;
+    size_t right = 0;
+    for (size_t i = 0; i < n; i++) {
+        int top = -1;
+        if (context[i] >= 0 && (size_t)context[i] < V) {
+            run(params, V, H, (size_t)context[i], hidden, odds);
+            top = 0;
+            for (size_t k = 1; k < V; k++)
+                if (odds[k] > odds[top]) top = (int)k;
+        }
+        if (guess) guess[i] = top;
+        right += top >= 0 && top == answer[i];
+    }
+    free(buffer);
+    return right;
+}
+
 double gb_nn_train(double *params, size_t V, size_t H, const int *ids, size_t n, size_t epochs,
                    double rate) {
     double *buffer = malloc((2 * H + V) * sizeof *buffer);

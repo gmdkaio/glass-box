@@ -43,7 +43,8 @@ export const modules = [
 		blurb: "The learning rate sets how big each training step is: too small barely learns, too big overshoots." },
 	{ track: 'under', slug: 'overfitting', title: 'Overfitting', tag: 'Fine-tuning', ready: true,
 		blurb: "Trained too long on too little text, a model learns it by heart and gets worse at everything else." },
-	{ track: 'under', slug: 'evaluation', title: 'Evaluating a model', ready: false }
+	{ track: 'under', slug: 'evaluation', title: 'Evaluating a model', ready: true,
+		blurb: "When test questions leak into training, a model scores well on the test and no better on new questions." }
 ];
 
 export function inTrack(id) {

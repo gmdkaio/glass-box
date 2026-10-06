@@ -248,6 +248,20 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // a fill-in-the-blank exam: the top guess after each context word, and how many are right
+    nnQuiz(params, vocab, hidden, context, answer) {
+      const pp = put(params);
+      const pc = putInts(context);
+      const pa = putInts(answer);
+      const pg = m._malloc(Math.max(1, context.length) * 4);
+      try {
+        const right = m._gb_nn_quiz(pp, vocab, hidden, pc, pa, context.length, pg);
+        return { right, guess: m.HEAP32.slice(pg / 4, pg / 4 + context.length) };
+      } finally {
+        free(pp, pc, pa, pg);
+      }
+    },
+
     // the surprise at each word of a text, -ln of the odds the network gave it
     nnWordLoss(params, vocab, hidden, ids) {
       const pp = put(params);

@@ -252,6 +252,14 @@ int main(void) {
     CHECK(near(wtr[3], 0.73182118307926136) && near(whl[3], 1.2557414403293203) && near(wol[3], 1.5004351290954077), "three losses after pass 4");
     CHECK(near((wpo[12] + wpo[13] + wpo[14] + wpo[15]) / 4.0, 1.2557414403293203), "word surprises of the probe average to its loss");
 
+    /* evaluation: the exam's guesses must match exactly */
+    double qp[64];
+    const int qc[3] = {0, 1, 2}, qa[3] = {1, 2, 0};
+    int qg[3];
+    gb_nn_init(qp, 3, 4, 5u);
+    gb_nn_train(qp, 3, 4, nt9, 9, 4, 0.2);
+    CHECK(gb_nn_quiz(qp, 3, 4, qc, qa, 3, qg) == 3 && qg[0] == 1 && qg[1] == 2 && qg[2] == 0, "exam after 4 passes: 3 of 3");
+
     free(a);
     free(q);
     DONE();
