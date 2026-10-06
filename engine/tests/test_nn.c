@@ -79,6 +79,30 @@ int main(void) {
     CHECK(gb_nn_loss(p, V3, H3, bad, 4) == 0.0, "no valid pairs gives loss 0");
     CHECK(gb_nn_train(p, V3, H3, bad, 4, 3, 0.1) == 0.0, "training on no valid pairs changes nothing");
 
+    /* schedules: constant, linear to 0, cosine to 0 */
+    CHECK(gb_lr_at(0.2, GB_LR_CONSTANT, 7, 10) == 0.2, "constant stays");
+    CHECK(fabs(gb_lr_at(0.2, GB_LR_LINEAR, 5, 10) - 0.1) < 1e-15 && gb_lr_at(0.2, GB_LR_LINEAR, 0, 10) == 0.2, "linear: half way, half the step");
+    CHECK(fabs(gb_lr_at(0.2, GB_LR_COSINE, 5, 10) - 0.1) < 1e-12 && fabs(gb_lr_at(0.2, GB_LR_COSINE, 0, 10) - 0.2) < 1e-15, "cosine: half way, half the step");
+    CHECK(gb_lr_at(0.2, GB_LR_COSINE, 2, 10) > gb_lr_at(0.2, GB_LR_LINEAR, 2, 10), "cosine holds the step longer at first");
+
+    /* the curve is gb_nn_train one pass at a time */
+    const int sched[9] = {0, 1, 2, 0, 1, 2, 0, 2, 1};
+    size_t n34 = gb_nn_params(3, 4);
+    double *s1 = malloc(n34 * sizeof *s1), *s2 = malloc(n34 * sizeof *s2), curve[5];
+    gb_nn_init(s1, 3, 4, 2u);
+    gb_nn_init(s2, 3, 4, 2u);
+    double last = gb_nn_train_curve(s1, 3, 4, sched, 9, 5, 0.3, GB_LR_LINEAR, curve);
+    int stepwise = 1;
+    for (size_t e = 0; e < 5; e++) stepwise &= gb_nn_train(s2, 3, 4, sched, 9, 1, gb_lr_at(0.3, GB_LR_LINEAR, e, 5)) == curve[e];
+    CHECK(stepwise && last == curve[4], "curve: one pass at a time, with the schedule");
+    CHECK(curve[4] < curve[0], "the loss falls");
+    gb_nn_init(s1, 3, 4, 2u);
+    gb_nn_train_curve(s1, 3, 4, sched, 9, 5, 1e6, GB_LR_CONSTANT, curve);
+    CHECK(curve[4] > 5.0, "a huge step blows the network up (never NaN)");
+    CHECK(curve[4] == curve[4], "blown-up loss is a number or infinity");
+    free(s1);
+    free(s2);
+
     free(a);
     free(b);
     free(c);

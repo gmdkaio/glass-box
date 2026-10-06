@@ -14,7 +14,8 @@ import { PAGES, QUESTIONS, search } from '../src/lib/retrieval-sim.js';
 import { budget as memBudget, MODELS as MEM_MODELS } from '../src/lib/memory-sim.js';
 import { VOCAB as EMB_VOCAB, LABELS as EMB_LABELS, learn as embLearn, space as embSpace } from '../src/lib/embeddings-sim.js';
 import { SPOTS as SET_SPOTS } from '../src/lib/settings-sim.js';
-import { TEXTS as LORA_TEXTS, RANKS as LORA_RANKS, trainBase as loraBase, fineTune as loraTune } from '../src/lib/lora-sim.js';
+import { TEXTS as LORA_TEXTS, RANKS as LORA_RANKS, W2 as LORA_W2, HIDDEN as LORA_H, V as LORA_V, strips as loraStrips, trainBase as loraBase, fineTune as loraTune, patchOf as loraPatch } from '../src/lib/lora-sim.js';
+import { train as lrTrain, start as lrStart, EPOCHS as LR_EPOCHS, CAP as LR_CAP } from '../src/lib/lr-sim.js';
 import { loadEngine } from '../src/lib/engine.js';
 import createModule from '../src/lib/wasm/glassbox.mjs';
 
@@ -486,32 +487,89 @@ function samplingSettings() {
 	return svg(css, body);
 }
 
-// LoRA: the share of a full fine-tune's gain that LoRA reaches on the page's three
-// texts, as the rank steps through 1, 2, 4 and 16. Every bar is a training run in the engine.
+// a heatmap as a few paths, one per shade, so the picture stays a handful of nodes:
+// each cell goes in the path of its colour (up or down) and one of five strengths
+function heatPaths(values, rows, cols, x0, y0, cell, top) {
+	const groups = new Map();
+	for (let i = 0; i < rows; i++)
+		for (let k = 0; k < cols; k++) {
+			const v = values(i, k);
+			const level = Math.min(4, Math.floor((Math.abs(v) / top) * 5));
+			const key = `${v >= 0 ? 'u' : 'd'}${level}`;
+			groups.set(key, (groups.get(key) ?? '') + `M${n(x0 + k * cell)} ${n(y0 + i * cell)}h${cell - 1}v${cell - 1}h${1 - cell}z`);
+		}
+	return [...groups].map(([key, d]) => `<path d="${d}" fill="${key[0] === 'u' ? chalk.bright : chalk.dim}" fill-opacity="${(0.12 + 0.22 * +key[1]).toFixed(2)}"/>`).join('');
+}
+
+// LoRA: the change a full fine-tune made to the last layer next to LoRA's patch,
+// B × A, as the rank steps through 1, 2, 4 and 8: the strips widen and the patch
+// fills in. Shown on the 24 columns the full fine-tune changed most. Every cell
+// comes from training runs in the engine.
 function lora() {
 	const base = loraBase(gb);
-	const runs = LORA_TEXTS.map((_, i) => loraTune(gb, base, i));
-	const STAGES = [1, 2, 4, 16];
-	const x0 = 210, width = 340, y0 = 80, gap = 58, h = 30;
+	const tuned = loraTune(gb, base, 2);
+	const R = LORA_H, C = LORA_W2.cols;
+	const size = Array.from({ length: C }, (_, k) => { let s = 0; for (let i = 0; i < R; i++) s += tuned.change[i * C + k] ** 2; return s; });
+	const cols = Array.from(size.keys()).sort((a, b) => size[b] - size[a]).slice(0, 24).sort((a, b) => a - b);
+	const cell = 9, w = cols.length * cell, h = R * cell;
+	const full = (i, k) => tuned.change[i * C + cols[k]];
+	const top = Math.max(...cols.flatMap((c) => Array.from({ length: R }, (_, i) => Math.abs(tuned.change[i * C + c]))));
+	let body = `<text x="32" y="36">a full fine-tune, and a thin patch</text>`;
+	body += heatPaths(full, R, cols.length, 40, 100, cell, top);
+	body += `<text x="40" y="${100 + h + 22}">full fine-tune</text>`;
+	const STAGES = [1, 2, 4, 8];
+	const px = 576 - w, py = 100;
 	let css = '';
-	let body = `<text x="32" y="36">a thin patch on a frozen model</text>`;
-	LORA_TEXTS.forEach((t, i) => {
-		const y = y0 + i * gap;
-		const gains = STAGES.map((r) => Math.max(0.005, runs[i].ranks[LORA_RANKS.indexOf(r)].gain));
-		css += tween(`g${i}`, 'transform', gains.map((g) => `scaleX(${n(g)})`)) + `.g${i}{transform-origin:0 50%}` + run(`g${i}`, 8);
-		body += `<text x="32" y="${y + 20}">${t.label.toLowerCase()}</text>`;
-		body += `<rect x="${x0}" y="${y}" width="${width}" height="${h}" fill="${chalk.divider}"/>`;
-		body += `<rect class="fb g${i}" x="${x0}" y="${y}" width="${width}" height="${h}" fill="${chalk.soft}"/>`;
-	});
 	STAGES.forEach((r, s) => {
-		css += scene(`l${s}`, STAGES.length, s) + run(`l${s}`, 8);
-		body += `<text class="l${s}"${hidden(s)} x="${W - 32}" y="36" text-anchor="end" style="font-size:20px;fill:${chalk.bright}">rank ${r}</text>`;
+		const at = tuned.ranks[LORA_RANKS.indexOf(r)];
+		const st = loraStrips(r);
+		const product = loraPatch(gb, at.lora, r);
+		const ptop = Math.max(...cols.flatMap((c) => Array.from({ length: R }, (_, i) => Math.abs(product[i * C + c]))));
+		const b = (i, q) => at.lora[st.b2 + i * r + q];
+		const a = (q, k) => at.lora[st.a2 + q * LORA_V + cols[k]];
+		const btop = Math.max(...Array.from({ length: R * r }, (_, j) => Math.abs(at.lora[st.b2 + j])));
+		const atop = Math.max(...Array.from({ length: r * cols.length }, (_, j) => Math.abs(a(Math.floor(j / cols.length), j % cols.length))));
+		let g = heatPaths((i, k) => product[i * C + cols[k]], R, cols.length, px, py, cell, ptop);
+		g += heatPaths(b, R, r, px - 6 - r * cell, py, cell, btop);
+		g += heatPaths(a, r, cols.length, px, py - 6 - r * cell, cell, atop);
+		g += `<text x="${px}" y="${py + h + 22}">LoRA rank ${r}: B × A</text>`;
+		g += `<text x="${px}" y="${py + h + 44}" style="fill:${chalk.bright}">${Math.round(Math.max(0, at.gain) * 100)}% of the gain</text>`;
+		css += scene(`r${s}`, STAGES.length, s) + run(`r${s}`, 10);
+		body += `<g class="r${s}"${hidden(s)}>${g}</g>`;
 	});
-	body += `<text x="32" y="276">bars: share of a full fine-tune's gain</text>`;
 	return svg(css, body);
 }
 
-const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings, 'sampling-settings': samplingSettings, lora };
+// Learning rate: the loss on the new text pass by pass, for a small, a good and a
+// big step, one after another. Every point comes from training runs in the engine.
+function learningRate() {
+	const base = loraBase(gb);
+	const begin = lrStart(gb, base);
+	const STAGES = [
+		{ rate: 0.005, label: 'too small' },
+		{ rate: 0.1, label: 'about right' },
+		{ rate: 1, label: 'too big' }
+	];
+	const x0 = 60, x1 = 568, y0 = 70, y1 = 250;
+	const X = (e) => x0 + (e / LR_EPOCHS) * (x1 - x0);
+	const Y = (v) => y1 - (Math.min(Number.isFinite(v) ? v : LR_CAP, LR_CAP) / LR_CAP) * (y1 - y0);
+	let css = '';
+	let body = `<text x="32" y="36">loss on the new text, pass by pass</text>`;
+	body += `<line x1="${x0}" y1="${y1}" x2="${x1}" y2="${y1}" stroke="${chalk.line}"/>`;
+	STAGES.forEach((st, s) => {
+		const r = lrTrain(gb, base, st.rate, 'constant');
+		const ys = [begin.loss, ...r.curve];
+		let g = `<polyline points="${ys.map((v, e) => `${n(X(e))},${n(Y(v))}`).join(' ')}" fill="none" stroke="${chalk.bright}" stroke-width="3"/>`;
+		g += `<text x="${W - 32}" y="36" text-anchor="end" style="font-size:20px;fill:${chalk.bright}">learning_rate ${st.rate}</text>`;
+		g += `<text x="${W - 32}" y="60" text-anchor="end">${st.label}</text>`;
+		css += scene(`p${s}`, STAGES.length, s) + run(`p${s}`, 9);
+		body += `<g class="p${s}"${hidden(s)}>${g}</g>`;
+	});
+	body += `<text x="${x0}" y="276">passes over the new text</text>`;
+	return svg(css, body);
+}
+
+const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings, 'sampling-settings': samplingSettings, lora, 'learning-rate': learningRate };
 
 function card(m) {
 	const at = where(m.slug);

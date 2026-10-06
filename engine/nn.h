@@ -40,4 +40,22 @@ double gb_nn_loss(const double *params, size_t V, size_t H, const int *ids, size
 double gb_nn_train(double *params, size_t V, size_t H, const int *ids, size_t n, size_t epochs,
                    double rate);
 
+/* How the step size changes over training: lr_scheduler_type. */
+enum { GB_LR_CONSTANT = 0, GB_LR_LINEAR = 1, GB_LR_COSINE = 2 };
+
+/*
+ * The step size for pass e (0-based) of `epochs`: rate for constant; for linear,
+ * rate * (1 - e / epochs); for cosine, rate * (1 + cos(pi * e / epochs)) / 2.
+ */
+double gb_lr_at(double rate, int schedule, size_t e, size_t epochs);
+
+/*
+ * gb_nn_train one pass at a time, with the step size from gb_lr_at, writing the
+ * loss on ids after each pass to curve[0..epochs). A loss that is no longer a
+ * number (the network blew up) is written as infinity. Returns the last loss,
+ * or -1 if it ran out of memory.
+ */
+double gb_nn_train_curve(double *params, size_t V, size_t H, const int *ids, size_t n,
+                         size_t epochs, double rate, int schedule, double *curve);
+
 #endif

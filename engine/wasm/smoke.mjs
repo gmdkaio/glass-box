@@ -124,6 +124,9 @@ check(near(llr.kept, 0.71343747458109497) && near(llr.b[1] * llr.a[2], 2.6713032
 check(gb.loraCount(36, 4096, 4096, 1024, 12288, 16, true) === 43646976, "Qwen3-8B, rank 16, every weight");
 check(near(gb.gainShare(4, 2, 1), 2 / 3), "gain share");
 check(gb.diff(Float64Array.from([1, 2.5, -1]), Float64Array.from([0.5, 2.5, 1])).join(",") === "0.5,0,-2", "what changed");
+const ncv = gb.nnTrainCurve(gb.nnInit(3, 4, 2), 3, 4, Int32Array.from([0, 1, 2, 0, 1, 2, 0, 2, 1]), 5, 0.3, "cosine");
+check(near(ncv.loss, 0.82580176811655104) && near(ncv.curve[0], 0.98606571256616204) && near(ncv.curve[2], 0.86419171247107551), "cosine, 5 passes: " + Array.from(ncv.curve));
+check(near(gb.lrAt(0.2, "cosine", 3, 10), 0.15877852522924732), "cosine step at pass 4 of 10");
 
 // 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);

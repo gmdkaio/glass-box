@@ -236,6 +236,14 @@ int main(void) {
     CHECK(near(lbv[1] * lav[2], 2.6713032141645452), "rank 1 version of the corner");
     CHECK(gb_lora_count(36, 4096, 4096, 1024, 12288, 16, 1) == 43646976.0, "Qwen3-8B, rank 16, every weight");
 
+    /* learning rate: one network, cosine schedule; tanh, exp and log, so near() */
+    const int nt9[9] = {0, 1, 2, 0, 1, 2, 0, 2, 1};
+    double np[64], nc[5];
+    gb_nn_init(np, 3, 4, 2u);
+    CHECK(near(gb_nn_train_curve(np, 3, 4, nt9, 9, 5, 0.3, GB_LR_COSINE, nc), 0.82580176811655104), "cosine, 5 passes: last loss");
+    CHECK(near(nc[0], 0.98606571256616204) && near(nc[2], 0.86419171247107551), "the loss after passes 1 and 3");
+    CHECK(near(gb_lr_at(0.2, GB_LR_COSINE, 3, 10), 0.15877852522924732), "cosine step at pass 4 of 10");
+
     free(a);
     free(q);
     DONE();
