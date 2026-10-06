@@ -80,9 +80,18 @@ A model needs memory for its numbers and for a cache that grows with every token
 Words used in similar places get similar numbers, which is how search by meaning works.
 </td>
 </tr>
+<tr>
+<td width="50%" valign="top">
+<a href="https://gmdkaio.github.io/glass-box/sampling-settings"><img src=".github/assets/modules/sampling-settings.svg" alt="Sampling settings" width="100%"></a><br>
+<b><a href="https://gmdkaio.github.io/glass-box/sampling-settings">Sampling settings</a></b><br>
+<sub>Under the hood · 4 of 8 · Local models</sub><br>
+Before each pick, top-k, top-p and min-p drop unlikely words, and a repeat penalty lowers words already used.
+</td>
+<td width="50%"></td>
+</tr>
 </table>
 
-Coming next. **Under the hood:** Sampling settings · LoRA · Learning rate · Overfitting · Evaluating a model
+Coming next. **Under the hood:** LoRA · Learning rate · Overfitting · Evaluating a model
 <!-- modules:end -->
 
 ## Engine

@@ -102,6 +102,19 @@ check(gb.memMaxTokens(12884901888, 4612500000, 536870912, 36, 8, 128, 16) === 52
 const emb = gb.embedLearn([0, 1, 2, -1, 0, 1, 3, -1, 2, 3, 1], 4, 2);
 const embref = [0.82987762569897638, -0.11778303565638339, -0.11778303565638341, -0.59431155438620931];
 check(embref.every((v, i) => Math.abs(emb.values[i] - v) <= 1e-12), "embedding eigenvalues: " + Array.from(emb.values));
+const so = gb.sampleOdds(Float64Array.from([2.5, 1.9, 1.2, 0.3, -1.0]), { temperature: 0.7, topK: 4, topP: 0.97, minP: 0.2 });
+check(so.kept === 3 && so.cutBy.join("") === "00031", "sampling settings keep 3: " + Array.from(so.cutBy));
+check(near(so.odds[0], 0.6327148139219988) && near(so.odds[1], 0.26850698608604046) && near(so.odds[2], 0.098778199991960802), "odds after the cuts");
+check(near(gb.oddsFrom(so.odds, 2), 0.098778199991960802), "odds from word 2 added up");
+const sf = gb.filter("topP", Float64Array.from([0.1, 0.4, 0.2, 0.25, 0.05]), 0.8);
+check(sf.kept === 3 && near(sf.odds[2], 0.2 / 0.85), "top-p 0.8 keeps 3");
+const sc4 = gb.pairCounts(Int32Array.from([0, 1, 2, 0, 3, 1, 0, 2, 3, 0, 1, 2, 0]), 4).counts;
+const ss = { temperature: 0.9, topK: 0, topP: 1, minP: 0 };
+const sg = gb.generate(sc4, 4, [0], 16, ss, 1.3, 8, 6.0, 7);
+check(sg.ids.join(",") === "0,1,0,3,1,2,0,1,0,1,2,0,3,1,2,3", "a reply, penalty 1.3, seed 7: " + Array.from(sg.ids));
+check(near(gb.loopShare(sg.ids, 3), 0.2857142857142857), "loop share of that reply");
+const spc = gb.penaltyCurve(sc4, 4, [0], 16, ss, 8, 6.0, [1.0, 1.5], 5, 3, 0.3);
+check(near(spc.loops[0], 0.4) && near(spc.loops[1], 0.27142857142857141) && near(spc.odd[0], 0.14666666666666667), "penalty curve, seed 3");
 
 // 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);

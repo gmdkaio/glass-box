@@ -13,6 +13,7 @@ import { CORPUS } from '../src/lib/tokenization-corpus.js';
 import { PAGES, QUESTIONS, search } from '../src/lib/retrieval-sim.js';
 import { budget as memBudget, MODELS as MEM_MODELS } from '../src/lib/memory-sim.js';
 import { VOCAB as EMB_VOCAB, LABELS as EMB_LABELS, learn as embLearn, space as embSpace } from '../src/lib/embeddings-sim.js';
+import { SPOTS as SET_SPOTS } from '../src/lib/settings-sim.js';
 import { loadEngine } from '../src/lib/engine.js';
 import createModule from '../src/lib/wasm/glassbox.mjs';
 
@@ -449,7 +450,42 @@ function embeddings() {
 	return svg(css, body);
 }
 
-const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings };
+// Sampling settings: the odds for the next word at the page's open spot, then cut by
+// top-k 5, top-p 0.9 and min-p 0.1 in turn. Cut words fade; the odds they leave are
+// shared out, so the bars that stay grow. Every height comes from the engine.
+function samplingSettings() {
+	const spot = SET_SPOTS[1];
+	const STAGES = [
+		{ label: 'no filter', s: { topK: 0, topP: 1, minP: 0 } },
+		{ label: 'top-k 5', s: { topK: 5, topP: 1, minP: 0 } },
+		{ label: 'top-p 0.9', s: { topK: 0, topP: 0.9, minP: 0 } },
+		{ label: 'min-p 0.1', s: { topK: 0, topP: 1, minP: 0.1 } }
+	];
+	const all = STAGES.map((st) => gb.sampleOdds(spot.scores, { temperature: 1, ...st.s }));
+	const plain = all[0].odds;
+	const top = Math.max(...all.flatMap((r) => [...r.odds]));
+	const x0 = 32, bw = 27, gap = 7, base = 220, tall = 150;
+	let css = '';
+	let body = `<text x="32" y="36">${spot.text} …</text>`;
+	body += `<line x1="${x0 - 4}" y1="${base}" x2="${x0 + 16 * (bw + gap)}" y2="${base}" stroke="${chalk.line}"/>`;
+	spot.words.forEach((word, i) => {
+		const h0 = Math.max(1, (plain[i] / top) * tall);
+		const x = x0 + i * (bw + gap);
+		// a cut bar keeps its height and fades; a kept bar grows to its share
+		css += tween(`b${i}`, 'transform', all.map((r) => `scaleY(${n(r.odds[i] > 0 ? r.odds[i] / plain[i] : 1)})`)) + `.b${i}{transform-origin:50% 100%}` + run(`b${i}`, 10);
+		css += tween(`o${i}`, 'opacity', all.map((r) => (r.odds[i] > 0 ? 1 : 0.15))) + run(`o${i}`, 10);
+		body += `<g class="o${i}"><rect class="fb b${i}" x="${x}" y="${n(base - h0)}" width="${bw}" height="${n(h0)}" fill="${i >= spot.bad ? chalk.dim : chalk.soft}"/>`;
+		body += `<text x="${x + bw / 2}" y="${base + 14}" text-anchor="end" transform="rotate(-50 ${x + bw / 2} ${base + 14})" style="font-size:12px">${word}</text></g>`;
+	});
+	STAGES.forEach((st, k) => {
+		css += scene(`s${k}`, STAGES.length, k) + run(`s${k}`, 10);
+		body += `<g class="s${k}"${hidden(k)}><text x="${W - 32}" y="36" text-anchor="end" style="font-size:20px;fill:${chalk.bright}">${st.label}</text>`;
+		body += `<text x="${W - 32}" y="60" text-anchor="end">keeps ${all[k].kept} of 16</text></g>`;
+	});
+	return svg(css, body);
+}
+
+const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings, 'sampling-settings': samplingSettings };
 
 function card(m) {
 	const at = where(m.slug);

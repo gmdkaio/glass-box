@@ -551,6 +551,91 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // Sampling settings (see engine/sampler.h). s is { temperature, topK, topP, minP };
+    // topK 0, topP 1 and minP 0 switch a filter off.
+
+    // one filter on odds that add up to 1: the odds shared out over the words kept
+    filter(kind, p, value) {
+      const n = p.length;
+      const pp = put(p);
+      const po = m._malloc(n * 8);
+      try {
+        const fn = { topK: "_gb_top_k", topP: "_gb_top_p", minP: "_gb_min_p" }[kind];
+        const kept = m[fn](pp, n, value, po);
+        return { odds: get(po, n), kept };
+      } finally {
+        free(pp, po);
+      }
+    },
+
+    // the whole chain on scores: cutBy[i] is 0 if kept, 1 top-k, 2 top-p, 3 min-p
+    sampleOdds(scores, s) {
+      const n = scores.length;
+      const ps = put(scores);
+      const po = m._malloc(n * 8);
+      const pc = m._malloc(n * 4);
+      try {
+        const kept = m._gb_sample_odds(ps, n, s.temperature, s.topK, s.topP, s.minP, po, pc);
+        return { odds: get(po, n), kept, cutBy: m.HEAP32.slice(pc / 4, pc / 4 + n) };
+      } finally {
+        free(ps, po, pc);
+      }
+    },
+
+    // the odds of words from..n-1 added up
+    oddsFrom(p, from) {
+      const pp = put(p);
+      try {
+        return m._gb_odds_from(pp, p.length, from);
+      } finally {
+        free(pp);
+      }
+    },
+
+    // a reply from a word-pair model: counts from pairCounts, start as word numbers
+    generate(counts, vocab, start, len, s, penalty, lastN, base, seed) {
+      const pc = m._malloc(counts.length * 4);
+      const pst = putInts(start);
+      const po = m._malloc(len * 4);
+      const pb = m._malloc(len * 8);
+      try {
+        m.HEAPU32.set(counts, pc / 4);
+        const n = m._gb_generate(pc, vocab, pst, start.length, len, s.temperature, s.topK, s.topP, s.minP,
+          penalty, lastN, base, seed >>> 0, po, pb);
+        return { ids: m.HEAP32.slice(po / 4, po / 4 + n), before: get(pb, n) };
+      } finally {
+        free(pc, pst, po, pb);
+      }
+    },
+
+    // share of a reply's k-word runs seen earlier in it
+    loopShare(ids, k) {
+      const pi = putInts(ids);
+      try {
+        return m._gb_loop_share(pi, ids.length, k);
+      } finally {
+        free(pi);
+      }
+    },
+
+    // for each penalty: how loopy replies are, and the share of words the model rated below `unlikely`
+    penaltyCurve(counts, vocab, start, len, s, lastN, base, penalties, runs, seed, unlikely) {
+      const k = penalties.length;
+      const pc = m._malloc(counts.length * 4);
+      const pst = putInts(start);
+      const pp = put(penalties);
+      const pl = m._malloc(k * 8);
+      const pd = m._malloc(k * 8);
+      try {
+        m.HEAPU32.set(counts, pc / 4);
+        m._gb_penalty_curve(pc, vocab, pst, start.length, len, s.temperature, s.topK, s.topP, s.minP,
+          lastN, base, pp, k, runs, seed >>> 0, unlikely, pl, pd);
+        return { loops: get(pl, k), odd: get(pd, k) };
+      } finally {
+        free(pc, pst, pp, pl, pd);
+      }
+    },
+
     latticeCount: (bits, dims) => m._gb_lattice_count(bits, dims),
     quantStep: (maxAbs, bits) => m._gb_quant_step(maxAbs, bits),
     mseTheory: (maxAbs, bits) => m._gb_quant_mse_theory(maxAbs, bits),

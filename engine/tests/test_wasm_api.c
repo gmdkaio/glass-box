@@ -6,6 +6,7 @@
 #include "chain.h"
 #include "context.h"
 #include "embed.h"
+#include "sampler.h"
 #include "check.h"
 #include "gb_wasm.h"
 #include "memory.h"
@@ -197,6 +198,29 @@ int main(void) {
     int em = 1;
     for (int i = 0; i < 4; i++) em &= fabs(eval[i] - evref[i]) <= 1e-12;
     CHECK(em, "embedding eigenvalues, small text");
+
+    /* sampling settings: exp() and log(), so odds compare with near(); the picks must match */
+    const double ss[5] = {2.5, 1.9, 1.2, 0.3, -1.0};
+    double so[5];
+    int scut[5];
+    CHECK(gb_sample_odds(ss, 5, 0.7, 4, 0.97, 0.2, so, scut) == 3, "top-k 4, top-p 0.97, min-p 0.2 keep 3");
+    CHECK(near(so[0], 0.6327148139219988) && near(so[1], 0.26850698608604046) && near(so[2], 0.098778199991960802) &&
+              scut[3] == GB_CUT_MIN_P && scut[4] == GB_CUT_TOP_K,
+          "odds after the cuts, temperature 0.7");
+    CHECK(near(gb_odds_from(so, 5, 2), 0.098778199991960802), "odds of the cut words and the third added up");
+    const int st[13] = {0, 1, 2, 0, 3, 1, 0, 2, 3, 0, 1, 2, 0};
+    size_t sc4[16];
+    gb_pair_counts(st, 13, 4, sc4);
+    const int s0[1] = {0};
+    int sg[16];
+    const int sgref[16] = {0, 1, 0, 3, 1, 2, 0, 1, 0, 1, 2, 0, 3, 1, 2, 3};
+    int sm = gb_generate(sc4, 4, s0, 1, 16, 0.9, 0, 1.0, 0.0, 1.3, 8, 6.0, 7u, sg, NULL) == 16;
+    for (int i = 0; i < 16; i++) sm &= sg[i] == sgref[i];
+    CHECK(sm, "a reply, penalty 1.3, seed 7");
+    const double spen[2] = {1.0, 1.5};
+    double slo[2], sod[2];
+    gb_penalty_curve(sc4, 4, s0, 1, 16, 0.9, 0, 1.0, 0.0, 8, 6.0, spen, 2, 5, 3u, 0.3, slo, sod);
+    CHECK(near(slo[0], 0.4) && near(slo[1], 0.27142857142857141) && near(sod[0], 0.14666666666666667), "penalty curve, seed 3");
 
     free(a);
     free(q);
