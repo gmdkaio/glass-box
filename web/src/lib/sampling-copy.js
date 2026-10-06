@@ -1,8 +1,12 @@
 // Plain-language text for the sampling page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-06:
+//   OpenAI temperature 0-2, default 1: https://github.com/openai/openai-openapi (openapi.yaml)
+//   Newer Claude models fix temperature: https://platform.claude.com/docs/en/api/messages
+//   Temperature 0 is greedy: llama.cpp docs
 
 export const varietyNote =
-	'Technical name: temperature. Apps usually set it for you, and many do not let you change it.';
+	'Technical name: temperature. Apps usually set it for you, and some newer models do not let you change it at all.';
 
 export function say(variety, chance) {
 	if (variety === 0)
@@ -58,10 +62,10 @@ export const whyLead =
 	'What you write and how you check the result are the parts you control.';
 
 export const whyDraft =
-	"Draft copy. Before release, check each product's docs for whether a variety or temperature setting is exposed, its range and default, and whether other settings such as top-p apply. These differ by provider and model.";
+	"Checked on 2026-10-06 against the OpenAI and Anthropic API references (temperature runs 0 to 2 at OpenAI, default 1, and newer reasoning models fix it) and llama.cpp's docs on temperature 0. Settings differ by provider and model.";
 
 export const hoodNote =
-	'Real systems add more on top, such as cutting off the least likely words (top-p, top-k). At variety 0 the formula would divide by zero, so the model takes the highest score.';
+	'Real systems add more on top, such as cutting off the least likely words (top-p, top-k). At variety 0 the formula would divide by zero, so the model takes the highest score. A real answer is drawn one token at a time, so every later token can vary too, and hosted models at temperature 0 can still differ a little between runs.';
 
 export const next = [
 	{

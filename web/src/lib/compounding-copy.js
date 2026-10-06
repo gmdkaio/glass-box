@@ -1,5 +1,8 @@
 // Plain-language text for the long tasks page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-06:
+//   Agent success vs task length: Kwa et al. (METR), https://arxiv.org/abs/2503.14499
+//   Self-correction needs outside feedback: Huang et al., ICLR 2024, https://arxiv.org/abs/2310.01798
 
 export const stepNote =
 	'A step is any point where the model can go wrong: a tool call, an edit to a file, a fact it states, a number it carries forward.';
@@ -60,7 +63,7 @@ export const why = [
 	},
 	{
 		title: 'Give it a way to check itself',
-		text: 'Tests, a linter, a script that compares numbers with the source. An agent that can run checks between steps catches its own slips.'
+		text: 'Tests, a linter, a script that compares numbers with the source. An agent that can run checks between steps catches its own slips. Checks with outside feedback, like tests that run, catch more than asking the model to reread its own work.'
 	},
 	{
 		title: 'Read the end with the start in mind',
@@ -72,10 +75,10 @@ export const whyLead =
 	'Two things help most: shorter chains, and checks in between.';
 
 export const whyDraft =
-	'Draft copy. Real steps depend on each other: some mistakes get fixed by later steps, and others make later ones more likely. Before release, find sources on how agent success rates fall with task length, and on how often self-checks catch errors.';
+	'Checked on 2026-10-06 against METR\'s time-horizon study (Kwa et al., 2025) on agent success and task length, and Huang et al. (2024) on self-correction without outside feedback. Real steps depend on each other: some mistakes get fixed by later steps, and others make later ones more likely.';
 
 export const hoodNote =
-	'Steps here are independent and equally reliable, and a missed mistake always spoils the task. Real tasks are messier: some steps are harder than others, and a later step can sometimes repair an earlier one.';
+	'Steps here are independent and equally reliable, and a missed mistake always spoils the task. Real tasks are messier: some steps are harder than others, and a later step can sometimes repair an earlier one. Real checks also sometimes reject correct work, and catch some kinds of mistake far more often than others.';
 
 export const next = [
 	{

@@ -1,5 +1,11 @@
 // Plain-language text for the LoRA page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-06:
+//   PEFT LoraConfig defaults (r=8): https://github.com/huggingface/peft/blob/main/src/peft/tuners/lora/config.py
+//   Unsloth rank and alpha: https://unsloth.ai/docs/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide
+//   Unsloth Qwen3 notebooks (r=32): https://github.com/unslothai/notebooks
+//   QLoRA, all linear layers: Dettmers et al. 2023, https://arxiv.org/abs/2305.14314
+//   LoRA: Hu et al. 2021, https://arxiv.org/abs/2106.09685
 
 export function say(gain, label) {
 	if (gain >= 0.97) return `For ${label.toLowerCase()}, this rank gets nearly everything a full fine-tune does.`;
@@ -33,8 +39,8 @@ export const trapCard =
 
 export const why = [
 	{
-		title: 'Start at rank 8 to 16',
-		text: 'Most fine-tuning tools default to a rank between 8 and 16. Raise it only if a held-out check shows the model is still missing what you taught it.'
+		title: 'Start at rank 16',
+		text: 'PEFT defaults to rank 8 and Unsloth to 16, and Unsloth\'s Qwen3 notebooks use 32. Raise it only if a held-out check shows the model is still missing what you taught it.'
 	},
 	{
 		title: 'Patch every layer',
@@ -42,7 +48,7 @@ export const why = [
 	},
 	{
 		title: 'Adapters are small files',
-		text: 'A rank-16 patch for an 8B model is well under a gigabyte, so you can keep one per task and swap them on the same base model.'
+		text: 'A rank-16 patch on every weight of Qwen3-8B is about 44 million numbers, under 100 MB at 16 bits, so you can keep one per task and swap them on the same base model.'
 	},
 	{
 		title: 'Mind the scale',
@@ -53,10 +59,10 @@ export const why = [
 export const whyLead = 'Tools like Unsloth, Axolotl and the PEFT library run LoRA for you. A few settings decide how it goes.';
 
 export const whyDraft =
-	'Draft copy. Before release, source the default ranks and alpha in Unsloth, Axolotl and PEFT, the QLoRA finding on patching every layer, and adapter file sizes.';
+	'Checked on 2026-10-06 against PEFT\'s LoraConfig, Unsloth\'s docs, library defaults and Qwen3 notebooks, the QLoRA paper (Dettmers et al., 2023) on patching every layer, and the Qwen3-8B config for the adapter size.';
 
 export const hoodNote =
-	'Real fine-tunes run on models with thousands of hidden numbers and many layers, with alpha scaling the patch; here the network has 16 hidden numbers and two layers, and alpha is 1.';
+	'Real fine-tunes run on models with thousands of hidden numbers and many layers, with alpha scaling the patch; here the network has 16 hidden numbers and two layers, and alpha is 1. The base model only knows which word follows which, from twenty sentences, and it trains with plain steps. Real LoRA patches the attention and feed-forward weights inside each layer, usually leaves the token table alone, and trains with AdamW at rates around 0.0002.';
 
 export const next = [
 	{

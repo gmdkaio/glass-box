@@ -1,5 +1,10 @@
 // Plain-language text for the calibration page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-06:
+//   GPT-4 technical report: https://arxiv.org/abs/2303.08774
+//   Stated confidence is overconfident: Xiong et al., ICLR 2024, https://arxiv.org/abs/2306.13063
+//   Stated vs token-probability calibration after RLHF: Tian et al. 2023, https://arxiv.org/abs/2305.14975
+//   Rare facts: Kandpal et al., https://arxiv.org/abs/2211.08411; Mallen et al., https://arxiv.org/abs/2212.10511
 
 export function say(gap) {
 	if (gap < 0.03) return 'Its confidence is honest: when it says 80%, it is right about 80% of the time.';
@@ -55,10 +60,10 @@ export const why = [
 export const whyLead = 'Use stated confidence as one clue among several, and build your own record on the questions you care about.';
 
 export const whyDraft =
-	'Draft copy. Before release, source how well current models\' stated confidence matches their accuracy (studies of verbalized confidence and of calibration before and after chat fine-tuning), and how this varies by model and topic.';
+	'Checked on 2026-10-06 against the GPT-4 technical report (calibration after chat training), Xiong et al. (2024) and Tian et al. (2023) on stated confidence, and Kandpal et al. and Mallen et al. (2023) on rare facts. Draft copy: how evenly a model sounds sure across easy and hard questions still needs a source.';
 
 export const hoodNote =
-	'Real models can also report confidence as the probability of their own answer, which tends to be better calibrated than confidence written in words. Labs measure calibration on large sets of questions with known answers, the same way this page does.';
+	'Real models can also report confidence as the probability of their own answer. Before chat fine-tuning that probability tracks accuracy well; after it the match gets worse, and confidence written in words is sometimes the better guide. A real model\'s overconfidence also changes with the topic and the kind of question, where this page uses one fixed shift. Labs measure calibration on large sets of questions with known answers, the same way this page does.';
 
 export const next = [
 	{

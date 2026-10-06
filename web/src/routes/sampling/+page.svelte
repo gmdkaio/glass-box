@@ -263,6 +263,6 @@
 	{/snippet}
 
 	{#snippet foot()}
-		Every number on this page comes from a C engine compiled to WebAssembly. The scores are made up for three questions, and a real model scores tens of thousands of words.
+		Every number on this page comes from a C engine compiled to WebAssembly. The scores are made up for three questions, and a real model scores tens of thousands of tokens.
 	{/snippet}
 </ModulePage>

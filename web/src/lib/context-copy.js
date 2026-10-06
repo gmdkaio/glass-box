@@ -1,5 +1,9 @@
 // Plain-language text for the context page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-06:
+//   Lost in the Middle: Liu et al., TACL, https://arxiv.org/abs/2307.03172
+//   Distractors and length: https://www.trychroma.com/research/context-rot
+//   Documents first, quotes: https://platform.claude.com/docs/en/docs/build-with-claude/prompt-engineering/long-context-tips
 
 export function say(share) {
 	if (share >= 0.8) return 'The answer sentence stands out clearly.';
@@ -26,7 +30,7 @@ export const parts = [
 	},
 	{
 		title: 'The middle gets less',
-		text: 'Models tested on long inputs tend to use information at the start and the end better than information in the middle. Turn the middle dip off to see the toy without it.'
+		text: 'Models tested on long inputs have often used information at the start and the end better than information in the middle. Newer models show this less, and it depends on the task. Turn the middle dip off to see the toy without it.'
 	}
 ];
 
@@ -40,7 +44,7 @@ export const why = [
 	},
 	{
 		title: 'Put it first or last',
-		text: 'If you have to paste something long, put your question and the key passage at the start or the end, where they get the most attention.'
+		text: 'If you have to paste something long, put the document first and your question at the end.'
 	},
 	{
 		title: 'Point at it',
@@ -55,10 +59,10 @@ export const why = [
 export const whyLead = 'You decide what goes into the context: keep it short, put the key part first or last, and say where to look.';
 
 export const whyDraft =
-	'Draft copy. Before release, source the claim about the middle of long inputs (the "lost in the middle" studies) and check how much current long-context models still show it, which varies by model.';
+	'Checked on 2026-10-06 against Lost in the Middle (Liu et al., 2023), Chroma\'s Context Rot report (2025) on distractors and length, and Anthropic\'s long-context tips on putting documents first and asking for quotes.';
 
 export const hoodNote =
-	'Real models do this for every word, in many layers and many attention heads at once, and models trained for long inputs spread attention better. The idea holds: shares add up to 100%, so more competing text means less for each part.';
+	'Real models do this for every word, in many layers and many attention heads at once, and models trained for long inputs spread attention better. The idea holds: shares add up to 100%, so more competing text means less for each part. A small share can still be enough for a real model to answer, so long-context tests measure the answers directly.';
 
 export const next = [
 	{

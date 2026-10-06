@@ -1,5 +1,10 @@
 // Plain-language text for the how-it-works page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-06:
+//   Qwen3 training text and languages: https://qwenlm.github.io/blog/qwen3/
+//   Qwen3 sizes: https://arxiv.org/abs/2505.09388
+//   Qwen3-8B context: https://huggingface.co/Qwen/Qwen3-8B
+//   Rare facts: https://arxiv.org/abs/2211.08411, https://arxiv.org/abs/2212.10511
 
 export const steps = [
 	{ title: 'Read', text: 'The word it is on goes into the network.' },
@@ -43,7 +48,7 @@ export const whyLead =
 	'Everything an assistant writes comes out of this loop. Knowing it explains most of the surprises.';
 
 export const whyDraft =
-	'Draft copy. Statements about real models need sources before release: how much text they train on, how much of the conversation they read at once, how many numbers they learn, and where they are least reliable.';
+	'Checked on 2026-10-06 for Qwen3: about 36 trillion tokens of training text in 119 languages, 0.6 to 235 billion numbers, and 32,768 tokens read at once (131,072 with YaRN); rare facts are least reliable (Kandpal et al. and Mallen et al., 2023).';
 
 export const hoodSteps = [
 	'hidden value = tanh( connection from the word + a small bias )',
@@ -55,7 +60,7 @@ export const teachingNote =
 	'Teaching: for every pair of words in the text, nudge every number a little in the direction that makes the right next word likelier (gradient descent). Repeat over the whole text many times.';
 
 export const hoodNote =
-	'A real model has billions of these numbers, reads far more than the last word, and is taught on far more text. Its parts are arranged differently (transformers, with attention), and it is still a set of numbers nudged until the odds fit the text.';
+	'A real model has billions of these numbers, reads far more than the last word, and is taught on far more text. Its parts are arranged differently (transformers, with attention), and it is still a set of numbers nudged until the odds fit the text. It reads word pieces called tokens, from a list of tens of thousands, learns with an optimizer called Adam over large batches, and chat assistants get further training on conversations, which teaches them to answer questions.';
 
 export const next = [
 	{

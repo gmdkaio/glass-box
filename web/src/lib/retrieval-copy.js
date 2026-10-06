@@ -1,5 +1,9 @@
 // Plain-language text for the retrieval page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-06:
+//   Hybrid search, top-20 chunks: https://www.anthropic.com/news/contextual-retrieval
+//   More passages, quality rises then falls: Jin et al. 2024, https://arxiv.org/abs/2410.05983
+//   BM25: Robertson and Zaragoza 2009, The Probabilistic Relevance Framework: BM25 and Beyond
 
 export function say(found, right) {
 	if (!found) return 'The page with the answer never reaches the model, so whatever it says comes from somewhere else.';
@@ -12,7 +16,7 @@ export function trap({ found, oldWins, wording, meaning, k }) {
 	if (oldWins) return 'The old timetable uses the same words as the new one and is shorter, so the search ranks it higher. Remove old pages and watch the right one take over.';
 	if (!found && wording === 'other' && !meaning) return 'Exact-word search only matches the words you typed. "Earliest coach" never matches "first bus". Switch to searching by meaning.';
 	if (!found) return 'Hand over more pages, or ask with the words the documents use.';
-	if (k > 4) return 'Every extra page is one more the model can answer from. Past a few pages, the right one gets a smaller share.';
+	if (k > 4) return 'Every extra page is one more the model can answer from. Past a few pages here, the right one gets a smaller share.';
 	return 'Ask with the words your documents use, and keep old versions out of the pile.';
 }
 
@@ -27,7 +31,7 @@ export const parts = [
 	},
 	{
 		title: 'More pages cut both ways',
-		text: 'Handing over more pages makes it likelier the right one is among them. It also gives the model more wrong pages to answer from. A few pages usually works best.'
+		text: 'Handing over more pages makes it likelier the right one is among them. Past a point, the extra near-matches start to pull answers off course.'
 	}
 ];
 
@@ -56,10 +60,10 @@ export const why = [
 export const whyLead = 'The answer can only be as good as the pages the search hands over, and you can shape what it finds.';
 
 export const whyDraft =
-	'Draft copy. Before release, source how retrieval-augmented systems choose and rank passages in current products (keyword, meaning-based and hybrid search), and how answer quality changes with the number of passages.';
+	'Checked on 2026-10-06 against Anthropic\'s Contextual Retrieval post (hybrid search, and 20 passages beating 5 or 10), Jin et al. (2024) on answer quality as passages are added, and BM25\'s length normalisation (Robertson and Zaragoza, 2009).';
 
 export const hoodNote =
-	'Real systems search by keywords like this, by meaning with embeddings (numbers that place similar text close together), or both. Searching by meaning would have matched "earliest coach" to "first bus" here. Neither kind can tell an old page from a current one by the words alone.';
+	'Real systems search by keywords like this, by meaning with embeddings (numbers that place similar text close together), or both. Searching by meaning would have matched "earliest coach" to "first bus" here. Neither kind can tell an old page from a current one by the words alone. Here the meaning search is a short hand-written list of matching words, and the model answers from a single page. Real systems cut documents into passages, search millions of them, often rerank the top ones with a second model, and hand the model every page it gets, so it can combine them or say none of them answers.';
 
 export const next = [
 	{

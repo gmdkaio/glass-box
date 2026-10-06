@@ -1,5 +1,11 @@
 // Plain-language text for the sampling settings page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-06:
+//   Ollama defaults: https://github.com/ollama/ollama/blob/main/docs/modelfile.mdx and api/types.go
+//   repeat_penalty 1.1 -> 1.0: https://github.com/ollama/ollama/releases/tag/v0.32.10
+//   qwen3 params: https://ollama.com/library/qwen3:8b (params blob)
+//   Sampler order: https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md
+//   min-p 0.05 to 0.1: Nguyen et al., ICLR 2025, https://arxiv.org/abs/2407.01082
 
 export function say({ spot, kept, goodCut, badChance }) {
 	if (badChance >= 0.01) return 'Nothing cuts the words that make no sense, and with every reply they get another chance.';
@@ -45,7 +51,7 @@ export const trapCard =
 export const why = [
 	{
 		title: 'Start from the defaults',
-		text: 'Ollama starts at temperature 0.8, top_k 40, top_p 0.9, min_p 0 and repeat_penalty 1.1 over the last 64 tokens. Change one setting at a time, and compare a few replies each time.'
+		text: 'Ollama starts at temperature 0.8, top_k 40, top_p 0.9 and min_p 0, with repeat_penalty off (1.0) since version 0.32.10. Many models in its library ship their own: qwen3 uses temperature 0.6, top_k 20 and top_p 0.95. Change one setting at a time, and compare a few replies each time.'
 	},
 	{
 		title: 'Try min-p',
@@ -53,7 +59,7 @@ export const why = [
 	},
 	{
 		title: 'Keep the penalty mild',
-		text: 'Around 1.05 to 1.15 is usually enough to break loops. Code, lists and names repeat on purpose, so a strong penalty hurts them first.'
+		text: 'If replies loop, a small repeat_penalty such as 1.05 to 1.1 is a common first try. Code, lists and names repeat on purpose, so a strong penalty hurts them first.'
 	},
 	{
 		title: 'Settings do not add knowledge',
@@ -64,10 +70,10 @@ export const why = [
 export const whyLead = 'Ollama, llama.cpp and LM Studio let you set these yourself. A few things to know when you do.';
 
 export const whyDraft =
-	"Draft copy. Before release, source the current Ollama and llama.cpp defaults and sampler order, the min-p paper's suggested values, and the advice on repeat penalty for code. Defaults differ by runner and change between versions.";
+	"Checked on 2026-10-06 against the Ollama docs and its v0.32.10 release, the llama.cpp server docs and the min-p paper (Nguyen et al., 2025). Defaults differ by runner and change between versions. Draft copy: the repeat_penalty range and its effect on code still need a source.";
 
 export const hoodNote =
-	'The order follows llama.cpp: the penalty, then top-k, top-p and min-p on the odds at temperature 1, then the temperature on what is left. Other runners may use another order. Real models score tens of thousands of tokens, and the reply here comes from a model that only knows which word follows which.';
+	'The order follows llama.cpp: the penalty, then top-k, top-p and min-p on the odds at temperature 1, then the temperature on what is left. Other runners may use another order. Real models score tens of thousands of tokens, where a top_k of 40 keeps a tiny sliver; 5 of 16 stands in for that here. The reply comes from a model that only knows which word follows which, and it loops far more readily than a real model, though long replies at a low temperature can still repeat.';
 
 export const next = [
 	{

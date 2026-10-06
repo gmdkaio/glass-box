@@ -74,6 +74,6 @@
 		{/if}
 	</p>
 	<p class="mt-2 text-xs text-muted-foreground">
-		A real model scores tens of thousands of words. The same thing happens there: when rounding makes two scores equal, the model can no longer tell which word is better.
+		A real model scores tens of thousands of tokens. The same thing happens there: when rounding makes two scores equal, the model can no longer tell which token is better.
 	</p>
 </div>
