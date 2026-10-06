@@ -223,6 +223,44 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // training pass by pass at a fixed rate, with the loss on the training, held-out
+    // and old texts after every pass, and the surprise at each word of a probe text
+    // (epochs x (probe length - 1))
+    nnTrainWatch(params, vocab, hidden, ids, held, old, probe, epochs, rate) {
+      const pp = put(params);
+      const pi = putInts(ids);
+      const ph = putInts(held);
+      const po = putInts(old);
+      const pr = putInts(probe);
+      const per = Math.max(0, probe.length - 1);
+      const outs = [epochs, epochs, epochs, Math.max(1, epochs * per)].map((k) => m._malloc(k * 8));
+      try {
+        m._gb_nn_train_watch(pp, vocab, hidden, pi, ids.length, ph, held.length, po, old.length, pr, probe.length, epochs, rate, ...outs);
+        return {
+          params: get(pp, params.length),
+          train: get(outs[0], epochs),
+          held: get(outs[1], epochs),
+          old: get(outs[2], epochs),
+          probe: get(outs[3], epochs * per)
+        };
+      } finally {
+        free(pp, pi, ph, po, pr, ...outs);
+      }
+    },
+
+    // the surprise at each word of a text, -ln of the odds the network gave it
+    nnWordLoss(params, vocab, hidden, ids) {
+      const pp = put(params);
+      const pi = putInts(ids);
+      const po = m._malloc(Math.max(1, ids.length - 1) * 8);
+      try {
+        m._gb_nn_word_loss(pp, vocab, hidden, pi, ids.length, po);
+        return get(po, Math.max(0, ids.length - 1));
+      } finally {
+        free(pp, pi, po);
+      }
+    },
+
     // the step size at pass e of `epochs`, for a schedule
     lrAt: (rate, schedule, e, epochs) => m._gb_lr_at(rate, SCHEDULES.indexOf(schedule), e, epochs),
 

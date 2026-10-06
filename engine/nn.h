@@ -58,4 +58,25 @@ double gb_lr_at(double rate, int schedule, size_t e, size_t epochs);
 double gb_nn_train_curve(double *params, size_t V, size_t H, const int *ids, size_t n,
                          size_t epochs, double rate, int schedule, double *curve);
 
+/*
+ * How surprised the network is by each word of a text: out[i] is -ln(the odds it
+ * gave word i + 1 after word i), for i < n - 1, clamped like gb_nn_loss. A pair
+ * with a number outside 0..V-1 gets 0. Returns 0, or -1 if memory runs out.
+ */
+int gb_nn_word_loss(const double *params, size_t V, size_t H, const int *ids, size_t n,
+                    double *out);
+
+/*
+ * gb_nn_train one pass at a time at a fixed rate, watching after each pass:
+ * the loss on the training text (train[e]), on held-out text the network never
+ * trains on (held_loss[e]), and on older text it knew before (old_loss[e]), and
+ * gb_nn_word_loss on a probe text (probe_loss[e * (np - 1) ..], np - 1 per pass).
+ * Any of the four outputs may be NULL, and so may held, old or probe (with their
+ * length 0). Returns the last training loss, or -1 if it ran out of memory.
+ */
+double gb_nn_train_watch(double *params, size_t V, size_t H, const int *ids, size_t n,
+                         const int *held, size_t nh, const int *old, size_t no, const int *probe,
+                         size_t np, size_t epochs, double rate, double *train, double *held_loss,
+                         double *old_loss, double *probe_loss);
+
 #endif

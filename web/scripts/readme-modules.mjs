@@ -15,6 +15,7 @@ import { budget as memBudget, MODELS as MEM_MODELS } from '../src/lib/memory-sim
 import { VOCAB as EMB_VOCAB, LABELS as EMB_LABELS, learn as embLearn, space as embSpace } from '../src/lib/embeddings-sim.js';
 import { SPOTS as SET_SPOTS } from '../src/lib/settings-sim.js';
 import { TEXTS as LORA_TEXTS, RANKS as LORA_RANKS, W2 as LORA_W2, HIDDEN as LORA_H, V as LORA_V, strips as loraStrips, trainBase as loraBase, fineTune as loraTune, patchOf as loraPatch } from '../src/lib/lora-sim.js';
+import { trainBase as ofBase, watch as ofWatch, EPOCHS as OF_EPOCHS } from '../src/lib/overfit-sim.js';
 import { train as lrTrain, start as lrStart, EPOCHS as LR_EPOCHS, CAP as LR_CAP } from '../src/lib/lr-sim.js';
 import { loadEngine } from '../src/lib/engine.js';
 import createModule from '../src/lib/wasm/glassbox.mjs';
@@ -569,7 +570,37 @@ function learningRate() {
 	return svg(css, body);
 }
 
-const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings, 'sampling-settings': samplingSettings, lora, 'learning-rate': learningRate };
+// Overfitting: the loss on the training sentences and on held-out ones, pass by pass
+// on a log scale, with rings that move to passes 5, 15, 50 and 200. The training line
+// keeps falling; the held-out line turns back up. Every point is the engine's.
+function overfitting() {
+	const watched = ofWatch(gb, ofBase(gb), 1);
+	const STAGES = [5, 15, 50, 200];
+	const x0 = 60, x1 = 560, y0 = 70, y1 = 240, cap = 6;
+	const X = (p) => x0 + (Math.log10(p + 1) / Math.log10(OF_EPOCHS + 1)) * (x1 - x0);
+	const Y = (v) => y1 - (Math.min(v, cap) / cap) * (y1 - y0);
+	const line = (ys) => ys.map((v, p) => `${n(X(p))},${n(Y(v))}`).join(' ');
+	let body = `<text x="32" y="36">loss, pass by pass</text>`;
+	body += `<line x1="${x0}" y1="${y1}" x2="${x1}" y2="${y1}" stroke="${chalk.line}"/>`;
+	body += `<polyline points="${line(watched.train)}" fill="none" stroke="${chalk.bright}" stroke-width="3"/>`;
+	body += `<polyline points="${line(watched.held)}" fill="none" stroke="${chalk.soft}" stroke-width="3" stroke-dasharray="8 6"/>`;
+	body += `<text x="${x1}" y="${n(Y(watched.train[OF_EPOCHS]) - 10)}" text-anchor="end" style="fill:${chalk.bright}">training sentences</text>`;
+	body += `<text x="${x1}" y="${n(Y(watched.held[OF_EPOCHS]) - 12)}" text-anchor="end" style="fill:${chalk.soft}">sentences it never saw</text>`;
+	let css = '';
+	for (const [k, key] of [['t', 'train'], ['h', 'held']]) {
+		const x = X(STAGES[0]), y = Y(watched[key][STAGES[0]]);
+		css += tween(`m${k}`, 'transform', STAGES.map((p) => `translate(${n(X(p) - x)}px,${n(Y(watched[key][p]) - y)}px)`)) + run(`m${k}`, 8);
+		body += `<g class="m${k}"><circle cx="${n(x)}" cy="${n(y)}" r="7" fill="#09090b" stroke="${chalk.bright}" stroke-width="3"/></g>`;
+	}
+	STAGES.forEach((p, s) => {
+		css += scene(`o${s}`, STAGES.length, s) + run(`o${s}`, 8);
+		body += `<text class="o${s}"${hidden(s)} x="${W - 32}" y="36" text-anchor="end" style="font-size:20px;fill:${chalk.bright}">pass ${p}</text>`;
+	});
+	body += `<text x="${x0}" y="270">passes over the training text</text>`;
+	return svg(css, body);
+}
+
+const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings, 'sampling-settings': samplingSettings, lora, 'learning-rate': learningRate, overfitting };
 
 function card(m) {
 	const at = where(m.slug);

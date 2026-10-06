@@ -94,6 +94,40 @@ double gb_nn_train_curve(double *params, size_t V, size_t H, const int *ids, siz
     return loss;
 }
 
+int gb_nn_word_loss(const double *params, size_t V, size_t H, const int *ids, size_t n,
+                    double *out) {
+    double *buffer = malloc((H + V) * sizeof *buffer);
+    if (!buffer) return -1;
+    double *hidden = buffer, *odds = buffer + H;
+    for (size_t i = 0; i + 1 < n; i++) {
+        out[i] = 0.0;
+        if (!valid_pair(ids, i, V)) continue;
+        run(params, V, H, (size_t)ids[i], hidden, odds);
+        double p = odds[ids[i + 1]];
+        out[i] = -log(p > 1e-300 ? p : 1e-300);
+    }
+    free(buffer);
+    return 0;
+}
+
+double gb_nn_train_watch(double *params, size_t V, size_t H, const int *ids, size_t n,
+                         const int *held, size_t nh, const int *old, size_t no, const int *probe,
+                         size_t np, size_t epochs, double rate, double *train, double *held_loss,
+                         double *old_loss, double *probe_loss) {
+    double loss = 0.0;
+    for (size_t e = 0; e < epochs; e++) {
+        loss = gb_nn_train(params, V, H, ids, n, 1, rate);
+        if (loss == -1.0) return -1.0;
+        if (train) train[e] = loss;
+        if (held_loss) held_loss[e] = held ? gb_nn_loss(params, V, H, held, nh) : 0.0;
+        if (old_loss) old_loss[e] = old ? gb_nn_loss(params, V, H, old, no) : 0.0;
+        if (probe_loss && probe && np > 1 &&
+            gb_nn_word_loss(params, V, H, probe, np, probe_loss + e * (np - 1)) != 0)
+            return -1.0;
+    }
+    return loss;
+}
+
 double gb_nn_train(double *params, size_t V, size_t H, const int *ids, size_t n, size_t epochs,
                    double rate) {
     double *buffer = malloc((2 * H + V) * sizeof *buffer);
