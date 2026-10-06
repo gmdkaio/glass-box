@@ -260,6 +260,11 @@ int main(void) {
     gb_nn_train(qp, 3, 4, nt9, 9, 4, 0.2);
     CHECK(gb_nn_quiz(qp, 3, 4, qc, qa, 3, qg) == 3 && qg[0] == 1 && qg[1] == 2 && qg[2] == 0, "exam after 4 passes: 3 of 3");
 
+    /* agreement: odds leaning toward the user's answer; exp, so near() */
+    const double lean_s[3] = {2.0, 1.0, 0.0};
+    double lean_o[3];
+    CHECK(near(gb_lean(lean_s, 3, 1, 1.5, lean_o), 0.5922010701861591), "lean 1.5 toward answer 1");
+
     free(a);
     free(q);
     DONE();

@@ -42,6 +42,21 @@ void gb_softmax(const double *x, double *out, size_t n, double temperature) {
     for (size_t i = 0; i < n; i++) out[i] /= sum;
 }
 
+double gb_lean(const double *scores, size_t n, size_t yours, double push, double *out) {
+    if (n == 0) return 0.0;
+    double top = -INFINITY, sum = 0.0;
+    for (size_t i = 0; i < n; i++) {
+        out[i] = scores[i] + (i == yours ? push : 0.0);
+        if (out[i] > top) top = out[i];
+    }
+    for (size_t i = 0; i < n; i++) {
+        out[i] = exp(out[i] - top);
+        sum += out[i];
+    }
+    for (size_t i = 0; i < n; i++) out[i] /= sum;
+    return yours < n ? out[yours] : 0.0;
+}
+
 void gb_sample_counts(const double *p, size_t n, size_t draws, unsigned int seed,
                       size_t *counts) {
     for (size_t i = 0; i < n; i++) counts[i] = 0;

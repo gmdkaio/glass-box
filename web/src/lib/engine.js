@@ -118,6 +118,19 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // odds that lean toward one answer: its score raised by push, then softmax
+    lean(scores, yours, push) {
+      const n = scores.length;
+      const ps = put(scores);
+      const po = m._malloc(n * 8);
+      try {
+        const share = m._gb_lean(ps, n, yours, push, po);
+        return { odds: get(po, n), share };
+      } finally {
+        free(ps, po);
+      }
+    },
+
     // which word follows which: a vocab x vocab grid of counts, row = word, column = the word after it
     pairCounts(ids, vocab) {
       const pi = m._malloc(ids.length * 4);

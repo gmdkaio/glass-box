@@ -67,11 +67,11 @@ export const hoodNote =
 
 export const next = [
 	{
-		title: 'Next: retrieval',
-		text: 'How a model looks things up before it answers, and what goes wrong when the search finds the wrong page.'
+		title: 'Next: what you want to hear',
+		text: 'How sure it sounds is one thing. Whose side it takes is another: your opinions and settings tilt its answers.'
 	},
 	{
-		title: 'Then: shrinking a model',
-		text: 'Round every number in a model to fewer allowed values, and see what it costs.'
+		title: 'Then: retrieval',
+		text: 'How a model looks things up before it answers, and what goes wrong when the search finds the wrong page.'
 	}
 ];

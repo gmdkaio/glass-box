@@ -27,6 +27,8 @@ export const modules = [
 		blurb: "The model reads text as numbered chunks, so the letters inside them are hidden from it." },
 	{ track: 'using', slug: 'calibration', title: 'Calibration', ready: true,
 		blurb: "How sure a model sounds, compared with how often it is right." },
+	{ track: 'using', slug: 'agreement', title: 'What you want to hear', ready: true,
+		blurb: "Chat models lean toward agreeing with you, and your opinions and settings tilt the answer most where the model is unsure." },
 	{ track: 'using', slug: 'retrieval', title: 'Retrieval', ready: true,
 		blurb: "Before the model answers from documents, a search picks the few pages it gets to read." },
 	{ track: 'under', slug: 'quantization', title: 'Shrinking a model', tag: 'Local models', ready: true,
