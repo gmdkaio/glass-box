@@ -74,6 +74,26 @@ double gb_nn_loss(const double *params, size_t V, size_t H, const int *ids, size
     return pairs ? total / (double)pairs : 0.0;
 }
 
+double gb_lr_at(double rate, int schedule, size_t e, size_t epochs) {
+    if (epochs == 0) return rate;
+    double x = (double)e / (double)epochs;
+    if (schedule == GB_LR_LINEAR) return rate * (1.0 - x);
+    if (schedule == GB_LR_COSINE) return rate * 0.5 * (1.0 + cos(3.14159265358979323846 * x));
+    return rate;
+}
+
+double gb_nn_train_curve(double *params, size_t V, size_t H, const int *ids, size_t n,
+                         size_t epochs, double rate, int schedule, double *curve) {
+    double loss = 0.0;
+    for (size_t e = 0; e < epochs; e++) {
+        loss = gb_nn_train(params, V, H, ids, n, 1, gb_lr_at(rate, schedule, e, epochs));
+        if (loss == -1.0) return -1.0;
+        if (loss != loss) loss = INFINITY;
+        curve[e] = loss;
+    }
+    return loss;
+}
+
 double gb_nn_train(double *params, size_t V, size_t H, const int *ids, size_t n, size_t epochs,
                    double rate) {
     double *buffer = malloc((2 * H + V) * sizeof *buffer);

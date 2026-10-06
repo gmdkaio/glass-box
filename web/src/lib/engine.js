@@ -5,6 +5,9 @@
 // The heap views are read again on every use, because they go stale when the
 // memory grows.
 
+// lr_scheduler_type, in the engine's order (engine/nn.h)
+const SCHEDULES = ["constant", "linear", "cosine"];
+
 export async function loadEngine(createModule) {
   const m = await createModule();
 
@@ -205,6 +208,23 @@ export async function loadEngine(createModule) {
         free(pp, pi);
       }
     },
+
+    // training one pass at a time with a schedule ("constant", "linear" or "cosine"),
+    // and the loss on ids after every pass. A network that blew up reads Infinity.
+    nnTrainCurve(params, vocab, hidden, ids, epochs, rate, schedule) {
+      const pp = put(params);
+      const pi = putInts(ids);
+      const pc = m._malloc(epochs * 8);
+      try {
+        const loss = m._gb_nn_train_curve(pp, vocab, hidden, pi, ids.length, epochs, rate, SCHEDULES.indexOf(schedule), pc);
+        return { params: get(pp, params.length), curve: get(pc, epochs), loss };
+      } finally {
+        free(pp, pi, pc);
+      }
+    },
+
+    // the step size at pass e of `epochs`, for a schedule
+    lrAt: (rate, schedule, e, epochs) => m._gb_lr_at(rate, SCHEDULES.indexOf(schedule), e, epochs),
 
     // picks an index from the probabilities `draws` times and counts each index
     sample(probs, draws, seed) {

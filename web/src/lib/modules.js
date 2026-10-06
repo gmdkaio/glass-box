@@ -39,7 +39,8 @@ export const modules = [
 		blurb: "Before each pick, top-k, top-p and min-p drop unlikely words, and a repeat penalty lowers words already used." },
 	{ track: 'under', slug: 'lora', title: 'LoRA', tag: 'Fine-tuning', ready: true,
 		blurb: "LoRA trains a thin patch beside a frozen model, and a low rank is enough for most changes." },
-	{ track: 'under', slug: 'learning-rate', title: 'Learning rate', tag: 'Fine-tuning', ready: false },
+	{ track: 'under', slug: 'learning-rate', title: 'Learning rate', tag: 'Fine-tuning', ready: true,
+		blurb: "The learning rate sets how big each training step is: too small barely learns, too big overshoots." },
 	{ track: 'under', slug: 'overfitting', title: 'Overfitting', tag: 'Fine-tuning', ready: false },
 	{ track: 'under', slug: 'evaluation', title: 'Evaluating a model', ready: false }
 ];

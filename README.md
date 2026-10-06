@@ -94,9 +94,18 @@ Before each pick, top-k, top-p and min-p drop unlikely words, and a repeat penal
 LoRA trains a thin patch beside a frozen model, and a low rank is enough for most changes.
 </td>
 </tr>
+<tr>
+<td width="50%" valign="top">
+<a href="https://gmdkaio.github.io/glass-box/learning-rate"><img src=".github/assets/modules/learning-rate.svg" alt="Learning rate" width="100%"></a><br>
+<b><a href="https://gmdkaio.github.io/glass-box/learning-rate">Learning rate</a></b><br>
+<sub>Under the hood · 6 of 8 · Fine-tuning</sub><br>
+The learning rate sets how big each training step is: too small barely learns, too big overshoots.
+</td>
+<td width="50%"></td>
+</tr>
 </table>
 
-Coming next. **Under the hood:** Learning rate · Overfitting · Evaluating a model
+Coming next. **Under the hood:** Overfitting · Evaluating a model
 <!-- modules:end -->
 
 ## Engine
