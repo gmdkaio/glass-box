@@ -14,6 +14,7 @@ import { PAGES, QUESTIONS, search } from '../src/lib/retrieval-sim.js';
 import { budget as memBudget, MODELS as MEM_MODELS } from '../src/lib/memory-sim.js';
 import { VOCAB as EMB_VOCAB, LABELS as EMB_LABELS, learn as embLearn, space as embSpace } from '../src/lib/embeddings-sim.js';
 import { SPOTS as SET_SPOTS } from '../src/lib/settings-sim.js';
+import { TEXTS as LORA_TEXTS, RANKS as LORA_RANKS, trainBase as loraBase, fineTune as loraTune } from '../src/lib/lora-sim.js';
 import { loadEngine } from '../src/lib/engine.js';
 import createModule from '../src/lib/wasm/glassbox.mjs';
 
@@ -485,7 +486,32 @@ function samplingSettings() {
 	return svg(css, body);
 }
 
-const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings, 'sampling-settings': samplingSettings };
+// LoRA: the share of a full fine-tune's gain that LoRA reaches on the page's three
+// texts, as the rank steps through 1, 2, 4 and 16. Every bar is a training run in the engine.
+function lora() {
+	const base = loraBase(gb);
+	const runs = LORA_TEXTS.map((_, i) => loraTune(gb, base, i));
+	const STAGES = [1, 2, 4, 16];
+	const x0 = 210, width = 340, y0 = 80, gap = 58, h = 30;
+	let css = '';
+	let body = `<text x="32" y="36">a thin patch on a frozen model</text>`;
+	LORA_TEXTS.forEach((t, i) => {
+		const y = y0 + i * gap;
+		const gains = STAGES.map((r) => Math.max(0.005, runs[i].ranks[LORA_RANKS.indexOf(r)].gain));
+		css += tween(`g${i}`, 'transform', gains.map((g) => `scaleX(${n(g)})`)) + `.g${i}{transform-origin:0 50%}` + run(`g${i}`, 8);
+		body += `<text x="32" y="${y + 20}">${t.label.toLowerCase()}</text>`;
+		body += `<rect x="${x0}" y="${y}" width="${width}" height="${h}" fill="${chalk.divider}"/>`;
+		body += `<rect class="fb g${i}" x="${x0}" y="${y}" width="${width}" height="${h}" fill="${chalk.soft}"/>`;
+	});
+	STAGES.forEach((r, s) => {
+		css += scene(`l${s}`, STAGES.length, s) + run(`l${s}`, 8);
+		body += `<text class="l${s}"${hidden(s)} x="${W - 32}" y="36" text-anchor="end" style="font-size:20px;fill:${chalk.bright}">rank ${r}</text>`;
+	});
+	body += `<text x="32" y="276">bars: share of a full fine-tune's gain</text>`;
+	return svg(css, body);
+}
+
+const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings, 'sampling-settings': samplingSettings, lora };
 
 function card(m) {
 	const at = where(m.slug);

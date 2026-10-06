@@ -6,6 +6,7 @@
 #include "chain.h"
 #include "context.h"
 #include "embed.h"
+#include "lora.h"
 #include "sampler.h"
 #include "check.h"
 #include "gb_wasm.h"
@@ -221,6 +222,19 @@ int main(void) {
     double slo[2], sod[2];
     gb_penalty_curve(sc4, 4, s0, 1, 16, 0.9, 0, 1.0, 0.0, 8, 6.0, spen, 2, 5, 3u, 0.3, slo, sod);
     CHECK(near(slo[0], 0.4) && near(slo[1], 0.27142857142857141) && near(sod[0], 0.14666666666666667), "penalty curve, seed 3");
+
+    /* LoRA: tanh, exp and log, so compare with near() */
+    double lb[64], ll[36];
+    const int lt[12] = {0, 1, 2, 0, 1, 3, 0, 1, 2, 0, 1, 4};
+    gb_nn_init(lb, 5, 4, 3u);
+    gb_lora_init(ll, 5, 4, 2, 4u);
+    CHECK(near(gb_lora_train(lb, ll, 5, 4, 2, lt, 12, 50, 0.1), 0.41562896038354308), "lora rank 2, 50 passes");
+    CHECK(near(ll[0], 1.5865304850856978) && near(ll[35], 0.63255178915537524), "the trained strips");
+    const double lm[6] = {1.0, 2.0, 0.0, 0.0, 1.0, 3.0};
+    double lbv[2], lav[3];
+    CHECK(near(gb_low_rank(lm, 2, 3, 1, lbv, lav), 0.71343747458109497), "rank 1 keeps 71% of the squares");
+    CHECK(near(lbv[1] * lav[2], 2.6713032141645452), "rank 1 version of the corner");
+    CHECK(gb_lora_count(36, 4096, 4096, 1024, 12288, 16, 1) == 43646976.0, "Qwen3-8B, rank 16, every weight");
 
     free(a);
     free(q);

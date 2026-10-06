@@ -115,6 +115,15 @@ check(sg.ids.join(",") === "0,1,0,3,1,2,0,1,0,1,2,0,3,1,2,3", "a reply, penalty 
 check(near(gb.loopShare(sg.ids, 3), 0.2857142857142857), "loop share of that reply");
 const spc = gb.penaltyCurve(sc4, 4, [0], 16, ss, 8, 6.0, [1.0, 1.5], 5, 3, 0.3);
 check(near(spc.loops[0], 0.4) && near(spc.loops[1], 0.27142857142857141) && near(spc.odd[0], 0.14666666666666667), "penalty curve, seed 3");
+const lnet = gb.nnInit(5, 4, 3);
+const lst = gb.loraTrain(lnet, 5, 4, 2, Int32Array.from([0, 1, 2, 0, 1, 3, 0, 1, 2, 0, 1, 4]), 50, 0.1, 4);
+check(near(lst.loss, 0.41562896038354308) && near(lst.lora[0], 1.5865304850856978) && near(lst.lora[35], 0.63255178915537524), "lora rank 2, 50 passes: " + lst.loss);
+check(gb.loraMerge(lnet, lst.lora, 5, 4, 2).length === 49, "merged network size");
+const llr = gb.lowRank(Float64Array.from([1, 2, 0, 0, 1, 3]), 2, 3, 1);
+check(near(llr.kept, 0.71343747458109497) && near(llr.b[1] * llr.a[2], 2.6713032141645452), "rank 1 keeps 71%");
+check(gb.loraCount(36, 4096, 4096, 1024, 12288, 16, true) === 43646976, "Qwen3-8B, rank 16, every weight");
+check(near(gb.gainShare(4, 2, 1), 2 / 3), "gain share");
+check(gb.diff(Float64Array.from([1, 2.5, -1]), Float64Array.from([0.5, 2.5, 1])).join(",") === "0.5,0,-2", "what changed");
 
 // 2M weights is 16 MB per array, more than the starting heap
 const big = gb.weights(2_000_000, 11, 0.5);

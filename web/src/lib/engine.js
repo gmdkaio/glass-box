@@ -636,6 +636,68 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // LoRA on the word network (see engine/lora.h). The network stays as it is;
+    // the strips B1, A1, B2, A2 are trained, starting from a fresh patch made from seed.
+    loraTrain(params, vocab, hidden, rank, ids, epochs, rate, seed) {
+      const k = m._gb_lora_params(vocab, hidden, rank);
+      const pp = put(params);
+      const pl = m._malloc(k * 8);
+      const pi = putInts(ids);
+      try {
+        m._gb_lora_init(pl, vocab, hidden, rank, seed >>> 0);
+        const loss = m._gb_lora_train(pp, pl, vocab, hidden, rank, pi, ids.length, epochs, rate);
+        return { lora: get(pl, k), loss };
+      } finally {
+        free(pp, pl, pi);
+      }
+    },
+
+    // the network with the patch added
+    loraMerge(params, lora, vocab, hidden, rank) {
+      const pp = put(params);
+      const pl = put(lora);
+      const po = m._malloc(params.length * 8);
+      try {
+        m._gb_lora_merge(pp, pl, vocab, hidden, rank, po);
+        return get(po, params.length);
+      } finally {
+        free(pp, pl, po);
+      }
+    },
+
+    // the closest rank-r version of a rows x cols matrix, as b (rows x r) times a (r x cols)
+    lowRank(mat, rows, cols, rank) {
+      const r = Math.min(rank, rows);
+      const pm = put(mat);
+      const pb = m._malloc(rows * r * 8);
+      const pa = m._malloc(r * cols * 8);
+      try {
+        const kept = m._gb_low_rank(pm, rows, cols, r, pb, pa);
+        return { kept, b: get(pb, rows * r), a: get(pa, r * cols) };
+      } finally {
+        free(pm, pb, pa);
+      }
+    },
+
+    // what a fine-tune changed, number by number
+    diff(after, before) {
+      const pa = put(after);
+      const pb = put(before);
+      const po = m._malloc(after.length * 8);
+      try {
+        m._gb_diff(pa, pb, after.length, po);
+        return get(po, after.length);
+      } finally {
+        free(pa, pb, po);
+      }
+    },
+
+    nnParams: (vocab, hidden) => m._gb_nn_params(vocab, hidden),
+    loraParams: (vocab, hidden, rank) => m._gb_lora_params(vocab, hidden, rank),
+    gainShare: (before, after, best) => m._gb_gain_share(before, after, best),
+    loraCount: (layers, hidden, qOut, kvOut, inter, rank, everyWeight) =>
+      m._gb_lora_count(layers, hidden, qOut, kvOut, inter, rank, everyWeight ? 1 : 0),
+
     latticeCount: (bits, dims) => m._gb_lattice_count(bits, dims),
     quantStep: (maxAbs, bits) => m._gb_quant_step(maxAbs, bits),
     mseTheory: (maxAbs, bits) => m._gb_quant_mse_theory(maxAbs, bits),
