@@ -127,6 +127,21 @@ int main(void) {
     CHECK(fabs(wl[0] + log(od[2])) < 1e-12, "word 1: -ln of its odds after word 0");
     CHECK(fabs((wl[0] + wl[1] + wl[2] + wl[3]) / 4.0 - gb_nn_loss(w2, 3, 4, heldt, 5)) < 1e-12, "the average is the loss");
 
+    /* the exam: top guess after each context word */
+    const int ctx[4] = {0, 1, 2, 7}, ans[4] = {0, 0, 0, 0};
+    int guess[4];
+    size_t right = gb_nn_quiz(w2, 3, 4, ctx, ans, 4, guess);
+    int quizok = guess[3] == -1;
+    size_t count = 0;
+    for (int i = 0; i < 3; i++) {
+        gb_nn_forward(w2, 3, 4, (size_t)ctx[i], hid, od);
+        int top = 0;
+        for (int k = 1; k < 3; k++)
+            if (od[k] > od[top]) top = k;
+        quizok &= guess[i] == top;
+        count += top == 0;
+    }
+    CHECK(quizok && right == count, "quiz: the top guess per question, and the count of right ones");
     free(w1);
     free(w2);
 

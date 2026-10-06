@@ -108,9 +108,18 @@ The learning rate sets how big each training step is: too small barely learns, t
 Trained too long on too little text, a model learns it by heart and gets worse at everything else.
 </td>
 </tr>
+<tr>
+<td width="50%" valign="top">
+<a href="https://gmdkaio.github.io/glass-box/evaluation"><img src=".github/assets/modules/evaluation.svg" alt="Evaluating a model" width="100%"></a><br>
+<b><a href="https://gmdkaio.github.io/glass-box/evaluation">Evaluating a model</a></b><br>
+<sub>Under the hood · 8 of 8</sub><br>
+When test questions leak into training, a model scores well on the test and no better on new questions.
+</td>
+<td width="50%"></td>
+</tr>
 </table>
 
-Coming next. **Under the hood:** Evaluating a model
+Coming next. 
 <!-- modules:end -->
 
 ## Engine

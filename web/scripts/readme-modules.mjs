@@ -15,6 +15,7 @@ import { budget as memBudget, MODELS as MEM_MODELS } from '../src/lib/memory-sim
 import { VOCAB as EMB_VOCAB, LABELS as EMB_LABELS, learn as embLearn, space as embSpace } from '../src/lib/embeddings-sim.js';
 import { SPOTS as SET_SPOTS } from '../src/lib/settings-sim.js';
 import { TEXTS as LORA_TEXTS, RANKS as LORA_RANKS, W2 as LORA_W2, HIDDEN as LORA_H, V as LORA_V, strips as loraStrips, trainBase as loraBase, fineTune as loraTune, patchOf as loraPatch } from '../src/lib/lora-sim.js';
+import { trainBase as evBase, sit as evSit, QUESTIONS as EV_Q, PUBLIC as EV_PUBLIC, PASSES as EV_PASSES } from '../src/lib/eval-sim.js';
 import { trainBase as ofBase, watch as ofWatch, EPOCHS as OF_EPOCHS } from '../src/lib/overfit-sim.js';
 import { train as lrTrain, start as lrStart, EPOCHS as LR_EPOCHS, CAP as LR_CAP } from '../src/lib/lr-sim.js';
 import { loadEngine } from '../src/lib/engine.js';
@@ -600,7 +601,43 @@ function overfitting() {
 	return svg(css, body);
 }
 
-const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings, 'sampling-settings': samplingSettings, lora, 'learning-rate': learningRate, overfitting };
+// Evaluating a model: the exam as two walls of tiles, public and fresh. As 0, 4, 8
+// and then 12 public questions leak into training, the public wall fills in and the
+// fresh wall stays as it was. Every tile is a guess by the engine's model.
+function evaluation() {
+	const base = evBase(gb);
+	const STAGES = [0, 4, 8, 12];
+	const exams = STAGES.map((k) => evSit(gb, base, { leak: k, passes: EV_PASSES, extra: false }));
+	const tw = 38, th = 30, gap = 6, cols = 4;
+	const walls = [{ x: 40, from: 0, label: 'public test' }, { x: 340, from: EV_PUBLIC, label: 'fresh questions' }];
+	let css = '';
+	let body = `<text x="32" y="36">a test it has seen, and one it has not</text>`;
+	walls.forEach((wall) => {
+		body += `<text x="${wall.x}" y="76">${wall.label}</text>`;
+		for (let j = 0; j < EV_PUBLIC; j++) {
+			const i = wall.from + j, x = wall.x + (j % cols) * (tw + gap) + 50, y = 92 + Math.floor(j / cols) * (th + gap);
+			body += `<rect x="${x}" y="${y}" width="${tw}" height="${th}" rx="4" fill="none" stroke="${chalk.line}"/>`;
+			const on = exams.map((e) => (e.right[i] ? 1 : 0));
+			if (on.every((v) => v === on[0])) {
+				if (on[0]) body += `<rect x="${x}" y="${y}" width="${tw}" height="${th}" rx="4" fill="${chalk.soft}"/>`;
+			} else {
+				css += tween(`t${i}`, 'opacity', on) + run(`t${i}`, 10);
+				body += `<rect class="t${i}" x="${x}" y="${y}" width="${tw}" height="${th}" rx="4" fill="${chalk.soft}" opacity="${on[0]}"/>`;
+			}
+		}
+	});
+	STAGES.forEach((k, s) => {
+		const e = exams[s];
+		css += scene(`e${s}`, STAGES.length, s) + run(`e${s}`, 10);
+		let g = `<text x="${W - 32}" y="36" text-anchor="end" style="font-size:20px;fill:${chalk.bright}">${k} leaked</text>`;
+		g += `<text x="90" y="236" style="font-size:20px;fill:${chalk.bright}">${Math.round((e.publicRight / EV_PUBLIC) * 100)}%</text>`;
+		g += `<text x="390" y="236" style="font-size:20px;fill:${chalk.bright}">${Math.round((e.freshRight / (EV_Q.length - EV_PUBLIC)) * 100)}%</text>`;
+		body += `<g class="e${s}"${hidden(s)}>${g}</g>`;
+	});
+	return svg(css, body);
+}
+
+const ART = { 'how-it-works': howItWorks, sampling, compounding, context, tokenization, calibration, retrieval, quantization, memory, embeddings, 'sampling-settings': samplingSettings, lora, 'learning-rate': learningRate, overfitting, evaluation };
 
 function card(m) {
 	const at = where(m.slug);
