@@ -1,5 +1,9 @@
 // Plain-language text for the tokenization page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-06:
+//   Language gap: Petrov et al., NeurIPS 2023, https://arxiv.org/abs/2305.15425
+//   Qwen tokenizer splits digits: https://arxiv.org/abs/2309.16609
+//   Qwen3 vocab_size 151936: https://huggingface.co/Qwen/Qwen3-8B/blob/main/config.json
 
 export function say(perToken) {
 	if (perToken >= 3.5) return 'Most words are a single token here, so the model reads this text in big, familiar pieces.';
@@ -11,7 +15,7 @@ export function say(perToken) {
 export function trap({ digits, foreign, letters }) {
 	if (letters)
 		return 'The model sees "strawberry" as a few numbers, one for each piece. To count the r\'s it has to remember how each piece is spelled.';
-	if (digits) return 'Long numbers are cut wherever the merges happen to fall, so 12,450 can become 1, 2, a comma, 4 and 50. That makes sums harder than they look.';
+	if (digits) return 'Here long numbers are cut wherever the merges happen to fall, so 12,450 can become 1, 2, a comma, 4 and 50. Real tokenizers cut numbers by a fixed rule, into single digits or groups of up to three, and sums are still harder than they look.';
 	if (foreign)
 		return 'A tokenizer that learned mostly from English has few merges for other languages, so the same meaning takes more tokens. Letters like ã take two bytes, and they can be split.';
 	return 'Frequent English words get one token each. Rare words, names and typos fall apart into pieces.';
@@ -42,7 +46,7 @@ export const why = [
 	},
 	{
 		title: 'Let a tool do the sums',
-		text: 'For exact arithmetic on long numbers, ask the model to use a calculator or write code. Numbers are cut into uneven pieces before it sees them.'
+		text: 'For exact arithmetic on long numbers, ask the model to use a calculator or write code. Many tokenizers cut long numbers into single digits or groups of three, so the model works on pieces of the number.'
 	},
 	{
 		title: 'Budget for your language',
@@ -57,10 +61,10 @@ export const why = [
 export const whyLead = 'A few habits get around what the tokenizer hides.';
 
 export const whyDraft =
-	'Draft copy. Before release, source the language gap (studies of tokenizer cost across languages) with numbers for current tokenizers, and check how today\'s models do on letter counting, which has improved.';
+	'Checked on 2026-10-06 against Petrov et al. (2023) on tokenizer cost across languages (up to 15 times), Qwen3\'s vocabulary of 151,936 tokens, and how the Qwen and GPT-4 tokenizers split digits. Draft copy: numbers for the language gap in current tokenizers, and how today\'s models do on letter counting, still need checking.';
 
 export const hoodNote =
-	'Real tokenizers work the same way but learn from far more text in many languages and keep tens of thousands to a few hundred thousand tokens. Their gap between languages is smaller than in this English-only toy, and it is still there.';
+	'Real tokenizers work the same way but learn from far more text in many languages and keep tens of thousands to a few hundred thousand tokens. Their gap between languages is smaller than in this English-only toy, and it is still there. They also split text first by their own rules for spaces, punctuation and digits, then apply the merges.';
 
 export const next = [
 	{

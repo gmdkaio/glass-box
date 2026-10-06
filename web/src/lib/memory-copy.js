@@ -1,5 +1,11 @@
 // Plain-language text for the memory page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-06:
+//   llama.cpp flags and defaults: https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md
+//   Quantized V cache needs flash attention: llama.cpp src/llama-context.cpp
+//   Ollama context by VRAM: https://github.com/ollama/ollama/blob/main/docs/context-length.mdx
+//   Ollama q8_0 cache: https://github.com/ollama/ollama/blob/main/docs/faq.mdx
+//   Qwen3 shapes: https://huggingface.co/Qwen/Qwen3-8B/blob/main/config.json
 
 export function say(fits, free, card) {
 	if (!fits) return 'It does not fit. Runners like llama.cpp and Ollama then keep part of the model in ordinary memory, and it gets much slower, or they refuse to load it.';
@@ -25,7 +31,7 @@ export const parts = [
 	},
 	{
 		title: 'Shared heads, smaller cache',
-		text: 'Qwen3 models read with 32 or 64 heads but keep only 8 sets of keys and values (grouped-query attention). That cuts the cache by four to eight times.'
+		text: 'The Qwen3 models here read with 32 or 64 heads but keep only 8 sets of keys and values (grouped-query attention). That cuts the cache by four to eight times.'
 	}
 ];
 
@@ -35,11 +41,11 @@ export const trapCard =
 export const why = [
 	{
 		title: 'Set the context you need',
-		text: 'Runners reserve the cache for the full context you set (num_ctx in Ollama, --ctx-size in llama.cpp). Setting 128k when your chats are 8k wastes memory you could spend on a bigger model.'
+		text: 'Runners reserve the cache for the full context you set (num_ctx in Ollama, --ctx-size in llama.cpp). Ollama picks 4k, 32k or 256k by default from your graphics memory. Setting 128k when your chats are 8k wastes memory you could spend on a bigger model.'
 	},
 	{
 		title: 'Store the cache in 8 bits',
-		text: 'An 8-bit cache halves its size for a small loss. In llama.cpp it is --cache-type-k and --cache-type-v; in Ollama, the KV cache type setting.'
+		text: 'An 8-bit cache halves its size for a small loss. In llama.cpp it is --cache-type-k and --cache-type-v, and an 8-bit value cache needs flash attention, which recent builds turn on for you. In Ollama it is the OLLAMA_KV_CACHE_TYPE setting.'
 	},
 	{
 		title: 'Leave room for the chat',
@@ -54,10 +60,10 @@ export const why = [
 export const whyLead = 'Memory decides which model you can run and how long you can talk to it. A few settings move the limit a long way.';
 
 export const whyDraft =
-	'Draft copy. Before release, check the runner flags and defaults against current llama.cpp and Ollama docs, measure the runtime overhead (set here at 0.5 GB) for a few cards, and source the quality cost of an 8-bit cache.';
+	'Checked on 2026-10-06 against the llama.cpp server docs and source, Ollama\'s FAQ and context-length docs, and the Qwen3 configs. Draft copy: the runtime overhead (set here at 0.5 GB) and the two-thirds rule are rules of thumb still to measure.';
 
 export const hoodNote =
-	'Real runners add a little more: buffers that grow with the batch size, and some models that store a few layers at higher precision. The two big terms are the ones on this page.';
+	'Real runners add a little more: buffers that grow with the batch size, and some models that store a few layers at higher precision. The two big terms are the ones on this page. Your screen and other programs also use some of the card, and popular 4-bit files such as Q4_K_M mix precisions and average closer to 5 bits per number.';
 
 export const next = [
 	{

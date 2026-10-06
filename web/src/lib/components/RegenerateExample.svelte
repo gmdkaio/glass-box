@@ -57,6 +57,6 @@
 		{/if}
 	</p>
 	<p class="mt-2 text-xs text-muted-foreground">
-		The scores are made up. A real model scores tens of thousands of words, but it draws in the same way.
+		The scores are made up. A real model scores tens of thousands of tokens, but it draws in the same way.
 	</p>
 </div>

@@ -1,5 +1,9 @@
 // Plain-language text for the embeddings page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-06:
+//   Counting vs prediction: Levy and Goldberg, NIPS 2014, https://papers.nips.cc/paper_files/paper/2014/hash/b78666971ceae55a8e87efb7cbfd9ad4-Abstract.html
+//   Contrastive training: Qwen3 Embedding, https://arxiv.org/abs/2506.05176
+//   Hybrid search: https://www.anthropic.com/news/contextual-retrieval
 
 export function say(topics) {
 	if (topics >= 0.85) return 'Words land among others used the same way: transport near transport, food near food.';
@@ -26,7 +30,7 @@ export const parts = [
 	},
 	{
 		title: 'Close in numbers, close in use',
-		text: 'Two words whose numbers point the same way are used alike. The angle between them (cosine similarity) is the measure every meaning search uses.'
+		text: 'Two words whose numbers point the same way are used alike. The angle between them (cosine similarity) is the measure most meaning searches use.'
 	}
 ];
 
@@ -55,10 +59,10 @@ export const why = [
 export const whyLead = 'Embeddings power search by meaning, in your own tools and in local document setups. A few things to know when you rely on them.';
 
 export const whyDraft =
-	'Draft copy. Before release, source how embedding models are trained today (with prediction objectives, which reach the same idea as counting) and the advice on hybrid search and mixing embedding models.';
+	'Checked on 2026-10-06 against Levy and Goldberg (2014) on counting and prediction reaching the same space, the Qwen3 Embedding report on how search embedding models are trained, and Anthropic\'s Contextual Retrieval post on mixing keyword and meaning search.';
 
 export const hoodNote =
-	'Real models learn their embeddings during training, by predicting words, and give each token a few hundred to a few thousand numbers. Counting neighbours and breaking the table into directions, as here, reaches the same kind of space, and early word vectors were built this way.';
+	'Real models learn their embeddings during training, by predicting words, and give each token a few hundred to a few thousand numbers. Counting neighbours and breaking the table into directions, as here, reaches the same kind of space, and early word vectors were built this way. Search embedding models are trained by contrast: pull a question and its matching passage together, push unrelated passages apart. They read a whole passage and give it one vector, where this page averages its words, and inside a model a word\'s numbers change with the sentence around it.';
 
 export const next = [
 	{

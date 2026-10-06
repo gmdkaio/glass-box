@@ -1,5 +1,10 @@
 // Plain-language text for the learning rate page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-06:
+//   LoRA rates: QLoRA, https://arxiv.org/abs/2305.14314 (Table 9); Unsloth 2e-4
+//   Full fine-tune 2e-5: Llama 2, https://arxiv.org/abs/2307.09288
+//   Trainer defaults: https://huggingface.co/docs/transformers/main_classes/trainer
+//   Warmup: RAdam, https://arxiv.org/abs/1908.03265; Unsloth and Axolotl use 5-10% of steps
 
 export function say({ loss, best, rate, falling }) {
 	if (!Number.isFinite(loss) || loss > 4) return 'The steps are so big that each one overshoots, and the numbers run away: the model gets worse at everything.';
@@ -36,7 +41,7 @@ export const trapCard =
 export const why = [
 	{
 		title: 'Real rates are far smaller',
-		text: 'Fine-tunes with the AdamW optimizer use rates around 0.0001 to 0.0003 for LoRA and around 0.00001 for a full fine-tune. Tools pick a sensible default.'
+		text: 'Fine-tunes with the AdamW optimizer use rates around 0.0001 to 0.0003 for LoRA and around 0.00001 to 0.00002 for a full fine-tune. Examples and notebooks start you at a sensible value.'
 	},
 	{
 		title: 'Watch the loss curve',
@@ -44,18 +49,18 @@ export const why = [
 	},
 	{
 		title: 'Use a schedule',
-		text: 'Most recipes use linear or cosine decay. Many also add a short warmup, a few percent of the steps at a rising rate, which helps AdamW on big models.'
+		text: 'Most recipes use linear or cosine decay. Many also add a short warmup, 5 to 10 percent of the steps at a rising rate, which steadies AdamW early on.'
 	},
 	{
 		title: 'Lower it first',
-		text: 'When a run goes wrong, halve the learning rate before changing anything else. It is the setting that most often breaks a fine-tune.'
+		text: 'When a run goes wrong, a common first move is to halve the learning rate before changing anything else.'
 	}
 ];
 
 export const whyLead = 'Every fine-tuning tool asks for a learning rate and a schedule. A few things to know when you set them.';
 
 export const whyDraft =
-	'Draft copy. Before release, source typical AdamW learning rates for LoRA and full fine-tunes, the default schedules and warmup in Unsloth, Axolotl and the Hugging Face Trainer, and the advice on reading loss curves.';
+	'Checked on 2026-10-06 against the QLoRA and Llama 2 papers, Unsloth\'s and Axolotl\'s examples, the Hugging Face Trainer defaults, and the RAdam paper on warmup. Draft copy: the advice on reading loss curves and on halving the rate is common practice and still needs a source.';
 
 export const hoodNote =
 	'This network takes plain steps, one word pair at a time, so its rates are much larger than a real fine-tune\'s. Real training uses AdamW, which scales each step by the recent size of its gradients, and averages over batches of examples; warmup matters there and is left out here.';
