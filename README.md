@@ -2,7 +2,7 @@
 
 Interactive simulations of how AI systems work, with the math behind each one
 and the caveats on where toy models stop matching real ones.
-[Try it in your browser.](https://gmdkaio.github.io/glass-box/) In EN/PT. CN soon.
+[Try it in your browser](https://gmdkaio.github.io/glass-box/) in EN/PT. CN soon.
 
 ## Modules
 
