@@ -6,6 +6,8 @@
 //   Ollama context by VRAM: https://github.com/ollama/ollama/blob/main/docs/context-length.mdx
 //   Ollama q8_0 cache: https://github.com/ollama/ollama/blob/main/docs/faq.mdx
 //   Qwen3 shapes: https://huggingface.co/Qwen/Qwen3-8B/blob/main/config.json
+//   llama.cpp compute buffer, 8B at 512 tokens (258.5 MiB): https://huggingface.co/legraphista/Meta-Llama-3.1-8B-Instruct-IMat-GGUF/blob/6a31be1a2d8a11245c4f418df83fde6a295d80f9/imatrix.log
+//   OLLAMA_GPU_OVERHEAD, default 0: https://github.com/ollama/ollama/blob/main/envconfig/config.go
 
 export function say(fits, free, card) {
 	if (!fits) return 'It does not fit. Runners like llama.cpp and Ollama then keep part of the model in ordinary memory, and it gets much slower, or they refuse to load it.';
@@ -49,7 +51,7 @@ export const why = [
 	},
 	{
 		title: 'Leave room for the chat',
-		text: 'Pick a model whose numbers take about two thirds of the card. The rest goes to the cache and the runtime.'
+		text: 'A rough rule this page uses: pick a model whose numbers take about two thirds of the card. The rest goes to the cache and the runtime.'
 	},
 	{
 		title: 'Watch for spilling',
@@ -60,7 +62,7 @@ export const why = [
 export const whyLead = 'Memory decides which model you can run and how long you can talk to it. A few settings move the limit a long way.';
 
 export const whyDraft =
-	'Checked on 2026-10-06 against the llama.cpp server docs and source, Ollama\'s FAQ and context-length docs, and the Qwen3 configs. Draft copy: the runtime overhead (set here at 0.5 GB) and the two-thirds rule are rules of thumb still to measure.';
+	'Checked on 2026-10-07 against the llama.cpp server docs and source, Ollama\'s FAQ, context-length docs and settings, and the Qwen3 configs. The 0.5 GB runtime overhead and the two-thirds rule are this page\'s own assumptions. A llama.cpp log for an 8B model shows a 0.26 GB working buffer at a 512-token context, and that buffer grows with the batch and context. Ollama reserves no extra by default (OLLAMA_GPU_OVERHEAD is 0).';
 
 export const hoodNote =
 	'Real runners add a little more: buffers that grow with the batch size, and some models that store a few layers at higher precision. The two big terms are the ones on this page. Your screen and other programs also use some of the card, and popular 4-bit files such as Q4_K_M mix precisions and average closer to 5 bits per number.';
@@ -68,7 +70,7 @@ export const hoodNote =
 export const next = [
 	{
 		title: 'Next: embeddings',
-		text: 'That cache holds one list of numbers per token. Those lists are how the model represents meaning.'
+		text: 'The cache keeps keys and values worked out from each token. They all start from one list of numbers per token, looked up in a table: its embedding.'
 	},
 	{
 		title: 'Then: sampling settings',

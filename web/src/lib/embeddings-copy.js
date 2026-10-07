@@ -12,7 +12,7 @@ export function say(topics) {
 }
 
 export function trap({ k, keywordFound, meaningFound }) {
-	if (k <= 2) return 'Two numbers cannot keep five topics apart. Add dimensions and watch the groups pull away from each other.';
+	if (k <= 2) return 'Here two numbers are too few to keep the five topics apart. Add dimensions and watch the groups pull away from each other.';
 	if (!keywordFound && meaningFound)
 		return 'The question shares no words with the right notice, so a keyword search finds nothing. The meaning search finds it anyway, because its words sit near the notice\'s words.';
 	if (k >= 16) return 'More numbers past a point add little here: a few dozen sentences only teach so much.';

@@ -118,6 +118,39 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // the scores divided by the temperature, as softmax does before exp
+    scaleScores(scores, temperature) {
+      const n = scores.length;
+      const pin = put(scores);
+      const pout = m._malloc(n * 8);
+      try {
+        m._gb_scale_scores(pin, pout, n, temperature);
+        return get(pout, n);
+      } finally {
+        free(pin, pout);
+      }
+    },
+
+    // the sum of e^score, the bottom of the softmax fraction
+    expSum(scores) {
+      const p = put(scores);
+      try {
+        return m._gb_exp_sum(p, scores.length);
+      } finally {
+        free(p);
+      }
+    },
+
+    // the average of a list of numbers
+    mean(x) {
+      const p = put(x);
+      try {
+        return m._gb_mean(p, x.length);
+      } finally {
+        free(p);
+      }
+    },
+
     // odds that lean toward one answer: its score raised by push, then softmax
     lean(scores, yours, push) {
       const n = scores.length;
@@ -324,6 +357,18 @@ export async function loadEngine(createModule) {
     chainOdds: (p, steps, checkEvery, catchRate, retries) =>
       m._gb_chain_odds(p, steps, checkEvery, catchRate, retries),
 
+    // one section of checkEvery steps: q, right first time, and m, wrong and caught
+    chainSection(p, checkEvery, catchRate) {
+      const po = m._malloc(2 * 8);
+      try {
+        m._gb_chain_section(p, checkEvery, catchRate, po);
+        const [q, caught] = get(po, 2);
+        return { q, m: caught };
+      } finally {
+        free(po);
+      }
+    },
+
     // one run: what happened in order (0 right, 1 wrong, 2 check passed, 3 check
     // caught), how it ended (0 clean, 1 broken, 2 gave up), and the step that spoiled it
     chainTrace(p, steps, checkEvery, catchRate, retries, seed) {
@@ -367,6 +412,30 @@ export async function loadEngine(createModule) {
         return get(p, n);
       } finally {
         free(p);
+      }
+    },
+
+    // the same scores, and what each sentence is: 0 the rest, 1 a look-alike, 2 the key
+    contextKinds(n, keyAt, keyScore, spread, lookalikes, lookalikeScore, dip, seed) {
+      const ps = m._malloc(n * 8);
+      const pk = m._malloc(n * 4);
+      try {
+        m._gb_context_kinds(n, keyAt, keyScore, spread, lookalikes, lookalikeScore, dip, seed >>> 0, ps, pk);
+        return { scores: get(ps, n), kinds: m.HEAP32.slice(pk / 4, pk / 4 + n) };
+      } finally {
+        free(ps, pk);
+      }
+    },
+
+    // the average shares of the key, the look-alikes and the rest over many contexts
+    contextSplit(n, keyAt, keyScore, spread, lookalikes, lookalikeScore, dip, trials, seed) {
+      const po = m._malloc(3 * 8);
+      try {
+        m._gb_context_split(n, keyAt, keyScore, spread, lookalikes, lookalikeScore, dip, trials, seed >>> 0, po);
+        const [key, lookalike, filler] = get(po, 3);
+        return { key, lookalike, filler };
+      } finally {
+        free(po);
       }
     },
 
@@ -484,6 +553,20 @@ export async function loadEngine(createModule) {
       }
     },
 
+    // the average stated confidence, and the share answered right
+    calibMeans(conf, correct) {
+      const pc = put(conf);
+      const py = putInts(correct);
+      const po = m._malloc(2 * 8);
+      try {
+        m._gb_calib_means(pc, py, conf.length, po);
+        const [says, right] = get(po, 2);
+        return { says, right };
+      } finally {
+        free(pc, py, po);
+      }
+    },
+
     // the log-odds shift that makes the confidences fit the outcomes best
     calibFitShift(conf, correct) {
       const pc = put(conf);
@@ -551,6 +634,8 @@ export async function loadEngine(createModule) {
     memKv: (layers, kvHeads, headDim, tokens, bits) => m._gb_mem_kv(layers, kvHeads, headDim, tokens, bits),
     memMaxTokens: (budget, weights, overhead, layers, kvHeads, headDim, bits) =>
       m._gb_mem_max_tokens(budget, weights, overhead, layers, kvHeads, headDim, bits),
+    memTotal: (params, bits, extraBits, layers, kvHeads, headDim, tokens, cacheBits, overhead) =>
+      m._gb_mem_total(params, bits, extraBits, layers, kvHeads, headDim, tokens, cacheBits, overhead),
 
     // Embeddings (see engine/embed.h). Learns from a text of word numbers (a
     // negative number ends a sentence): counts, weighted with PPMI, then every

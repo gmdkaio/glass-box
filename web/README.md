@@ -1,48 +1,26 @@
-# sv
+# Glass Box web
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
+The site: SvelteKit with Svelte 5, Tailwind and shadcn-svelte components, built as
+static pages with `adapter-static`.
 
 ```sh
-# create a new project
-npx sv create my-app
+npm ci
+npm run dev       # local server
+npm run build     # static site in build/
+npm run preview   # serve the build
 ```
 
-To recreate this project with the same configuration:
+## Layout
 
-```sh
-# recreate this project
-bun x sv@0.17.1 create --template minimal --no-types --add tailwindcss="plugins:none" --install bun web-new
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
+- `src/routes/<slug>/+page.svelte`: one page per module. `src/lib/modules.js` lists
+  the modules in sidebar order.
+- `src/lib/<module>-sim.js`: settings and the calls into the engine for a module.
+- `src/lib/<module>-copy.js`: the text of a module, with its sources listed at the top.
+- `src/lib/engine.js`: the wrapper around the wasm engine. The engine itself is
+  built from `../engine` into `src/lib/wasm/` (see the main README).
+- `scripts/`: write the README banner and module pictures.
 
 ## GitHub Pages
 
-This app is set up for GitHub Pages as a project site.
-
-- The build uses `BASE_PATH=/<repo-name>` in CI so asset URLs work under `/glass-box`.
-- `web/static/.nojekyll` is included so GitHub Pages serves SvelteKit’s `_app` assets.
-- The deploy workflow lives in [.github/workflows/deploy-web.yml](../.github/workflows/deploy-web.yml).
+The deploy workflow ([deploy-web.yml](../.github/workflows/deploy-web.yml)) builds
+with `BASE_PATH=/glass-box`, so links and assets work under the project path.

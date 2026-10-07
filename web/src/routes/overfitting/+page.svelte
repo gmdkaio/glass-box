@@ -9,7 +9,9 @@
 	import { Sweep } from '$lib/motion.svelte.js';
 	import { SIZES, PRESETS, PASSES, EPOCHS, RATE, HELD, MIX, trainBase, watch } from '$lib/overfit-sim.js';
 	import { where } from '$lib/modules.js';
-	import * as copy from '$lib/overfit-copy.js';
+	import * as en from '$lib/overfit-copy.js';
+	import * as pt from '$lib/overfit-copy.pt.js';
+	import { t, local, toyNote } from '$lib/i18n.svelte.js';
 
 	let gb = $state.raw(null);
 	let runs = $state.raw(SIZES.map(() => null));
@@ -17,6 +19,7 @@
 	let pass = $state(150);
 	const sweep = new Sweep();
 	const here = where('overfitting');
+	const copy = $derived(t(en, pt));
 
 	const run = $derived(runs[size]);
 	// the pass with the lowest held-out loss, per run
@@ -64,16 +67,21 @@
 <svelte:head><title>Overfitting · Glass Box</title></svelte:head>
 
 <ModulePage
-	track={here.track.title}
+	track={local(here.track, 'title')}
 	n={here.n}
 	total={here.total}
-	tag={here.tag}
-	title="When does more training make a model worse?"
-	lead="A model trained on a few examples for too long learns them by heart. It gets better and better at those exact sentences and worse at new ones, and it forgets what it knew before. Train it and watch a sentence it never saw."
+	tag={local(here.module, 'tag')}
+	title={t('When does more training make a model worse?', 'Quando mais treino deixa um modelo pior?')}
+	lead={t(
+		'A model trained on a few examples for too long learns them by heart. It gets better and better at those exact sentences and worse at new ones, and it forgets what it knew before. Train it and watch a sentence it never saw.',
+		'Um modelo treinado tempo demais com poucos exemplos acaba decorando esses exemplos. Ele fica cada vez melhor naquelas frases exatas e pior nas novas, e esquece o que sabia antes. Treine o modelo e acompanhe uma frase que ele nunca viu.'
+	)}
 	whyLead={copy.whyLead}
 >
 	{#snippet presets()}
-		<p class="mb-2 text-xs text-muted-foreground">The Millbrook model, fine-tuned on short sentences about a fair:</p>
+		<p class="mb-2 text-xs text-muted-foreground">
+			{t('The Millbrook model, fine-tuned on short sentences about a fair:', 'O modelo de Millbrook, com fine-tuning em frases curtas sobre uma feira:')}
+		</p>
 		<div class="mb-3.5 grid gap-2.5 md:grid-cols-3">
 			{#each PRESETS as p (p.label)}
 				<button
@@ -83,22 +91,22 @@
 						? 'border-foreground bg-muted'
 						: ''}"
 				>
-					<b class="block font-medium text-foreground">{p.label}</b>
-					<span class="mt-0.5 block text-xs">{p.hint}</span>
+					<b class="block font-medium text-foreground">{local(p, 'label')}</b>
+					<span class="mt-0.5 block text-xs">{local(p, 'hint')}</span>
 				</button>
 			{/each}
 		</div>
 	{/snippet}
 
 	{#snippet stage()}
-		<OverfitStage {size} {pass} {runs} {best} play={{ playing: sweep.playing, label: 'Keep training', onclick: playSweep, disabled: !run }} />
+		<OverfitStage {size} {pass} {runs} {best} play={{ playing: sweep.playing, label: t('Keep training', 'Continuar treinando'), onclick: playSweep, disabled: !run }} />
 	{/snippet}
 
 	{#snippet legend()}
 		<div class="flex flex-wrap gap-x-5 gap-y-1">
-			<span><span class="mr-1.5 inline-block h-2 w-4 rounded-sm bg-foreground/80 align-middle"></span>At your pass</span>
-			<span><span class="mr-1.5 inline-block h-2 w-4 rounded-sm border border-muted-foreground align-middle"></span>At the best pass</span>
-			<span>Surprise and loss: how unexpected a word or text is to the model. Lower is better.</span>
+			<span><span class="mr-1.5 inline-block h-2 w-4 rounded-sm bg-foreground/80 align-middle"></span>{t('At your pass', 'Na sua passada')}</span>
+			<span><span class="mr-1.5 inline-block h-2 w-4 rounded-sm border border-muted-foreground align-middle"></span>{t('At the best pass', 'Na melhor passada')}</span>
+			<span>{t('Surprise and loss: how unexpected a word or text is to the model. Lower is better.', 'Surpresa e perda: o quanto uma palavra ou um texto é inesperado para o modelo. Quanto menor, melhor.')}</span>
 		</div>
 	{/snippet}
 
@@ -106,7 +114,7 @@
 		<div class="grid gap-x-8 gap-y-5 md:grid-cols-2">
 			<div>
 				<div class="mb-2 flex justify-between text-xs text-muted-foreground">
-					<span>num_train_epochs: {pass}</span><span>passes over the training text</span>
+					<span>num_train_epochs: {pass}</span><span>{t('passes over the training text', 'passadas pelo texto de treino')}</span>
 				</div>
 				<Slider type="single" value={passAt} onValueChange={setPassAt} min={0} max={PASSES.length - 1} step={1} />
 				<div class="relative mt-2 h-4 text-xs text-muted-foreground">
@@ -118,10 +126,10 @@
 				</div>
 			</div>
 			<div>
-				<div class="mb-2 text-xs text-muted-foreground">Training text</div>
+				<div class="mb-2 text-xs text-muted-foreground">{t('Training text', 'Texto de treino')}</div>
 				<div class="flex flex-wrap gap-1.5">
 					{#each SIZES as s, i (s.label)}
-						<Button size="sm" variant={size === i ? 'default' : 'outline'} onclick={() => (size = i)}>{s.label}</Button>
+						<Button size="sm" variant={size === i ? 'default' : 'outline'} onclick={() => (size = i)}>{local(s, 'label')}</Button>
 					{/each}
 				</div>
 			</div>
@@ -132,19 +140,22 @@
 		{#if run}
 			<p class="leading-relaxed">
 				<b class="font-medium">
-					After {pass} passes the training loss is {run.train[pass].toFixed(2)} and the held-out loss is {run.held[pass].toFixed(2)}; it was lowest, {run.held[at].toFixed(2)}, at pass {at}.
+					{t(
+						`After ${pass} passes the training loss is ${run.train[pass].toFixed(2)} and the held-out loss is ${run.held[pass].toFixed(2)}; it was lowest, ${run.held[at].toFixed(2)}, at pass ${at}.`,
+						`Depois de ${pass} passadas, a perda de treino é ${run.train[pass].toFixed(2)} e a perda nos dados separados é ${run.held[pass].toFixed(2)}; ela foi mais baixa, ${run.held[at].toFixed(2)}, na passada ${at}.`
+					)}
 				</b>
 				{copy.say({ pass, best: at, heldNow: run.held[pass], heldBest: run.held[at] })}
 			</p>
 			<p class="mt-1 text-sm text-muted-foreground">{copy.trap(size, pass)}</p>
 		{:else}
-			<p class="text-muted-foreground">Training the model…</p>
+			<p class="text-muted-foreground">{t('Training the model…', 'Treinando o modelo…')}</p>
 		{/if}
 	{/snippet}
 
 	{#snippet cards()}
 		<div class="mb-4 grid gap-3.5 md:grid-cols-3">
-			{#each [{ title: 'Held-out loss', value: run ? run.held[pass].toFixed(2) : '–', share: run ? Math.min(1, run.held[pass] / 8) : 0, text: run ? `Lowest at pass ${at}: ${run.held[at].toFixed(2)}.` : '' }, { title: 'The gap', value: run ? gap.toFixed(2) : '–', share: run ? Math.min(1, Math.max(0, gap) / 8) : 0, text: 'Held-out loss minus training loss. It grows as the model learns by heart.' }, { title: 'What it knew', value: run ? run.old[pass].toFixed(2) : '–', share: run ? Math.min(1, run.old[pass] / 8) : 0, text: run ? `Loss on the Millbrook text, from ${run.old[0].toFixed(2)} before.` : '' }] as c (c.title)}
+			{#each [{ title: t('Held-out loss', 'Perda nos dados separados'), value: run ? run.held[pass].toFixed(2) : '–', share: run ? Math.min(1, run.held[pass] / 8) : 0, text: run ? t(`Lowest at pass ${at}: ${run.held[at].toFixed(2)}.`, `Mais baixa na passada ${at}: ${run.held[at].toFixed(2)}.`) : '' }, { title: t('The gap', 'A distância'), value: run ? gap.toFixed(2) : '–', share: run ? Math.min(1, Math.max(0, gap) / 8) : 0, text: t('Held-out loss minus training loss. It grows as the model learns by heart.', 'Perda nos dados separados menos a perda de treino. Ela cresce conforme o modelo decora.') }, { title: t('What it knew', 'O que ele sabia'), value: run ? run.old[pass].toFixed(2) : '–', share: run ? Math.min(1, run.old[pass] / 8) : 0, text: run ? t(`Loss on the Millbrook text, from ${run.old[0].toFixed(2)} before.`, `Perda no texto de Millbrook, que antes era ${run.old[0].toFixed(2)}.`) : '' }] as c (c.title)}
 				<div class="rounded-lg border px-4 py-3.5">
 					<h3 class="text-xs font-medium">{c.title}</h3>
 					<div class="mt-1 text-3xl font-semibold tracking-tight tabular-nums">{c.value}</div>
@@ -167,26 +178,38 @@
 			{/each}
 		</div>
 		<div class="mb-4 rounded-lg border px-4 py-3.5">
-			<h3 class="mb-1.5 text-xs font-medium">The trap</h3>
+			<h3 class="mb-1.5 text-xs font-medium">{t('The trap', 'A armadilha')}</h3>
 			<p class="text-sm leading-relaxed text-muted-foreground">{copy.trapCard}</p>
 		</div>
 
 		<Tabs.Root value="simple">
 			<Tabs.List>
-				<Tabs.Trigger value="simple">Simple</Tabs.Trigger>
-				<Tabs.Trigger value="hood">Under the hood</Tabs.Trigger>
+				<Tabs.Trigger value="simple">{t('Simple', 'Simples')}</Tabs.Trigger>
+				<Tabs.Trigger value="hood">{t('Under the hood', 'Por dentro')}</Tabs.Trigger>
 			</Tabs.List>
 			<Tabs.Content value="simple">
-				<p class="max-w-3xl text-sm text-muted-foreground">Open Under the hood for how each number is measured.</p>
+				<p class="max-w-3xl text-sm text-muted-foreground">{t('Open Under the hood for how each number is measured.', 'Abra Por dentro para ver como cada número é medido.')}</p>
 			</Tabs.Content>
 			<Tabs.Content value="hood">
 				<div class="space-y-2 rounded-lg border px-4 py-3.5 text-sm text-muted-foreground">
-					<div>Surprise at a word: −ln(the odds the model gave it after the word before). Loss: the average surprise over a text.</div>
 					<div>
-						Training text: the first {SIZES[size].n} fair sentences{SIZES[size].mix ? `, plus ${MIX} old Millbrook sentences` : ''}. Held-out: {HELD.length} more fair sentences the model never
-						trains on. Each pass is one round over the training text at learning rate {RATE}.
+						{t(
+							'Surprise at a word: −ln(the odds the model gave it after the word before). Loss: the average surprise over a text.',
+							'Surpresa numa palavra: −ln(as chances que o modelo deu a ela depois da palavra anterior). Perda: a surpresa média ao longo de um texto.'
+						)}
 					</div>
-					<div>The best pass is where the held-out loss is lowest, the point a trainer that keeps the best checkpoint would stop at.</div>
+					<div>
+						{t(
+							`Training text: the first ${SIZES[size].n} fair sentences${SIZES[size].mix ? `, plus ${MIX} old Millbrook sentences` : ''}. Held-out: ${HELD.length} more fair sentences the model never trains on. Each pass is one round over the training text at learning rate ${RATE}.`,
+							`Texto de treino: as primeiras ${SIZES[size].n} frases da feira${SIZES[size].mix ? `, mais ${MIX} frases antigas de Millbrook` : ''}. Dados separados: mais ${HELD.length} frases da feira em que o modelo nunca treina. Cada passada é uma volta pelo texto de treino com taxa de aprendizado ${RATE}.`
+						)}
+					</div>
+					<div>
+						{t(
+							'The best pass is where the held-out loss is lowest, the point a trainer that keeps the best checkpoint would stop at.',
+							'A melhor passada é onde a perda nos dados separados é mais baixa, o ponto em que um treinador que guarda o melhor checkpoint pararia.'
+						)}
+					</div>
 					<p class="pt-2 text-xs">{copy.hoodNote}</p>
 				</div>
 			</Tabs.Content>
@@ -217,7 +240,9 @@
 	{/snippet}
 
 	{#snippet foot()}
-		Every number on this page comes from a C engine compiled to WebAssembly, which trains the network in your browser. It is the same tiny word-pair network as on
-		the LoRA and learning rate pages, and the fair sentences are made up.
+		{t(
+			'Every number on this page comes from a C engine compiled to WebAssembly, which trains the network in your browser. It is the same tiny word-pair network as on the LoRA and learning rate pages, and the fair sentences are made up.',
+			'Cada número nesta página vem de um motor em C compilado para WebAssembly, que treina a rede no seu navegador. É a mesma pequena rede de pares de palavras das páginas de LoRA e de taxa de aprendizado, e as frases da feira são inventadas.'
+		)}{t('', ' ' + toyNote)}
 	{/snippet}
 </ModulePage>

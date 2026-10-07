@@ -1,6 +1,7 @@
 <script>
 	import { chalk } from '$lib/colors.js';
 	import { eased } from '$lib/motion.svelte.js';
+	import { t } from '$lib/i18n.svelte.js';
 
 	// series: error per bit count from errorSeries(). bits: the current setting.
 	let { series, bits } = $props();
@@ -70,6 +71,6 @@
 	});
 </script>
 
-<div role="img" aria-label="Memory rises with bits while rounding error falls.">
+<div role="img" aria-label={t('Memory rises with bits while rounding error falls.', 'A memória sobe com os bits enquanto o erro de arredondamento cai.')}>
 	<canvas bind:this={canvas} width={WIDTH} height={HEIGHT} class="block w-full" aria-hidden="true"></canvas>
 </div>

@@ -35,15 +35,15 @@ const OLD = CORPUS.split('\n');
 export const MIX = 6; // old sentences mixed back in when "mix in old text" is on
 
 export const SIZES = [
-	{ label: '4 sentences', n: 4, mix: false },
-	{ label: '8 sentences', n: 8, mix: false },
-	{ label: '16 sentences', n: 16, mix: false },
-	{ label: '8 + old text', n: 8, mix: true }
+	{ label: '4 sentences', n: 4, mix: false, pt: { label: '4 frases' } },
+	{ label: '8 sentences', n: 8, mix: false, pt: { label: '8 frases' } },
+	{ label: '16 sentences', n: 16, mix: false, pt: { label: '16 frases' } },
+	{ label: '8 + old text', n: 8, mix: true, pt: { label: '8 + texto antigo' } }
 ];
 export const PRESETS = [
-	{ label: 'A few examples', hint: '4 sentences, 100 passes', size: 0, pass: 100 },
-	{ label: 'Train too long', hint: '8 sentences, 150 passes', size: 1, pass: 150 },
-	{ label: 'Stop in time', hint: '16 sentences, 15 passes', size: 2, pass: 15 }
+	{ label: 'A few examples', hint: '4 sentences, 100 passes', size: 0, pass: 100, pt: { label: 'Poucos exemplos', hint: '4 frases, 100 passadas' } },
+	{ label: 'Train too long', hint: '8 sentences, 150 passes', size: 1, pass: 150, pt: { label: 'Treinar demais', hint: '8 frases, 150 passadas' } },
+	{ label: 'Stop in time', hint: '16 sentences, 15 passes', size: 2, pass: 15, pt: { label: 'Parar a tempo', hint: '16 frases, 15 passadas' } }
 ];
 
 export const HIDDEN = 16;

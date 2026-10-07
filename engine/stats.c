@@ -82,3 +82,20 @@ void gb_sample_counts(const double *p, size_t n, size_t draws, unsigned int seed
         counts[pick]++;
     }
 }
+
+double gb_mean(const double *x, size_t n) {
+    if (n == 0) return 0.0;
+    double sum = 0.0;
+    for (size_t i = 0; i < n; i++) sum += x[i];
+    return sum / (double)n;
+}
+
+void gb_scale_scores(const double *x, double *out, size_t n, double temperature) {
+    for (size_t i = 0; i < n; i++) out[i] = temperature > 0.0 ? x[i] / temperature : x[i];
+}
+
+double gb_exp_sum(const double *x, size_t n) {
+    double sum = 0.0;
+    for (size_t i = 0; i < n; i++) sum += exp(x[i]);
+    return sum;
+}

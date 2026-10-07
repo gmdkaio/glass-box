@@ -4,25 +4,30 @@ export const WORDS = ['Paris', 'Lyon', 'London', 'Berlin', 'banana'];
 export const WANTED = 0; // Paris is the answer the reader is after
 export const SILLY = 4; // banana
 export const GOAL = 'the capital of France';
+export const GOAL_PT = 'a capital da França'; // only shown on the page
 
 // Three ways to ask for the same thing. The better the question, the more the scores favour Paris.
+// pt: the same labels and questions in Portuguese, for display only (the scores are made up).
 export const PROMPTS = [
 	{
 		label: 'Vague',
 		text: 'Name a capital:',
 		effect: 'It could be any country, so the odds spread across several capitals.',
+		pt: { label: 'Vaga', text: 'Diga uma capital:', effect: 'Pode ser qualquer país, então as chances se espalham por várias capitais.' },
 		scores: Float64Array.from([2.4, 0.5, 2.3, 2.2, -2.5])
 	},
 	{
 		label: 'Clearer',
 		text: 'The capital of France is',
 		effect: 'France narrows it down, but a near miss like Lyon still gets a share.',
+		pt: { label: 'Mais clara', text: 'A capital da França é', effect: 'A França restringe as opções, e uma quase certa como Lyon ainda leva uma parte.' },
 		scores: Float64Array.from([3.9, 3.0, 1.0, 0.6, -2.5])
 	},
 	{
 		label: 'Specific',
 		text: 'Q: What is the capital of France? Answer with one word.',
 		effect: 'The question and the format leave little room for anything else.',
+		pt: { label: 'Específica', text: 'P: Qual é a capital da França? Responda com uma palavra.', effect: 'A pergunta e o formato deixam pouco espaço para outra coisa.' },
 		scores: Float64Array.from([6.0, 2.5, 0.8, 0.5, -3.0])
 	}
 ];

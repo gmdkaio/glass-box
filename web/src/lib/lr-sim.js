@@ -15,9 +15,9 @@ export const SCHEDULES = ['constant', 'linear', 'cosine'];
 // learning_rate stops, 1-2-5 on a log scale; the slider moves between them
 export const RATES = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 4];
 export const PRESETS = [
-	{ label: 'Too timid', rate: 0.005 },
-	{ label: 'About right', rate: 0.1 },
-	{ label: 'Too bold', rate: 1 }
+	{ label: 'Too timid', rate: 0.005, pt: { label: 'Tímido demais' } },
+	{ label: 'About right', rate: 0.1, pt: { label: 'Na medida' } },
+	{ label: 'Too bold', rate: 1, pt: { label: 'Ousado demais' } }
 ];
 export const REFS = [0.01, 0.2, 1]; // drawn dashed beside your rate, for comparison
 export const CAP = 8; // losses above this run off the top of the charts
@@ -43,4 +43,3 @@ export function start(gb, base) {
 	};
 }
 
-export const fmt = (r) => String(r);

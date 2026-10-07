@@ -2,11 +2,11 @@
 
 export { percent } from '$lib/sampling-sim.js';
 
-// three task sizes; a step is anywhere the model can go wrong
+// three task sizes; a step is anywhere the model can go wrong. pt: the same in Portuguese.
 export const TASKS = [
-	{ label: 'A quick answer', hint: 'reword a paragraph', steps: 3 },
-	{ label: 'A small feature', hint: 'a function and its tests', steps: 20 },
-	{ label: 'An agent session', hint: 'a bug fixed across a codebase', steps: 60 }
+	{ label: 'A quick answer', hint: 'reword a paragraph', steps: 3, pt: { label: 'Uma resposta rápida', hint: 'reescrever um parágrafo' } },
+	{ label: 'A small feature', hint: 'a function and its tests', steps: 20, pt: { label: 'Uma funcionalidade pequena', hint: 'uma função e os testes dela' } },
+	{ label: 'An agent session', hint: 'a bug fixed across a codebase', steps: 60, pt: { label: 'Uma sessão de agente', hint: 'um bug corrigido em vários arquivos do código' } }
 ];
 
 export const MAX_STEPS = 100;
@@ -15,14 +15,14 @@ export const TRIALS = 1000;
 
 // how often a check runs: 0 is no checks
 export const CHECKS = [
-	{ label: 'No checks', every: 0 },
-	{ label: 'Every 10 steps', every: 10 },
-	{ label: 'Every 5 steps', every: 5 },
-	{ label: 'Every step', every: 1 }
+	{ label: 'No checks', every: 0, pt: { label: 'Sem verificações' } },
+	{ label: 'Every 10 steps', every: 10, pt: { label: 'A cada 10 passos' } },
+	{ label: 'Every 5 steps', every: 5, pt: { label: 'A cada 5 passos' } },
+	{ label: 'Every step', every: 1, pt: { label: 'A cada passo' } }
 ];
 
 // what the engine writes for each thing that happens in a run
-export const EVENT = { RIGHT: 0, WRONG: 1, PASSED: 2, CAUGHT: 3 };
+const EVENT = { RIGHT: 0, WRONG: 1, PASSED: 2, CAUGHT: 3 };
 export const OUTCOME = { CLEAN: 0, BROKEN: 1, GAVE_UP: 2 };
 
 // the chance of finishing clean at every task length, without checks and with them
@@ -54,16 +54,16 @@ export function replay(events, steps, every, upto) {
 		if (s * section >= steps) break; // events that do not fit these settings
 		const start = s * section;
 		const len = Math.min(section, steps - start);
-		if (ev === 0 || ev === 1) {
-			cells[start + i] = ev === 1 ? 'wrong' : 'right';
+		if (ev === EVENT.RIGHT || ev === EVENT.WRONG) {
+			cells[start + i] = ev === EVENT.WRONG ? 'wrong' : 'right';
 			i++;
 			// without checks the run just goes on to the next step
 			if (every === 0 && i === len) i = 0;
-		} else if (ev === 2) {
+		} else if (ev === EVENT.PASSED) {
 			checks[s].state = 'passed';
 			s++;
 			i = 0;
-		} else if (ev === 3) {
+		} else if (ev === EVENT.CAUGHT) {
 			checks[s].state = 'caught';
 			checks[s].redos++;
 			for (let k = start; k < start + len; k++) cells[k] = 'redo';

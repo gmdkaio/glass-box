@@ -1,5 +1,6 @@
 <script>
 	import { label } from '$lib/text-model.js';
+	import { t } from '$lib/i18n.svelte.js';
 	import { HIDDEN, w1, w2, inputWords, outputWords } from '$lib/network.js';
 	import { percent } from '$lib/sampling-sim.js';
 
@@ -40,13 +41,16 @@
 
 <div
 	role="img"
-	aria-label="A neural network. A word goes in on the left, a hidden layer of numbers works on it in the middle, and odds for the next word come out on the right."
+	aria-label={t(
+		'A neural network. A word goes in on the left, a hidden layer of numbers works on it in the middle, and odds for the next word come out on the right.',
+		'Uma rede neural. Uma palavra entra à esquerda, uma camada oculta de números trabalha nela no meio, e as chances da próxima palavra saem à direita.'
+	)}
 >
 	<svg viewBox="0 0 800 380" class="w-full">
 		<g class="fill-muted-foreground" font-size="11" text-anchor="middle">
-			<text x={IN_X} y="22">Word in</text>
-			<text x={HID_X} y="22">Numbers inside</text>
-			<text x={OUT_X + 110} y="22">Odds for the next word</text>
+			<text x={IN_X} y="22">{t('Word in', 'Palavra que entra')}</text>
+			<text x={HID_X} y="22">{t('Numbers inside', 'Números internos')}</text>
+			<text x={OUT_X + 110} y="22">{t('Odds for the next word', 'Chances da próxima palavra')}</text>
 		</g>
 
 		<g class="stroke-foreground" fill="none">
@@ -94,11 +98,11 @@
 				font-size="11"
 				class={i === 0 ? 'fill-foreground font-semibold' : 'fill-muted-foreground'}
 			>
-				{label(model, id)}
+				{label(model, id, t('full stop', 'ponto final'))}
 			</text>
 		{/each}
 		<text x={IN_X} y="372" text-anchor="middle" font-size="10" class="fill-muted-foreground">
-			only the word it is on is active
+			{t('only the word it is on is active', 'só a palavra atual fica ativa')}
 		</text>
 
 		{#each data.hidden as h, j (j)}
@@ -112,11 +116,11 @@
 					? 0.8
 					: 0.25}; transition: fill-opacity 0.5s, stroke-opacity 0.4s"
 			>
-				<title>hidden unit {j + 1}: {h.toFixed(2)}</title>
+				<title>{t('hidden unit', 'unidade oculta')} {j + 1}: {h.toFixed(2)}</title>
 			</circle>
 		{/each}
 		<text x={HID_X} y="372" text-anchor="middle" font-size="10" class="fill-muted-foreground">
-			brighter means a stronger value
+			{t('brighter means a stronger value', 'mais intenso significa um valor mais forte')}
 		</text>
 
 		{#each outputs as id, k (id)}
@@ -137,7 +141,7 @@
 				font-size="11"
 				class={showPick && picked === id ? 'fill-foreground font-semibold' : 'fill-muted-foreground'}
 			>
-				{label(model, id)}
+				{label(model, id, t('full stop', 'ponto final'))}
 			</text>
 			<rect x={BAR_X} y={outY(k) - 5} width={BAR_W} height="10" rx="2" class="fill-muted" />
 			<rect
@@ -154,7 +158,7 @@
 			</text>
 		{/each}
 		<text x={OUT_X + 110} y="372" text-anchor="middle" font-size="10" class="fill-muted-foreground">
-			the likeliest words, and the one it picks
+			{t('the likeliest words, and the one it picks', 'as palavras mais prováveis, e a escolhida')}
 		</text>
 	</svg>
 </div>

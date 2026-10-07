@@ -4,6 +4,8 @@
 	import { chalk } from '$lib/colors.js';
 	import { BOX, rotation, project } from '$lib/tesseract.js';
 	import { formatCount } from '$lib/quantization-sim.js';
+	// t is the four numbers here, so the language picker is tr
+	import { t as tr } from '$lib/i18n.svelte.js';
 
 	// w: the model's numbers. t: the 4 numbers for the tesseract panes.
 	// data: engine results from quantization-sim.js, null until the engine loads.
@@ -187,7 +189,10 @@
 <div class="relative overflow-hidden rounded-lg border">
 	<div
 		role="img"
-		aria-label="Left: each dot is one number in the model, moving to its nearest allowed value. Middle: every allowed result for four numbers. Right: the four numbers and the nearest allowed point."
+		aria-label={tr(
+			'Left: each dot is one number in the model, moving to its nearest allowed value. Middle: every allowed result for four numbers. Right: the four numbers and the nearest allowed point.',
+			'Esquerda: cada ponto é um número do modelo, indo para o valor permitido mais próximo. Meio: todos os resultados permitidos para quatro números. Direita: os quatro números e o ponto permitido mais próximo.'
+		)}
 	>
 		<canvas
 			bind:this={canvas}
@@ -199,15 +204,15 @@
 		></canvas>
 	</div>
 	<div class="pointer-events-none absolute top-2.5 left-3.5 text-xs text-muted-foreground max-md:hidden">
-		<b class="font-medium text-foreground">The model's numbers</b> · each dot is one
+		<b class="font-medium text-foreground">{tr("The model's numbers", 'Os números do modelo')}</b> · {tr('each dot is one', 'cada ponto é um')}
 	</div>
 	<div class="pointer-events-none absolute top-2.5 left-[55.5%] text-xs text-muted-foreground max-md:hidden">
-		<b class="font-medium text-foreground">How many choices</b>
-		{#if data}<br />{formatCount(data.count)} results{/if}
+		<b class="font-medium text-foreground">{tr('How many choices', 'Quantas opções')}</b>
+		{#if data}<br />{formatCount(data.count, tr('en', 'pt'))} {tr('results', 'resultados')}{/if}
 	</div>
 	<div class="pointer-events-none absolute top-2.5 left-[78%] text-xs text-muted-foreground max-md:hidden">
-		<b class="font-medium text-foreground">How far off</b>
-		{#if data}<br />miss {data.dist.toFixed(2)}{/if}
+		<b class="font-medium text-foreground">{tr('How far off', 'Quão longe')}</b>
+		{#if data}<br />{tr('miss', 'erro')} {data.dist.toFixed(2)}{/if}
 	</div>
 	<div class="absolute right-3 bottom-2.5 rounded-md bg-background"><PlayButton {play} /></div>
 </div>

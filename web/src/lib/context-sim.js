@@ -53,6 +53,57 @@ const FILLER = [
 	'Our app shows which aisle each item is in.'
 ];
 
+// The same sentences in Portuguese, in the same order. Only the page shows them: the
+// engine makes up the scores, so the language does not change any number.
+export const PT = {
+	QUESTION: 'Que horas a loja fecha aos domingos?',
+	KEY: 'Aos domingos a loja fecha às 18h.',
+	LOOKALIKES: [
+		'Aos sábados a loja fecha às 21h.',
+		'O café ao lado fecha às 17h aos domingos.',
+		'Nos feriados a loja fecha às 16h.',
+		'As entregas de domingo param ao meio-dia.',
+		'O balcão da farmácia fecha às 19h nos dias de semana.',
+		'Em dezembro a loja fica aberta até as 22h.',
+		'O estacionamento fecha uma hora depois da loja.',
+		'Pedidos online feitos no domingo saem na segunda.',
+		'A loja de ponta de estoque fecha às 20h aos domingos.',
+		'Não aceitamos devoluções depois das 17h.'
+	],
+	FILLER: [
+		'Devoluções são aceitas em até 30 dias com a nota fiscal.',
+		'Vales-presente nunca expiram.',
+		'Sócios têm entrega grátis em pedidos acima de R$ 250.',
+		'Os preços do folheto semanal valem a partir de quarta.',
+		'Cobrimos o preço de concorrentes da região em itens idênticos.',
+		'Itens grandes podem ser entregues num raio de 30 km.',
+		'Nossa equipe ajuda você a carregar compras pesadas.',
+		'Devoluções sem nota fiscal viram crédito na loja.',
+		'Traga sua sacola e economize 10 centavos por sacola.',
+		'Eletrônicos têm prazo de devolução de 14 dias.',
+		'Temos serviço de montagem para móveis.',
+		'Itens de promoção esgotados podem ser reservados para depois.',
+		'A tinta pode ser misturada para combinar com qualquer amostra.',
+		'O setor de jardinagem abre em março.',
+		'Itens de temporada são repostos toda quinta.',
+		'Os pontos de fidelidade expiram depois de dois anos.',
+		'Aceitamos os principais cartões de crédito.',
+		'Pedidos sob encomenda levam de duas a três semanas.',
+		'Itens de liquidação não têm troca.',
+		'Há café grátis perto da entrada.',
+		'Fazemos cópias de chaves no balcão de atendimento.',
+		'Estudantes têm desconto com carteirinha válida.',
+		'Os carrinhos devem ficar dentro do estacionamento.',
+		'Animais na coleira são bem-vindos.',
+		'Os coletores de pilhas ficam perto da saída.',
+		'O balcão de atendimento cuida de pedidos especiais.',
+		'A instalação é agendada pelo site.',
+		'Itens danificados podem ser trocados na loja.',
+		'O embrulho para presente é grátis em novembro e dezembro.',
+		'Nosso app mostra em qual corredor está cada item.'
+	]
+};
+
 export const MAX_SENTENCES = 200;
 export const MAX_LOOKALIKES = LOOKALIKES.length;
 export const TRIALS = 300;
@@ -62,32 +113,37 @@ export const SCORE = { key: 4, lookalike: 3.2, spread: 1, dip: 1.5 };
 
 // three ways the same question reaches the model
 export const SETUPS = [
-	{ label: 'Just the question', hint: 'with the one line that answers it', n: 3, place: 0, lookalikes: 0 },
-	{ label: 'A pasted page', hint: 'the opening hours section of the policy', n: 25, place: 0.5, lookalikes: 3 },
-	{ label: 'The whole handbook', hint: 'every policy, pasted in full', n: 200, place: 0.5, lookalikes: 8 }
+	{ label: 'Just the question', hint: 'with the one line that answers it', n: 3, place: 0, lookalikes: 0,
+		pt: { label: 'Só a pergunta', hint: 'com a única linha que a responde' } },
+	{ label: 'A pasted page', hint: 'the opening hours section of the policy', n: 25, place: 0.5, lookalikes: 3,
+		pt: { label: 'Uma página colada', hint: 'a seção de horários de funcionamento' } },
+	{ label: 'The whole handbook', hint: 'every policy, pasted in full', n: 200, place: 0.5, lookalikes: 8,
+		pt: { label: 'O manual inteiro', hint: 'todas as regras, coladas por completo' } }
 ];
 
-// One context: the text of every sentence, which kind it is, its score and its share of attention.
+const pick = (list, k) => list[k % list.length];
+
+// what the engine's sentence kinds are called here (engine/context.h)
+const KINDS = ['filler', 'lookalike', 'key'];
+
+// One context: the text of every sentence (in English, and in Portuguese as pt), which
+// kind it is, its score and its share of attention.
 export function sampleContext(gb, n, keyAt, lookalikes, middle, seed) {
-	const scores = gb.contextScores(n, keyAt, SCORE.key, SCORE.spread, lookalikes, SCORE.lookalike, middle ? SCORE.dip : 0, seed);
+	const { scores, kinds } = gb.contextKinds(n, keyAt, SCORE.key, SCORE.spread, lookalikes, SCORE.lookalike, middle ? SCORE.dip : 0, seed);
 	const share = gb.softmax(scores, 1);
-	// look-alikes are the sentences the engine gave exactly the look-alike score, before the dip
-	const dip = (i) => (middle && n > 1 ? SCORE.dip * 4 * (i / (n - 1)) * (1 - i / (n - 1)) : 0);
 	let alike = 0;
 	let filler = 0;
 	return Array.from(scores, (s, i) => {
-		const kind = i === keyAt ? 'key' : Math.abs(s + dip(i) - SCORE.lookalike) < 1e-9 ? 'lookalike' : 'filler';
-		const text = kind === 'key' ? KEY : kind === 'lookalike' ? LOOKALIKES[alike++ % LOOKALIKES.length] : FILLER[filler++ % FILLER.length];
-		return { i, kind, text, score: s, share: share[i] };
+		const kind = KINDS[kinds[i]];
+		const k = kind === 'lookalike' ? alike++ : kind === 'filler' ? filler++ : 0;
+		const [text, pt] = kind === 'key' ? [KEY, PT.KEY] : kind === 'lookalike' ? [pick(LOOKALIKES, k), pick(PT.LOOKALIKES, k)] : [pick(FILLER, k), pick(PT.FILLER, k)];
+		return { i, kind, text, pt, score: s, share: share[i] };
 	});
 }
 
 // the average shares of the key, the look-alikes and the rest, over many contexts
 export function averageShares(gb, n, keyAt, lookalikes, middle, trials = 60) {
-	const sum = { key: 0, lookalike: 0, filler: 0 };
-	for (let t = 0; t < trials; t++)
-		for (const s of sampleContext(gb, n, keyAt, lookalikes, middle, 1000 + t)) sum[s.kind] += s.share;
-	return { key: sum.key / trials, lookalike: sum.lookalike / trials, filler: sum.filler / trials };
+	return gb.contextSplit(n, keyAt, SCORE.key, SCORE.spread, lookalikes, SCORE.lookalike, middle ? SCORE.dip : 0, trials, 1000);
 }
 
 // the key's average share at every context length, and at every place in the context

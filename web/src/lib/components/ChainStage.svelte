@@ -1,6 +1,8 @@
 <script>
 	import { MAX_STEPS, TRIALS, OUTCOME, replay, percent } from '$lib/compounding-sim.js';
-	import { runSay } from '$lib/compounding-copy.js';
+	import * as en from '$lib/compounding-copy.js';
+	import * as pt from '$lib/compounding-copy.pt.js';
+	import { t, locale } from '$lib/i18n.svelte.js';
 	import { eased } from '$lib/motion.svelte.js';
 
 	// steps, every: the task length and how often a check runs (0 is never).
@@ -40,19 +42,24 @@
 	}
 
 	function mark(check, s) {
-		if (done && s === spoiledSection && run.outcome === OUTCOME.BROKEN) return { text: '✗', title: 'Passed, but missed a mistake' };
-		if (check.state === 'passed') return { text: check.redos ? `✓${check.redos}` : '✓', title: check.redos ? `Passed after ${check.redos} redo(s)` : 'Passed' };
-		if (check.state === 'caught') return { text: `↺${check.redos}`, title: 'Caught a mistake, section redone' };
-		return { text: '·', title: 'Not reached yet' };
+		if (done && s === spoiledSection && run.outcome === OUTCOME.BROKEN)
+			return { text: '✗', title: t('Passed, but missed a mistake', 'Aprovou, mas deixou passar um erro') };
+		if (check.state === 'passed')
+			return {
+				text: check.redos ? `✓${check.redos}` : '✓',
+				title: check.redos ? t(`Passed after ${check.redos} redo(s)`, `Aprovou depois de ${check.redos} refação(ões)`) : t('Passed', 'Aprovou')
+			};
+		if (check.state === 'caught') return { text: `↺${check.redos}`, title: t('Caught a mistake, section redone', 'Pegou um erro, trecho refeito') };
+		return { text: '·', title: t('Not reached yet', 'Ainda não alcançada') };
 	}
 
 	const total = $derived(trials ? trials.outcomes[0] + trials.outcomes[1] + trials.outcomes[2] : 0);
 	const rows = $derived(
 		trials
 			? [
-					{ label: 'Finished clean', n: trials.outcomes[0], exact: odds },
-					{ label: 'Spoiled', n: trials.outcomes[1] },
-					{ label: 'Gave up', n: trials.outcomes[2] }
+					{ label: t('Finished clean', 'Sem erro'), n: trials.outcomes[0], exact: odds },
+					{ label: t('Spoiled', 'Estragadas'), n: trials.outcomes[1] },
+					{ label: t('Gave up', 'Desistiu'), n: trials.outcomes[2] }
 				]
 			: []
 	);
@@ -73,8 +80,8 @@
 
 <div class="overflow-hidden rounded-lg border lg:grid lg:min-h-80 lg:grid-cols-[1.3fr_1fr_1fr]">
 	<div class="border-b px-4 py-3.5 lg:border-r lg:border-b-0">
-		<h3 class="text-xs font-medium">One task, step by step</h3>
-		<div class="mt-3 flex flex-wrap items-center gap-1" aria-label="Steps of one run">
+		<h3 class="text-xs font-medium">{t('One task, step by step', 'Uma tarefa, passo a passo')}</h3>
+		<div class="mt-3 flex flex-wrap items-center gap-1" aria-label={t('Steps of one run', 'Passos de uma rodada')}>
 			{#each sections as cells, s (s)}
 				{#each cells as { cell, at } (at)}
 					<span class="grid h-4 w-4 place-items-center rounded-[3px] text-[10px] leading-none {look(cell, at)}">
@@ -94,17 +101,19 @@
 		</div>
 		{#if run}
 			{#if done}
-				<p class="mt-3 text-sm leading-relaxed">{runSay(run.outcome, run.brokenAt, every, redos)}</p>
+				<p class="mt-3 text-sm leading-relaxed">{t(en.runSay, pt.runSay)(run.outcome, run.brokenAt, every, redos)}</p>
 			{:else}
-				<p class="mt-3 text-sm text-muted-foreground">Running…</p>
+				<p class="mt-3 text-sm text-muted-foreground">{t('Running…', 'Rodando…')}</p>
 			{/if}
 		{:else}
-			<p class="mt-3 text-sm text-muted-foreground">Press Run one task to watch a single run, one step at a time.</p>
+			<p class="mt-3 text-sm text-muted-foreground">
+				{t('Press Run one task to watch a single run, one step at a time.', 'Aperte Rodar uma tarefa para ver uma única rodada, um passo por vez.')}
+			</p>
 		{/if}
 	</div>
 
 	<div class="border-b px-4 py-3.5 lg:border-r lg:border-b-0">
-		<h3 class="text-xs font-medium">{TRIALS.toLocaleString('en-US')} runs of the same task</h3>
+		<h3 class="text-xs font-medium">{TRIALS.toLocaleString(locale())} {t('runs of the same task', 'rodadas da mesma tarefa')}</h3>
 		{#if trials}
 			<div class="mt-3.5 space-y-2.5">
 				{#each rows as r (r.label)}
@@ -123,10 +132,10 @@
 					</div>
 				{/each}
 			</div>
-			<div class="mt-2 text-xs text-muted-foreground">Outline: the exact chance. Solid: what happened.</div>
+			<div class="mt-2 text-xs text-muted-foreground">{t('Outline: the exact chance. Solid: what happened.', 'Contorno: a chance exata. Sólido: o que aconteceu.')}</div>
 
-			<h4 class="mt-4 text-xs font-medium">Where the spoiling mistake happened</h4>
-			<svg viewBox="0 0 300 70" class="mt-1.5 w-full" role="img" aria-label="Runs spoiled at each step">
+			<h4 class="mt-4 text-xs font-medium">{t('Where the spoiling mistake happened', 'Onde aconteceu o erro que estragou')}</h4>
+			<svg viewBox="0 0 300 70" class="mt-1.5 w-full" role="img" aria-label={t('Runs spoiled at each step', 'Rodadas estragadas em cada passo')}>
 				<line x1="0" y1="56" x2="300" y2="56" class="stroke-border" />
 				{#each spoilBars.current ?? trials.brokenAt as c, i (i)}
 					<rect
@@ -137,16 +146,19 @@
 						class="fill-foreground/70"
 					/>
 				{/each}
-				<text x="0" y="68" font-size="9" class="fill-muted-foreground">step 1</text>
-				<text x="300" y="68" font-size="9" text-anchor="end" class="fill-muted-foreground">step {steps}</text>
+				<text x="0" y="68" font-size="9" class="fill-muted-foreground">{t('step', 'passo')} 1</text>
+				<text x="300" y="68" font-size="9" text-anchor="end" class="fill-muted-foreground">{t('step', 'passo')} {steps}</text>
 			</svg>
 		{/if}
 	</div>
 
 	<div class="px-4 py-3.5">
-		<h3 class="text-xs font-medium">Longer tasks, lower odds</h3>
-		<p class="mt-3 text-xs text-muted-foreground">Chance of finishing clean, by the number of steps.</p>
-		<div role="img" aria-label="The chance of finishing clean falls as the task gets longer, and falls more slowly with checks.">
+		<h3 class="text-xs font-medium">{t('Longer tasks, lower odds', 'Tarefas mais longas, chances menores')}</h3>
+		<p class="mt-3 text-xs text-muted-foreground">{t('Chance of finishing clean, by the number of steps.', 'Chance de terminar sem erro, pelo número de passos.')}</p>
+		<div role="img" aria-label={t(
+			'The chance of finishing clean falls as the task gets longer, and falls more slowly with checks.',
+			'A chance de terminar sem erro cai conforme a tarefa fica mais longa, e cai mais devagar com verificações.'
+		)}>
 			<svg viewBox="0 0 300 175" class="w-full">
 				<g class="stroke-border" stroke-width="1">
 					{#each [1, 25, 50, 75, 100] as n (n)}
@@ -161,7 +173,7 @@
 					{/each}
 					<text x="26" y="14" text-anchor="end">100%</text>
 					<text x="26" y="143" text-anchor="end">0%</text>
-					<text x="160" y="171" text-anchor="middle">steps</text>
+					<text x="160" y="171" text-anchor="middle">{t('steps', 'passos')}</text>
 				</g>
 				{#if points}
 					<polyline points={line('plain')} fill="none" class="stroke-foreground" stroke-width="2" />
@@ -178,7 +190,8 @@
 			</svg>
 		</div>
 		<div class="text-xs text-muted-foreground">
-			Solid: no checks.{every > 0 ? ' Dashed: with your checks.' : ''} The rings mark your task.
+			{t('Solid: no checks.', 'Sólido: sem verificações.')}{every > 0 ? t(' Dashed: with your checks.', ' Tracejado: com as suas verificações.') : ''}
+			{t('The rings mark your task.', 'Os anéis marcam a sua tarefa.')}
 		</div>
 	</div>
 </div>

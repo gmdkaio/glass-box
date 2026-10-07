@@ -56,16 +56,21 @@ The old dog chases cats around the square.
 The boat carries fish to the market.`.split('\n');
 
 export const MODELS = [
-	{ name: 'A', label: 'Quick', hint: '5 passes', leak: 0, passes: 5, extra: false },
-	{ name: 'B', label: 'Standard', hint: '25 passes', leak: 0, passes: 25, extra: false },
-	{ name: 'C', label: 'Half the test leaked', hint: '6 public questions in its training text', leak: 6, passes: 25, extra: false },
-	{ name: 'D', label: 'Studied the test', hint: 'every public question in its training text', leak: 12, passes: 25, extra: false },
-	{ name: 'E', label: 'Read more', hint: 'more about the town, no leaks', leak: 0, passes: 25, extra: true }
+	{ name: 'A', label: 'Quick', hint: '5 passes', leak: 0, passes: 5, extra: false, pt: { label: 'Rápido', hint: '5 passadas' } },
+	{ name: 'B', label: 'Standard', hint: '25 passes', leak: 0, passes: 25, extra: false, pt: { label: 'Padrão', hint: '25 passadas' } },
+	{ name: 'C', label: 'Half the test leaked', hint: '6 public questions in its training text', leak: 6, passes: 25, extra: false,
+		pt: { label: 'Metade do teste vazou', hint: '6 perguntas públicas no seu texto de treino' } },
+	{ name: 'D', label: 'Studied the test', hint: 'every public question in its training text', leak: 12, passes: 25, extra: false,
+		pt: { label: 'Estudou o teste', hint: 'todas as perguntas públicas no seu texto de treino' } },
+	{ name: 'E', label: 'Read more', hint: 'more about the town, no leaks', leak: 0, passes: 25, extra: true,
+		pt: { label: 'Leu mais', hint: 'mais sobre a cidade, sem vazamentos' } }
 ];
 export const PRESETS = [
-	{ label: 'A clean test', hint: 'nothing leaked', leak: 0 },
-	{ label: 'Half leaked', hint: '6 of 12 public questions in the training text', leak: 6 },
-	{ label: 'Studied the test', hint: 'every public question in the training text', leak: 12 }
+	{ label: 'A clean test', hint: 'nothing leaked', leak: 0, pt: { label: 'Um teste limpo', hint: 'nada vazou' } },
+	{ label: 'Half leaked', hint: '6 of 12 public questions in the training text', leak: 6,
+		pt: { label: 'Metade vazou', hint: '6 de 12 perguntas públicas no texto de treino' } },
+	{ label: 'Studied the test', hint: 'every public question in the training text', leak: 12,
+		pt: { label: 'Estudou o teste', hint: 'todas as perguntas públicas no texto de treino' } }
 ];
 
 function split(text) {

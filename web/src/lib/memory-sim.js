@@ -18,9 +18,12 @@ export const OVERHEAD = 0.5 * GIB; // the runtime's own buffers, roughly
 const SCALE_BITS = 0.5; // what quantized formats store per number for their scale factors
 
 export const SETUPS = [
-	{ label: 'A 4B on a laptop', hint: '8 GB of graphics memory', model: 0, bits: 4, context: 8192, card: 8 },
-	{ label: 'An 8B on a gaming card', hint: '12 GB, a long chat', model: 1, bits: 4, context: 32768, card: 12 },
-	{ label: 'A 32B on a 24 GB card', hint: 'the biggest model that loads', model: 2, bits: 4, context: 32768, card: 24 }
+	{ label: 'A 4B on a laptop', hint: '8 GB of graphics memory', model: 0, bits: 4, context: 8192, card: 8,
+		pt: { label: 'Um 4B num notebook', hint: '8 GB de memória de vídeo' } },
+	{ label: 'An 8B on a gaming card', hint: '12 GB, a long chat', model: 1, bits: 4, context: 32768, card: 12,
+		pt: { label: 'Um 8B numa placa gamer', hint: '12 GB, uma conversa longa' } },
+	{ label: 'A 32B on a 24 GB card', hint: 'the biggest model that loads', model: 2, bits: 4, context: 32768, card: 24,
+		pt: { label: 'Um 32B numa placa de 24 GB', hint: 'o maior modelo que carrega' } }
 ];
 
 // Everything one setup needs, in bytes, and what is left on the card.
@@ -28,7 +31,7 @@ export function budget(gb, model, bits, context, card, cacheBits) {
 	const m = MODELS[model];
 	const weights = gb.memWeights(m.params, bits, bits < 16 ? SCALE_BITS : 0);
 	const cache = gb.memKv(m.layers, m.kvHeads, m.headDim, context, cacheBits);
-	const total = weights + cache + OVERHEAD;
+	const total = gb.memTotal(m.params, bits, bits < 16 ? SCALE_BITS : 0, m.layers, m.kvHeads, m.headDim, context, cacheBits, OVERHEAD);
 	return {
 		weights,
 		cache,

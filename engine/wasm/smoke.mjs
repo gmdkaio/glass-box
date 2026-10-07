@@ -72,6 +72,14 @@ check(gb.snapLevels(2, 0, 100, 64).join(" ") === "12.5 37.5 62.5 87.5", "2-bit v
 check(gb.snapLevels(8, 0, 100, 64).length === 0, "256 values are too many to list under 64");
 
 check(near(gb.chainOdds(0.95, 20, 5, 0.9, 3), 0.88502068381965826), "odds, 20 steps checked every 5");
+const sec = gb.chainSection(0.95, 5, 0.8);
+check(near(sec.q, 0.77378093749999999) && near(sec.m, 0.18097525000000003), "one section of 5 steps");
+const hx = new Float64Array([1, 2, 3, 4.5]);
+const hs = gb.scaleScores(hx, 0.5);
+check(gb.mean(hx) === 2.625 && hs[0] === 2 && hs[3] === 9, "mean, and scores at temperature 0.5");
+check(near(gb.expSum(hx), 120.21000615109918), "sum of e^score");
+const mm = gb.calibMeans([0.9, 0.8, 0.7, 0.6, 0.95], [1, 0, 1, 1, 0]);
+check(near(mm.says, 0.79) && near(mm.right, 0.6), "average confidence and share right");
 const ct = gb.chainTrials(0.95, 20, 5, 0.9, 3, 1000, 7);
 check(ct.outcomes.join(" ") === "891 104 5" && near(ct.redone, 4.8), "1000 runs, seed 7: " + ct.outcomes);
 check(ct.brokenAt[0] === 8 && ct.brokenAt[10] === 2 && ct.brokenAt[19] === 6, "where runs broke, seed 7");
@@ -82,6 +90,10 @@ const cref = [0.98847433231873527, -2.5989496842822479, 2.7755102040816326, 1.53
 check(cref.every((v, i) => near(cs[i], v)), "context scores, seed 7: " + Array.from(cs));
 check(near(gb.contextShare(50, 0.5, 4.0, 1.0, 3, 3.0, 1.5, 200, 11), 0.17823580956305038), "key share in the middle of 50, seed 11");
 check(gb.contextPlace(11, 0.5) === 5, "middle of 11 sentences");
+const ck = gb.contextKinds(25, 12, 4.0, 1.0, 3, 3.2, 1.5, 1000);
+check(ck.kinds.filter((k) => k === 1).length === 3 && ck.kinds[12] === 2 && ck.scores[12] === 2.5, "kinds of 25 sentences, seed 1000");
+const split = gb.contextSplit(25, 12, 4.0, 1.0, 3, 3.2, 1.5, 60, 1000);
+check(near(split.key, 0.21302946310193346) && near(split.lookalike, 0.53100062786628766) && near(split.filler, 0.25596990903177902), "shares of key, look-alikes and the rest");
 const bp = gb.bpeTrain("the cat sat on the mat. the cat ran to the hat.", 20);
 check(bp.join(",") === "97,116,32,116,104,101,257,258,32,99,260,256", "bpe merges: " + Array.from(bp));
 check(gb.bpeEncode("the rat sat on the cat", bp, 99).join(",") === "116,258,32,114,256,32,115,256,32,111,110,259,261", "bpe tokens, merges capped");
@@ -99,6 +111,7 @@ check(rref.every((v, i) => near(rsc[i], v)), "bm25 scores, four pages: " + Array
 check(near(gb.pickShare(rsc, 3, 3, 1.5), 0.34619056439312412) && gb.rankOf(rsc, 3) === 0, "pick share and rank of the top page");
 check(gb.memWeights(8.2e9, 4, 0.5) === 4612500000 && gb.memKv(64, 8, 128, 32768, 16) === 8589934592, "memory: weights and cache");
 check(gb.memMaxTokens(12884901888, 4612500000, 536870912, 36, 8, 128, 16) === 52459, "memory: longest chat on 12 GiB");
+check(gb.memTotal(8.2e9, 4, 0.5, 36, 8, 128, 32768, 16, 536870912) === 9981209120, "memory: Qwen3-8B all in");
 const emb = gb.embedLearn([0, 1, 2, -1, 0, 1, 3, -1, 2, 3, 1], 4, 2);
 const embref = [0.82987762569897638, -0.11778303565638339, -0.11778303565638341, -0.59431155438620931];
 check(embref.every((v, i) => Math.abs(emb.values[i] - v) <= 1e-12), "embedding eigenvalues: " + Array.from(emb.values));

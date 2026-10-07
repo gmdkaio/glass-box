@@ -1,15 +1,21 @@
 // Plain-language text for the "what you want to hear" page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-07:
+//   Rating effect, answer and pushback flips: https://arxiv.org/abs/2310.13548 (Sharma et al., 2023)
+//   Larger and RLHF-tuned models repeat the user's view: https://arxiv.org/abs/2212.09251 (Perez et al., 2022)
+//   Lower confidence, more changes of mind: https://arxiv.org/abs/2507.03120 (Kumaran et al., 2025)
+//   Memory profiles raise agreement: https://arxiv.org/abs/2509.12517 (Jain et al., 2025)
+//   Coding agents editing or deleting tests: https://arxiv.org/abs/2510.20270 (ImpossibleBench, 2025)
 
 export function say({ share, neutral, gap }) {
 	if (share - neutral < 0.05) return 'It holds its ground: nothing you added moved it much.';
 	if (gap >= 3) return 'It knows this one, so even with your nudges the right answer still wins most of the time.';
-	if (share >= 0.5) return 'Your answer now wins. Nothing about the question changed, only what it was told about you.';
+	if (share >= 0.5) return 'Your answer now wins. The question stayed the same, and what the model was told about you was enough to move it.';
 	return 'Your nudges are pulling it your way. A few more and your answer will win.';
 }
 
 export function trap(settings, pushback) {
-	if (settings > 0) return 'Custom instructions, memory and skills are added to every chat, so their pull is there before you type a word.';
+	if (settings > 0) return 'Custom instructions, memory and skills sit in the chat next to your message, so their pull can be there before you type a word.';
 	if (pushback) return 'A second "are you sure?" is a nudge too. It carries no new evidence, yet the odds move.';
 	return 'Switch on the settings below: each one tilts the answer before you even ask.';
 }
@@ -43,21 +49,21 @@ export const why = [
 	},
 	{
 		title: 'Check your settings',
-		text: 'Custom instructions, memory and skills like "be encouraging" or "keep me motivated" tilt every answer. Keep them about format and tone, and turn them off for decisions.'
+		text: 'Custom instructions, memory and skills like "be encouraging" can tilt answers; in one study, memories of the user made several models agree more. Keep them about format and tone.'
 	},
 	{
-		title: 'Watch for quiet fallbacks',
-		text: 'Asked to "just make it work", coding assistants often add fallbacks that hide errors so the code runs. Ask for code that fails loudly, and read what it catches.'
+		title: 'Watch for shortcuts in code',
+		text: 'Pushed to make the tests pass, coding agents sometimes get there by editing or deleting the failing tests. Ask for code that fails loudly, and read what changed.'
 	}
 ];
 
 export const whyLead = 'You shape the answer more than it seems. A few habits keep the model on the facts.';
 
 export const whyDraft =
-	'Draft copy. Before release, source the studies of sycophancy in chat models (Sharma et al., 2023; Perez et al., 2022) for the rating effect and the flip under pushback, how much custom instructions and memory shift answers, and the claim about fallbacks in generated code.';
+	'Checked on 2026-10-07 against studies of sycophancy (Sharma et al., 2023; Perez et al., 2022), change of mind under criticism (Kumaran et al., 2025), memory and agreement (Jain et al., 2025), and test cheating by coding agents (ImpossibleBench).';
 
 export const hoodNote =
-	'Here every nudge adds the same made-up amount to your answer\'s score. In real models the pull comes from training on human ratings, varies by model and topic, and newer models are tuned to resist it more. The shape is the same: a nudge matters most where the answers were close.';
+	'Here every nudge adds the same made-up amount to your answer\'s score. In real models the pull comes from training on human ratings, varies by model and topic, and labs now measure it and train some models to resist it. The shape is the same: a nudge matters most where the answers were close.';
 
 export const next = [
 	{

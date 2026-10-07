@@ -1,8 +1,12 @@
 <script>
-	import { steps } from '$lib/how-it-works-copy.js';
+	import * as en from '$lib/how-it-works-copy.js';
+	import * as pt from '$lib/how-it-works-copy.pt.js';
+	import { t } from '$lib/i18n.svelte.js';
 
 	// step: the step being shown right now, or -1 when nothing is running
 	let { step } = $props();
+
+	const steps = $derived(t(en.steps, pt.steps));
 </script>
 
 <ol class="space-y-1.5">
@@ -20,4 +24,4 @@
 		</li>
 	{/each}
 </ol>
-<div class="mt-1.5 text-center text-xs text-muted-foreground">then back to 1 for the next word</div>
+<div class="mt-1.5 text-center text-xs text-muted-foreground">{t('then back to 1 for the next word', 'e volta ao 1 para a próxima palavra')}</div>

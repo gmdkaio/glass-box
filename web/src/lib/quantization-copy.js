@@ -4,6 +4,9 @@
 //   Low-bit accuracy: Huang et al. 2024, https://arxiv.org/abs/2404.14047
 //   Apple 2-bit on-device model: https://arxiv.org/abs/2507.13575
 //   Qwen3-8B bfloat16: https://huggingface.co/Qwen/Qwen3-8B/blob/main/config.json
+//   Qwen3.8-Flash-Next bfloat16: https://huggingface.co/Qwen/Qwen3.8-Flash-Next/blob/main/config.json
+//   Qwen3.8-Flash-Next-FP8 (official, block size 128): https://huggingface.co/Qwen/Qwen3.8-Flash-Next-FP8
+//   Host precision (int4 to bf16, filterable): https://openrouter.ai/docs/features/provider-routing
 
 // same order as the slider, smallest first
 export const sizes = [
@@ -54,10 +57,10 @@ export const why = [
 ];
 
 export const whyNote =
-	'If you only use a hosted model such as Claude, you never pick its precision. It matters when you run an open model like Qwen yourself, where the same model comes in several sizes.';
+	'If you only use a hosted model such as Claude, you never pick its precision. It matters when you run an open model like Qwen yourself, where the same model comes in several sizes. Hosts that serve open models pick one too: OpenRouter lists the precision each provider reports, from 4-bit to 16-bit, and lets you filter by it.';
 
 export const whyDraft =
-	'Draft copy. Checked on Hugging Face on 2026-10-01: Qwen3-8B and Qwen3.8-Flash-Next are released in bfloat16 (16 bits), and Qwen3.8-Flash-Next-FP8 is an official 8-bit version. Checked on 2026-10-06: Apple\'s on-device model runs at 2 bits after being trained for it (2025 report), and Huang et al. (2024) measure the accuracy drop at low bits. Draft copy: what third-party hosts serve at which precision still needs a source.';
+	'Checked on 2026-10-07 against the Qwen configs on Hugging Face (Qwen3-8B and Qwen3.8-Flash-Next are released in bfloat16, and Qwen3.8-Flash-Next-FP8 is Qwen\'s official 8-bit version), Apple\'s 2025 report on its on-device model, which runs at 2 bits after being trained for it, Huang et al. (2024) on the accuracy drop at low bits, and OpenRouter\'s provider-routing docs on the precision hosts report.';
 
 export const floatNote =
 	'Real 16-bit and 8-bit models use floating-point formats (bfloat16, FP8) that space their values unevenly. This page uses evenly spaced values to keep the math simple. Real 4-bit formats also give each small block of numbers its own scale, so one large value only affects its block. The 90 numbers here are random; a real model\'s come from training, and how much it loses at each size is measured by testing its answers.';
@@ -69,6 +72,6 @@ export const next = [
 	},
 	{
 		title: 'Then: embeddings',
-		text: 'That memory holds one list of numbers per word piece. Those lists are how the model represents meaning.'
+		text: 'Before any of that, the model swaps each word piece for a list of numbers from a lookup table. Those lists place words with related meanings near each other.'
 	}
 ];

@@ -1,6 +1,7 @@
 <script>
 	import PlayButton from '$lib/components/PlayButton.svelte';
-	import { QUESTION, MAX_SENTENCES, TRIALS, percent } from '$lib/context-sim.js';
+	import { QUESTION, PT, MAX_SENTENCES, TRIALS, percent } from '$lib/context-sim.js';
+	import { t } from '$lib/i18n.svelte.js';
 	import { eased } from '$lib/motion.svelte.js';
 
 	// sentences: one context, each with its text, kind and share of attention.
@@ -43,10 +44,10 @@
 
 <div class="overflow-hidden rounded-lg border lg:grid lg:min-h-80 lg:grid-cols-[1.3fr_1fr_1fr]">
 	<div class="border-b px-4 py-3.5 lg:border-r lg:border-b-0">
-		<h3 class="text-xs font-medium">Where the model's attention goes</h3>
-		<div class="mt-3 rounded-md border px-3 py-2 text-center text-sm">{QUESTION}</div>
+		<h3 class="text-xs font-medium">{t("Where the model's attention goes", 'Para onde vai a atenção do modelo')}</h3>
+		<div class="mt-3 rounded-md border px-3 py-2 text-center text-sm">{t(QUESTION, PT.QUESTION)}</div>
 		{#if sentences}
-			<svg viewBox="0 0 300 64" class="mt-3 w-full" role="img" aria-label="Share of attention for each sentence in the context, in order">
+			<svg viewBox="0 0 300 64" class="mt-3 w-full" role="img" aria-label={t('Share of attention for each sentence in the context, in order', 'Parte da atenção de cada frase do contexto, em ordem')}>
 				<line x1="0" y1="52" x2="300" y2="52" class="stroke-border" />
 				{#each sentences as s (s.i)}
 					{@const w = 300 / sentences.length}
@@ -59,15 +60,15 @@
 						class={s.kind === 'key' ? 'fill-foreground' : s.kind === 'lookalike' ? 'fill-muted-foreground' : 'fill-muted-foreground/35'}
 					/>
 				{/each}
-				<text x="0" y="62" font-size="8" class="fill-muted-foreground">first sentence</text>
-				<text x="300" y="62" font-size="8" text-anchor="end" class="fill-muted-foreground">last</text>
+				<text x="0" y="62" font-size="8" class="fill-muted-foreground">{t('first sentence', 'primeira frase')}</text>
+				<text x="300" y="62" font-size="8" text-anchor="end" class="fill-muted-foreground">{t('last', 'última')}</text>
 			</svg>
-			<h4 class="mt-3 text-xs font-medium">The five sentences it attends to most</h4>
+			<h4 class="mt-3 text-xs font-medium">{t('The five sentences it attends to most', 'As cinco frases que recebem mais atenção')}</h4>
 			<ol class="mt-1.5 space-y-1.5">
 				{#each top as s (s.i)}
 					<li class="grid grid-cols-[1fr_3rem] items-baseline gap-2 text-sm">
 						<span class={s.kind === 'key' ? 'font-semibold' : 'text-muted-foreground'}>
-							{s.text}{s.kind === 'key' ? ' ✓' : ''}
+							{t(s.text, s.pt)}{s.kind === 'key' ? ' ✓' : ''}
 						</span>
 						<span class="text-right text-xs text-muted-foreground tabular-nums">{percent(s.share)}</span>
 					</li>
@@ -75,7 +76,10 @@
 			</ol>
 			{#if keyRank < 0 && key}
 				<p class="mt-1.5 text-xs text-muted-foreground">
-					The answer, sentence {key.i + 1} of {sentences.length}, is not in the top five. It gets {percent(key.share)}.
+					{t(
+						`The answer, sentence ${key.i + 1} of ${sentences.length}, is not in the top five. It gets ${percent(key.share)}.`,
+						`A resposta, frase ${key.i + 1} de ${sentences.length}, não está entre as cinco primeiras. Ela recebe ${percent(key.share)}.`
+					)}
 				</p>
 			{/if}
 		{/if}
@@ -83,11 +87,11 @@
 
 	<div class="border-b px-4 py-3.5 lg:border-r lg:border-b-0">
 		<div class="flex items-start justify-between gap-2">
-			<h3 class="text-xs font-medium">More text, a smaller share</h3>
+			<h3 class="text-xs font-medium">{t('More text, a smaller share', 'Mais texto, uma parte menor')}</h3>
 			<PlayButton {play} />
 		</div>
-		<p class="mt-3 text-xs text-muted-foreground">The answer's share of attention, by how many sentences you paste.</p>
-		<div role="img" aria-label="The answer's share of attention falls as the context gets longer.">
+		<p class="mt-3 text-xs text-muted-foreground">{t("The answer's share of attention, by how many sentences you paste.", 'A parte da atenção que vai para a resposta, pelo número de frases que você cola.')}</p>
+		<div role="img" aria-label={t("The answer's share of attention falls as the context gets longer.", 'A parte da atenção da resposta cai conforme o contexto fica mais longo.')}>
 			<svg viewBox="0 0 300 175" class="w-full">
 				<g class="stroke-border" stroke-width="1">
 					{#each [1, 10, 100] as v (v)}
@@ -102,7 +106,7 @@
 					{/each}
 					<text x="26" y="14" text-anchor="end">100%</text>
 					<text x="26" y="143" text-anchor="end">0%</text>
-					<text x="160" y="171" text-anchor="middle">sentences (log scale)</text>
+					<text x="160" y="171" text-anchor="middle">{t('sentences (log scale)', 'frases (escala log)')}</text>
 				</g>
 				{#if lengths && curves.current}
 					<polyline points={lengths.map((p, i) => `${lx(p.n)},${y(curves.current.lengths[i])}`).join(' ')} fill="none" class="stroke-foreground" stroke-width="2" />
@@ -112,13 +116,17 @@
 				{/if}
 			</svg>
 		</div>
-		<div class="text-xs text-muted-foreground">Averaged over {TRIALS} random contexts per point. The ring marks your length.</div>
+		<div class="text-xs text-muted-foreground">
+			{t(`Averaged over ${TRIALS} random contexts per point. The ring marks your length.`, `Média de ${TRIALS} contextos aleatórios por ponto. O anel marca o seu tamanho.`)}
+		</div>
 	</div>
 
 	<div class="px-4 py-3.5">
-		<h3 class="text-xs font-medium">Where you put it</h3>
-		<p class="mt-3 text-xs text-muted-foreground">The answer's share of attention, by its place among {n} sentences.</p>
-		<div role="img" aria-label="The answer's share of attention by where it sits in the context.">
+		<h3 class="text-xs font-medium">{t('Where you put it', 'Onde você coloca')}</h3>
+		<p class="mt-3 text-xs text-muted-foreground">
+			{t(`The answer's share of attention, by its place among ${n} sentences.`, `A parte da atenção da resposta, pelo lugar dela entre ${n} frases.`)}
+		</p>
+		<div role="img" aria-label={t("The answer's share of attention by where it sits in the context.", 'A parte da atenção da resposta pelo lugar onde ela fica no contexto.')}>
 			<svg viewBox="0 0 300 175" class="w-full">
 				<g class="stroke-border" stroke-width="1">
 					{#each [0, 0.5, 1] as v (v)}
@@ -128,9 +136,9 @@
 					<line x1="30" y1="10" x2="290" y2="10" />
 				</g>
 				<g class="fill-muted-foreground" font-size="10">
-					<text x={px(0)} y="156" text-anchor="middle">start</text>
-					<text x={px(0.5)} y="156" text-anchor="middle">middle</text>
-					<text x={px(1)} y="156" text-anchor="middle">end</text>
+					<text x={px(0)} y="156" text-anchor="middle">{t('start', 'começo')}</text>
+					<text x={px(0.5)} y="156" text-anchor="middle">{t('middle', 'meio')}</text>
+					<text x={px(1)} y="156" text-anchor="middle">{t('end', 'fim')}</text>
 					<text x="26" y="14" text-anchor="end">100%</text>
 					<text x="26" y="143" text-anchor="end">0%</text>
 				</g>
@@ -142,6 +150,6 @@
 				{/if}
 			</svg>
 		</div>
-		<div class="text-xs text-muted-foreground">The ring marks where your answer sits.</div>
+		<div class="text-xs text-muted-foreground">{t('The ring marks where your answer sits.', 'O anel marca onde a sua resposta está.')}</div>
 	</div>
 </div>

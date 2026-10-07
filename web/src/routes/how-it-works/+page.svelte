@@ -11,7 +11,9 @@
 	import { HIDDEN, TEACH_STEPS, newNet, teachStep, view, paramCount } from '$lib/network.js';
 	import { percent } from '$lib/sampling-sim.js';
 	import { where } from '$lib/modules.js';
-	import * as copy from '$lib/how-it-works-copy.js';
+	import * as en from '$lib/how-it-works-copy.js';
+	import * as pt from '$lib/how-it-works-copy.pt.js';
+	import { t, local, toyNote, locale } from '$lib/i18n.svelte.js';
 
 	const OWN = TEXTS.length; // the "your own text" choice
 
@@ -36,12 +38,16 @@
 	const taught = $derived(net ? net.losses.length - 1 >= TEACH_STEPS : false);
 	const favourite = $derived(data ? data.odds.indexOf(Math.max(...data.odds)) : null);
 	const here = where('how-it-works');
+	const copy = $derived(t(en, pt));
+	const stop = $derived(t('full stop', 'ponto final'));
 
 	onMount(() => {
 		getEngine().then((engine) => {
 			gb = engine;
 			load(TEXTS[0].text);
 		});
+		// a new run number ends the teaching and writing loops
+		return () => (run += 1);
 	});
 
 	const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -127,18 +133,21 @@
 <svelte:head><title>How it works · Glass Box</title></svelte:head>
 
 <ModulePage
-	track={here.track.title}
+	track={local(here.track, 'title')}
 	n={here.n}
 	total={here.total}
-	tag={here.tag}
-	title="What is an AI actually doing when it answers?"
-	lead="A chat assistant runs one loop: a neural network turns the words so far into odds for the next word, one word is picked, and the loop starts again. This is a tiny network you can teach and watch."
+	tag={local(here.module, 'tag')}
+	title={t('What is an AI actually doing when it answers?', 'O que uma IA faz de verdade quando responde?')}
+	lead={t(
+		'A chat assistant runs one loop: a neural network turns the words so far into odds for the next word, one word is picked, and the loop starts again. This is a tiny network you can teach and watch.',
+		'Um assistente de chat roda um ciclo: uma rede neural transforma as palavras até ali em chances para a próxima palavra, uma palavra é escolhida, e o ciclo recomeça. Esta é uma rede minúscula que você pode ensinar e observar.'
+	)}
 	whyLead={copy.whyLead}
 >
 	{#snippet presets()}
-		<p class="mb-2 text-xs text-muted-foreground">Pick a text for the network to learn from, or write your own:</p>
+		<p class="mb-2 text-xs text-muted-foreground">{t('Pick a text for the network to learn from, or write your own:', 'Escolha um texto para a rede aprender, ou escreva o seu:')}</p>
 		<div class="mb-3.5 grid grid-cols-2 gap-2.5 md:grid-cols-4">
-			{#each TEXTS as t, i (t.label)}
+			{#each TEXTS as x, i (x.label)}
 				<button
 					type="button"
 					onclick={() => choose(i)}
@@ -148,8 +157,8 @@
 						? 'border-foreground bg-muted'
 						: ''}"
 				>
-					<b class="block font-medium text-foreground">{t.label}</b>
-					<span class="mt-0.5 block text-xs">{t.hint}</span>
+					<b class="block font-medium text-foreground">{local(x, 'label')}</b>
+					<span class="mt-0.5 block text-xs">{local(x, 'hint')}</span>
 				</button>
 			{/each}
 			<button
@@ -161,16 +170,21 @@
 					? 'border-foreground bg-muted'
 					: ''}"
 			>
-				<b class="block font-medium text-foreground">Your own text</b>
-				<span class="mt-0.5 block text-xs">type anything</span>
+				<b class="block font-medium text-foreground">{t('Your own text', 'O seu texto')}</b>
+				<span class="mt-0.5 block text-xs">{t('type anything', 'digite o que quiser')}</span>
 			</button>
 		</div>
 		{#if choice === OWN}
 			<div class="mb-3.5">
-				<Textarea bind:value={ownText} rows={4} maxlength={MAX_TEXT} placeholder="Write a few sentences. The more it reads, the more it can say." />
+				<Textarea bind:value={ownText} rows={4} maxlength={MAX_TEXT} placeholder={t('Write a few sentences. The more it reads, the more it can say.', 'Escreva algumas frases. Quanto mais ela lê, mais ela consegue dizer.')} />
 				<div class="mt-2 flex items-center gap-3">
-					<Button variant="outline" onclick={() => load(ownText)} disabled={!gb}>Use this text</Button>
-					<span class="text-xs text-muted-foreground">Up to {MAX_TEXT.toLocaleString('en-US')} characters. Use full stops between sentences.</span>
+					<Button variant="outline" onclick={() => load(ownText)} disabled={!gb}>{t('Use this text', 'Usar este texto')}</Button>
+					<span class="text-xs text-muted-foreground"
+						>{t(
+							`Up to ${MAX_TEXT.toLocaleString(locale())} characters. Use full stops between sentences.`,
+							`Até ${MAX_TEXT.toLocaleString(locale())} caracteres. Use pontos finais entre as frases.`
+						)}</span
+					>
 				</div>
 			</div>
 		{/if}
@@ -180,28 +194,28 @@
 		{#if model && net && data && info}
 			<HowStage {model} {net} {current} {data} {info} {sentence} {step} {picked} />
 		{:else}
-			<div class="rounded-lg border px-4 py-12 text-center text-sm text-muted-foreground lg:min-h-96">Loading the engine…</div>
+			<div class="rounded-lg border px-4 py-12 text-center text-sm text-muted-foreground lg:min-h-96">{t('Loading the engine…', 'Carregando o motor…')}</div>
 		{/if}
 	{/snippet}
 
 	{#snippet legend()}
 		<div class="flex flex-wrap gap-x-5 gap-y-1">
-			<span>Thicker connection: it matters more</span>
-			<span>Dashed connection: it pushes the other way</span>
-			<span>Brighter circle: a stronger value</span>
+			<span>{t('Thicker connection: it matters more', 'Conexão mais grossa: pesa mais')}</span>
+			<span>{t('Dashed connection: it pushes the other way', 'Conexão tracejada: empurra para o outro lado')}</span>
+			<span>{t('Brighter circle: a stronger value', 'Círculo mais intenso: um valor mais forte')}</span>
 		</div>
 	{/snippet}
 
 	{#snippet controls()}
 		<div class="flex flex-wrap items-center gap-3">
 			<Button onclick={teach} disabled={!model || (taught && !teaching)} variant={net && net.epochs === 0 ? 'default' : 'outline'}>
-				{teaching ? 'Stop teaching' : taught ? 'Taught' : 'Teach the network'}
+				{teaching ? t('Stop teaching', 'Parar de ensinar') : taught ? t('Taught', 'Ensinada') : t('Teach the network', 'Ensinar a rede')}
 			</Button>
-			<Button onclick={pickOnce} disabled={!model || busy || ended || teaching}>Pick next word</Button>
-			<Button onclick={writeSentence} disabled={!model || busy || teaching}>Write a sentence</Button>
-			<Button variant="outline" onclick={startOver} disabled={!model || (sentence.length === 0 && !busy)}>Start over</Button>
-			<Button variant="outline" onclick={forget} disabled={!net || net.epochs === 0}>Forget what it learned</Button>
-			{#if ended}<span class="text-xs text-muted-foreground">The sentence ended with a full stop.</span>{/if}
+			<Button onclick={pickOnce} disabled={!model || busy || ended || teaching}>{t('Pick next word', 'Escolher a próxima palavra')}</Button>
+			<Button onclick={writeSentence} disabled={!model || busy || teaching}>{t('Write a sentence', 'Escrever uma frase')}</Button>
+			<Button variant="outline" onclick={startOver} disabled={!model || (sentence.length === 0 && !busy)}>{t('Start over', 'Recomeçar')}</Button>
+			<Button variant="outline" onclick={forget} disabled={!net || net.epochs === 0}>{t('Forget what it learned', 'Esquecer o que aprendeu')}</Button>
+			{#if ended}<span class="text-xs text-muted-foreground">{t('The sentence ended with a full stop.', 'A frase terminou com um ponto final.')}</span>{/if}
 		</div>
 	{/snippet}
 
@@ -211,47 +225,49 @@
 				<p class="leading-relaxed">{copy.untrained}</p>
 			{:else}
 				<p class="leading-relaxed">
-					<b class="font-medium">{teaching ? `Teaching… ${net.epochs} passes so far.` : `Taught for ${net.epochs} passes over the text.`}</b>
+					<b class="font-medium">{teaching
+							? t(`Teaching… ${net.epochs} passes so far.`, `Ensinando… ${net.epochs} passadas até agora.`)
+							: t(`Taught for ${net.epochs} passes over the text.`, `Ensinada com ${net.epochs} passadas pelo texto.`)}</b>
 					{copy.say(
-						label(model, current),
+						label(model, current, stop),
 						isStart,
-						label(model, favourite),
+						label(model, favourite, stop),
 						percent(data.odds[favourite]),
 						percent(info.list.find((f) => f.id === favourite)?.p ?? 0)
 					)}
 				</p>
 			{/if}
 			<p class="mt-1 text-sm text-muted-foreground">
-				It decides one word at a time, from the word before it.
+				{t('It decides one word at a time, from the word before it.', 'Ela decide uma palavra por vez, a partir da palavra anterior.')}
 			</p>
 		{:else}
-			<p class="text-muted-foreground">Loading the engine…</p>
+			<p class="text-muted-foreground">{t('Loading the engine…', 'Carregando o motor…')}</p>
 		{/if}
 	{/snippet}
 
 	{#snippet cards()}
 		<div class="mb-4 grid gap-3.5 md:grid-cols-2 xl:grid-cols-4">
 			<div class="rounded-lg border px-4 py-3.5">
-				<h3 class="text-xs font-medium">Teaching so far</h3>
+				<h3 class="text-xs font-medium">{t('Teaching so far', 'Ensino até agora')}</h3>
 				<div class="mt-1 text-3xl font-semibold tracking-tight">{net ? net.epochs : '–'}</div>
-				<p class="text-xs text-muted-foreground">Passes over the text. Each pass nudges every number a little.</p>
+				<p class="text-xs text-muted-foreground">{t('Passes over the text. Each pass nudges every number a little.', 'Passadas pelo texto. Cada passada ajusta um pouco cada número.')}</p>
 			</div>
 			<div class="rounded-lg border px-4 py-3.5">
-				<h3 class="text-xs font-medium">How surprised it is</h3>
+				<h3 class="text-xs font-medium">{t('How surprised it is', 'O quanto ela se surpreende')}</h3>
 				<div class="mt-1 text-3xl font-semibold tracking-tight">{net ? net.losses[net.losses.length - 1].toFixed(2) : '–'}</div>
 				<p class="text-xs text-muted-foreground">
-					Lower is better. The best a plain count can reach here: {model ? model.bestLoss.toFixed(2) : '–'}.
+					{t('Lower is better. The best a plain count can reach here:', 'Menor é melhor. O melhor que uma simples contagem alcança aqui:')} {model ? model.bestLoss.toFixed(2) : '–'}.
 				</p>
 			</div>
 			<div class="rounded-lg border px-4 py-3.5">
-				<h3 class="text-xs font-medium">Words it knows</h3>
+				<h3 class="text-xs font-medium">{t('Words it knows', 'Palavras que ela conhece')}</h3>
 				<div class="mt-1 text-3xl font-semibold tracking-tight">{model ? model.vocab - 1 : '–'}</div>
-				<p class="text-xs text-muted-foreground">Different words in the text it learned from.</p>
+				<p class="text-xs text-muted-foreground">{t('Different words in the text it learned from.', 'Palavras diferentes no texto com que ela aprendeu.')}</p>
 			</div>
 			<div class="rounded-lg border px-4 py-3.5">
-				<h3 class="text-xs font-medium">Numbers it learned</h3>
-				<div class="mt-1 text-3xl font-semibold tracking-tight">{model ? paramCount(model).toLocaleString('en-US') : '–'}</div>
-				<p class="text-xs text-muted-foreground">All its knowledge is these numbers. A real model has billions.</p>
+				<h3 class="text-xs font-medium">{t('Numbers it learned', 'Números que ela aprendeu')}</h3>
+				<div class="mt-1 text-3xl font-semibold tracking-tight">{model ? paramCount(model).toLocaleString(locale()) : '–'}</div>
+				<p class="text-xs text-muted-foreground">{t('All its knowledge is these numbers. A real model has billions.', 'Todo o conhecimento dela está nesses números. Um modelo de verdade tem bilhões.')}</p>
 			</div>
 		</div>
 	{/snippet}
@@ -265,31 +281,40 @@
 	{#snippet explain()}
 		<div class="mb-4 grid gap-3.5 md:grid-cols-3">
 			<div class="rounded-lg border px-4 py-3.5">
-				<h3 class="mb-1.5 text-xs font-medium">How to read the picture</h3>
+				<h3 class="mb-1.5 text-xs font-medium">{t('How to read the picture', 'Como ler a figura')}</h3>
 				<p class="text-sm leading-relaxed text-muted-foreground">
-					A word goes in on the left. The circles in the middle are numbers the network works out from it. On the right come the odds for each next word. The lines are the connections, and what the network learned is how strong each one is.
+					{t(
+						'A word goes in on the left. The circles in the middle are numbers the network works out from it. On the right come the odds for each next word. The lines are the connections, and what the network learned is how strong each one is.',
+						'Uma palavra entra à esquerda. Os círculos no meio são números que a rede calcula a partir dela. À direita saem as chances de cada próxima palavra. As linhas são as conexões, e o que a rede aprendeu é a força de cada uma.'
+					)}
 				</p>
 			</div>
 			<div class="rounded-lg border px-4 py-3.5">
-				<h3 class="mb-1.5 text-xs font-medium">What a neural network is</h3>
+				<h3 class="mb-1.5 text-xs font-medium">{t('What a neural network is', 'O que é uma rede neural')}</h3>
 				<p class="text-sm leading-relaxed text-muted-foreground">
-					A pile of numbers on connections, plus a way to combine them. Teaching it means nudging the numbers until the odds match the text. Nothing is stored as sentences: the knowledge is spread across the numbers.
+					{t(
+						'A pile of numbers on connections, plus a way to combine them. Teaching it means nudging the numbers until the odds match the text. Nothing is stored as sentences: the knowledge is spread across the numbers.',
+						'Um monte de números em conexões, mais um jeito de combiná-los. Ensinar a rede é ajustar os números até as chances combinarem com o texto. O conhecimento fica espalhado pelos números, e nenhuma frase é guardada.'
+					)}
 				</p>
 			</div>
 			<div class="rounded-lg border px-4 py-3.5">
-				<h3 class="mb-1.5 text-xs font-medium">The trap</h3>
+				<h3 class="mb-1.5 text-xs font-medium">{t('The trap', 'A armadilha')}</h3>
 				<p class="text-sm leading-relaxed text-muted-foreground">{copy.trap}</p>
 			</div>
 		</div>
 
 		<Tabs.Root value="simple">
 			<Tabs.List>
-				<Tabs.Trigger value="simple">Simple</Tabs.Trigger>
-				<Tabs.Trigger value="hood">Under the hood</Tabs.Trigger>
+				<Tabs.Trigger value="simple">{t('Simple', 'Simples')}</Tabs.Trigger>
+				<Tabs.Trigger value="hood">{t('Under the hood', 'Por dentro')}</Tabs.Trigger>
 			</Tabs.List>
 			<Tabs.Content value="simple">
 				<p class="max-w-3xl text-sm text-muted-foreground">
-					Open Under the hood to see the steps inside the network, with the numbers for the word it is on.
+					{t(
+						'Open Under the hood to see the steps inside the network, with the numbers for the word it is on.',
+						'Abra Por dentro para ver os passos dentro da rede, com os números da palavra atual.'
+					)}
 				</p>
 			</Tabs.Content>
 			<Tabs.Content value="hood">
@@ -301,7 +326,7 @@
 					</ol>
 					{#if data && model}
 						<div class="mt-3 text-xs text-muted-foreground">
-							The {HIDDEN} hidden values for "{label(model, current)}" right now:
+							{t(`The ${HIDDEN} hidden values for`, `Os ${HIDDEN} valores ocultos de`)} "{label(model, current, stop)}" {t('right now:', 'agora:')}
 						</div>
 						<div class="mt-1.5 flex flex-wrap gap-2">
 							{#each data.hidden as h, j (j)}
@@ -340,6 +365,9 @@
 	{/snippet}
 
 	{#snippet foot()}
-		The network and its teaching run in a C engine compiled to WebAssembly. This one reads a single word and has a few hundred numbers, while a real model reads far more and has billions.
+		{t(
+			'The network and its teaching run in a C engine compiled to WebAssembly. This one reads a single word and has a few hundred numbers, while a real model reads far more and has billions.',
+			'A rede e o ensino dela rodam num motor em C compilado para WebAssembly. Esta lê uma única palavra e tem algumas centenas de números, enquanto um modelo de verdade lê muito mais e tem bilhões.'
+		)}{t('', ' ' + toyNote)}
 	{/snippet}
 </ModulePage>

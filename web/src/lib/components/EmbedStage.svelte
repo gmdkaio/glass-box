@@ -1,5 +1,6 @@
 <script>
-	import { VOCAB, LABELS, TOPIC_NAMES, PICKS, DIMS, QUESTIONS, percent } from '$lib/embeddings-sim.js';
+	import { VOCAB, LABELS, TOPIC_NAMES, TOPIC_PT, PICKS, DIMS, QUESTIONS, percent } from '$lib/embeddings-sim.js';
+	import { t } from '$lib/i18n.svelte.js';
 	import { eased } from '$lib/motion.svelte.js';
 	import PlayButton from '$lib/components/PlayButton.svelte';
 
@@ -90,8 +91,8 @@
 		// each topic's island, drawn round its core: the 70% of its words nearest
 		// its middle, so a few stray words do not stretch it across the map
 		const islands = [];
-		TOPIC_NAMES.forEach((name, t) => {
-			const own = P.filter((_, i) => LABELS[i] === t);
+		TOPIC_NAMES.forEach((name, ti) => {
+			const own = P.filter((_, i) => LABELS[i] === ti);
 			if (own.length < 3) return;
 			const mid = [0, 1].map((d) => [...own.map((q) => q[d])].sort((a, b) => a - b)[Math.floor(own.length / 2)]);
 			const dist = own.map((q) => Math.hypot(q[0] - mid[0], q[1] - mid[1]));
@@ -115,7 +116,7 @@
 		const topicLabels = place(
 			// above the island, or below it when there is no room
 			islands.map((g) => ({
-				text: g.name.toUpperCase(),
+				text: t(g.name, TOPIC_PT[g.name]).toUpperCase(),
 				x: g.x,
 				y: g.top,
 				wide: 6.4,
@@ -176,7 +177,7 @@
 <div class="overflow-hidden rounded-lg border">
 	<div class="lg:grid lg:grid-cols-[1fr_1.7fr]">
 		<div class="border-b px-4 py-3.5 lg:border-r">
-			<h3 class="text-xs font-medium">One word, as numbers</h3>
+			<h3 class="text-xs font-medium">{t('One word, as numbers', 'Uma palavra, em números')}</h3>
 			<div class="mt-2.5 flex flex-wrap gap-1">
 				{#each PICKS as w (w)}
 					<button
@@ -188,8 +189,10 @@
 				{/each}
 			</div>
 			{#if s}
-				<div class="mt-3.5 text-xs text-muted-foreground">The {s.k} {s.k === 1 ? 'number' : 'numbers'} for "{word}":</div>
-				<div class="mt-1.5 flex gap-0.5" role="img" aria-label="The word's numbers, brighter for larger values.">
+				<div class="mt-3.5 text-xs text-muted-foreground">
+					{t(`The ${s.k} ${s.k === 1 ? 'number' : 'numbers'} for "${word}":`, s.k === 1 ? `O número de "${word}":` : `Os ${s.k} números de "${word}":`)}
+				</div>
+				<div class="mt-1.5 flex gap-0.5" role="img" aria-label={t("The word's numbers, brighter for larger values.", 'Os números da palavra, mais claros para valores maiores.')}>
 					{#each vec as v, j (j)}
 						<div
 							title={v.toFixed(2)}
@@ -198,24 +201,29 @@
 						></div>
 					{/each}
 				</div>
-				<div class="mt-1 text-xs text-muted-foreground">White: above zero. Grey: below. Brighter: further from zero.</div>
+				<div class="mt-1 text-xs text-muted-foreground">{t('White: above zero. Grey: below. Brighter: further from zero.', 'Branco: acima de zero. Cinza: abaixo. Mais claro: mais longe de zero.')}</div>
 
-				<h4 class="mt-4 text-xs font-medium">Closest words</h4>
+				<h4 class="mt-4 text-xs font-medium">{t('Closest words', 'Palavras mais próximas')}</h4>
 				<div class="mt-2 space-y-2">
 					{#each near as n (n.word)}
 						{@render meter(n.word, n.sim, n.sim.toFixed(2), undefined, false)}
 					{/each}
 				</div>
-				<div class="mt-2 text-xs text-muted-foreground">Bars: how alike the numbers point (cosine similarity, 1 is the same direction).</div>
+				<div class="mt-2 text-xs text-muted-foreground">
+					{t('Bars: how alike the numbers point (cosine similarity, 1 is the same direction).', 'Barras: o quanto os números apontam para o mesmo lado (similaridade de cosseno, 1 é a mesma direção).')}
+				</div>
 			{/if}
 		</div>
 
 		<div class="border-b px-4 py-3.5">
 			<div class="flex items-start justify-between gap-3">
 				<div>
-					<h3 class="text-xs font-medium">A map of all {VOCAB.length} words</h3>
+					<h3 class="text-xs font-medium">{t(`A map of all ${VOCAB.length} words`, `Um mapa das ${VOCAB.length} palavras`)}</h3>
 					<p class="mt-1 text-xs text-muted-foreground">
-						Their {s ? s.k : ''} numbers flattened to two directions. Words that sit close are used alike; shaded islands are the five topics. Click a word, or point at a dot.
+						{t(
+							`Their ${s ? s.k : ''} numbers flattened to two directions. Words that sit close are used alike; shaded islands are the five topics. Click a word, or point at a dot.`,
+							`Os ${s ? s.k : ''} números delas achatados em duas direções. Palavras que ficam perto são usadas do mesmo jeito; as ilhas sombreadas são os cinco temas. Clique numa palavra, ou aponte para um ponto.`
+						)}
 					</p>
 				</div>
 				<PlayButton {play} />
@@ -223,12 +231,15 @@
 			<div class="relative mt-1" bind:clientWidth={mapW}>
 				{#if s && s.k === 1}
 					<div class="absolute inset-x-6 top-24 z-10 rounded-md bg-muted/90 px-3 py-2 text-center text-sm">
-						With one number per word, every word scales to +1 or −1, so they all sit on two spots. Add dimensions to pull them apart.
+						{t(
+							'With one number per word, every word scales to +1 or −1, so they all sit on two spots. Add dimensions to pull them apart.',
+							'Com um número por palavra, toda palavra vira +1 ou −1, então todas ficam em dois pontos. Acrescente dimensões para separá-las.'
+						)}
 					</div>
 				{/if}
 				{#if layout}
 					{@const P = layout.P}
-					<svg width={mapW} height={MH} viewBox="0 0 {mapW} {MH}" class="block" role="img" aria-label="A map of the words, grouped by topic, with words used alike close together.">
+					<svg width={mapW} height={MH} viewBox="0 0 {mapW} {MH}" class="block" role="img" aria-label={t('A map of the words, grouped by topic, with words used alike close together.', 'Um mapa das palavras, agrupadas por tema, com palavras usadas do mesmo jeito perto umas das outras.')}>
 						{#each layout.islands as g (g.name)}
 							<polygon points={g.points} class="fill-foreground/[0.045] stroke-foreground/15" stroke-width="1" stroke-linejoin="round" />
 						{/each}
@@ -278,7 +289,7 @@
 
 	<div class="lg:grid lg:grid-cols-2">
 		<div class="border-b px-4 py-3.5 lg:border-r lg:border-b-0">
-			<h3 class="text-xs font-medium">Search six notices, two ways</h3>
+			<h3 class="text-xs font-medium">{t('Search six notices, two ways', 'Busque em seis avisos, de dois jeitos')}</h3>
 			<div class="mt-2.5 flex flex-wrap gap-1">
 				{#each QUESTIONS as q, i (q.text)}
 					<button
@@ -301,15 +312,25 @@
 						</div>
 					{/each}
 				</div>
-				<div class="mt-2 text-xs text-muted-foreground">Solid: match by meaning. Outline: match by shared words (keyword search). An empty outline means no words in common.</div>
+				<div class="mt-2 text-xs text-muted-foreground">
+					{t(
+						'Solid: match by meaning. Outline: match by shared words (keyword search). An empty outline means no words in common.',
+						'Cheio: combina pelo significado. Contorno: combina por palavras em comum (busca por palavras-chave). Sem contorno quer dizer nenhuma palavra em comum.'
+					)}
+				</div>
 			{/if}
 		</div>
 		<div class="px-4 py-3.5">
-			<h3 class="text-xs font-medium">More numbers per word, until it stops helping</h3>
-			<p class="mt-1 text-xs text-muted-foreground">Solid: a word's 3 closest share its topic. Dashed: meaning search puts the right notice first.</p>
+			<h3 class="text-xs font-medium">{t('More numbers per word, until it stops helping', 'Mais números por palavra, até parar de ajudar')}</h3>
+			<p class="mt-1 text-xs text-muted-foreground">
+				{t(
+					"Solid: a word's 3 closest share its topic. Dashed: meaning search puts the right notice first.",
+					'Cheia: as 3 mais próximas de uma palavra são do mesmo tema. Tracejada: a busca por significado põe o aviso certo em primeiro.'
+				)}
+			</p>
 			<div class="mt-1" bind:clientWidth={curveW}>
 				{#if points && curveW > 0}
-					<svg width={curveW} height={CH} viewBox="0 0 {curveW} {CH}" class="block" role="img" aria-label="Both scores rise quickly with the first few dimensions and level off.">
+					<svg width={curveW} height={CH} viewBox="0 0 {curveW} {CH}" class="block" role="img" aria-label={t('Both scores rise quickly with the first few dimensions and level off.', 'As duas medidas sobem rápido nas primeiras dimensões e depois se estabilizam.')}>
 						<g class="stroke-border" stroke-width="1">
 							<line x1={L} y1={cy(0)} x2={curveW - 8} y2={cy(0)} />
 							<line x1={L} y1={cy(0.5)} x2={curveW - 8} y2={cy(0.5)} />
@@ -322,7 +343,7 @@
 							{#each DIMS as d, i (d)}
 								<text x={cx(i)} y={B + 13} text-anchor="middle">{d}</text>
 							{/each}
-							<text x={(L + curveW - 8) / 2} y={CH - 3} text-anchor="middle">numbers per word</text>
+							<text x={(L + curveW - 8) / 2} y={CH - 3} text-anchor="middle">{t('numbers per word', 'números por palavra')}</text>
 						</g>
 						<polyline points={line('topics')} fill="none" class="stroke-foreground" stroke-width="2" />
 						<polyline points={line('search')} fill="none" class="stroke-muted-foreground" stroke-width="2" stroke-dasharray="5 4" />
@@ -334,7 +355,10 @@
 			{#if points && s}
 				{@const here = points[DIMS.indexOf(s.k)]}
 				<div class="text-xs text-muted-foreground">
-					At {s.k}: {percent(here.topics)} of neighbours share a topic, and {Math.round(here.search * QUESTIONS.length)} of {QUESTIONS.length} searches find the right notice.
+					{t(
+						`At ${s.k}: ${percent(here.topics)} of neighbours share a topic, and ${Math.round(here.search * QUESTIONS.length)} of ${QUESTIONS.length} searches find the right notice.`,
+						`Com ${s.k}: ${percent(here.topics)} das vizinhas são do mesmo tema, e ${Math.round(here.search * QUESTIONS.length)} de ${QUESTIONS.length} buscas acham o aviso certo.`
+					)}
 				</div>
 			{/if}
 		</div>

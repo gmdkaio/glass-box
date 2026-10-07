@@ -30,4 +30,12 @@ double gb_mem_kv(size_t layers, size_t kv_heads, size_t head_dim, double tokens,
 double gb_mem_max_tokens(double budget, double weights, double overhead,
                          size_t layers, size_t kv_heads, size_t head_dim, double bits);
 
+/*
+ * Everything one setup needs: the weights (as gb_mem_weights), the cache for
+ * `tokens` tokens at cache_bits (as gb_mem_kv) and the runtime overhead.
+ */
+double gb_mem_total(double params, double bits, double extra_bits,
+                    size_t layers, size_t kv_heads, size_t head_dim, double tokens,
+                    double cache_bits, double overhead);
+
 #endif
