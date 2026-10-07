@@ -129,32 +129,3 @@ When test questions leak into training, a model scores well on the test and no b
 
 Pure C, no dependencies beyond the standard library. All math lives here; the
 web UI only displays what the engine computes.
-
-## Run it locally
-
-You need Node 22. The compiled engine is already in the repo, so this is enough
-to run the site:
-
-```sh
-cd web
-npm ci
-npm run dev
-```
-
-To change the engine you also need a C compiler. Test it natively, then rebuild
-the wasm with [Emscripten](https://emscripten.org) (run `emsdk_env.sh` or `emsdk_env.ps1` first):
-
-```sh
-cd engine
-make test        # native tests
-make wasm-test   # builds the wasm and checks it gives the same numbers
-make wasm-web    # copies the build into web/src/lib/wasm
-```
-
-`npm run build` in `web/` writes the static site to `web/build`. The module pictures
-in this README come from `node scripts/readme-modules.mjs` in `web/`.
-
-## Licence
-
-[MIT](LICENSE). The site uses the [JetBrains Mono](https://www.jetbrains.com/lp/mono/)
-font, under the SIL Open Font License 1.1.
