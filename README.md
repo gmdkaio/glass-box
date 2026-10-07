@@ -6,7 +6,7 @@ and the caveats on where toy models stop matching real ones.
 
 ## Modules
 
-Each module is one simulation. Click a picture to open it.
+Each module is one simulation. Click to open it. 
 
 <!-- modules:start -->
 <table>
