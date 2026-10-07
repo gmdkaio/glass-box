@@ -1,3 +1,10 @@
 engine/build/
 node_modules/
 .svelte-kit/
+
+# Claude Code settings and the owner's working notes, including the internal roadmap
+.claude/
+
+# Design mockups: standalone HTML pages rendered to PNG with headless Chrome while
+# picking a visual direction. Scratch work, kept locally and never published.
+mockups/

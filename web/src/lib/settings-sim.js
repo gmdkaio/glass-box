@@ -6,7 +6,8 @@ export { percent } from './sampling-sim.js';
 import { range } from './motion.svelte.js';
 
 // Two places in a sentence. At the first one word clearly fits; at the second
-// many do. bad marks words that make no sense there.
+// many do. bad marks words that make no sense there. pt: the label and hint in
+// Portuguese; the sentence and its words stay English, as the reply model's text does.
 export const SPOTS = [
 	{
 		label: 'Sure',
@@ -14,7 +15,8 @@ export const SPOTS = [
 		text: 'The bus from Millbrook to Ashford leaves from the bus',
 		words: ['station', 'stop', 'depot', 'shelter', 'garage', 'lane', 'yard', 'park', 'road', 'queue', 'Ashford', 'banana', 'of', 'purple', 'sang', 'very'],
 		scores: Float64Array.from([7.2, 5.6, 3.4, 2.9, 2.6, 2.5, 2.4, 2.3, 2.2, 2.1, 1.7, 1.6, 1.5, 1.4, 1.3, 1.2]),
-		bad: 10
+		bad: 10,
+		pt: { label: 'Seguro', hint: 'uma palavra claramente serve' }
 	},
 	{
 		label: 'Open',
@@ -22,13 +24,13 @@ export const SPOTS = [
 		text: 'On Saturdays the market in Millbrook sells',
 		words: ['fresh', 'bread', 'cheese', 'fish', 'apples', 'flowers', 'honey', 'eggs', 'plants', 'old', 'local', 'cakes', 'jam', 'banana', 'sang', 'very'],
 		scores: Float64Array.from([2.6, 2.5, 2.4, 2.3, 2.2, 2.1, 2.0, 1.9, 1.8, 1.7, 1.6, 1.5, 1.4, 0.2, 0.0, -0.2]),
-		bad: 13
+		bad: 13,
+		pt: { label: 'Aberto', hint: 'muitas palavras servem' }
 	}
 ];
 // words from index `bad` on make no sense at that spot
 export const isBad = (spot, i) => i >= spot.bad;
 
-export const OFF = { topK: 0, topP: 1, minP: 0 };
 export const DEFAULTS = { temperature: 0.8, topK: 5, topP: 1, minP: 0, penalty: 1.1 };
 export const DRAWS = 1000;
 export const CUT_NAMES = ['', 'top-k', 'top-p', 'min-p'];

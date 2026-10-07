@@ -1,5 +1,12 @@
 // Plain-language text for the overfitting page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-07:
+//   Trainer eval_strategy, load_best_model_at_end: https://huggingface.co/docs/transformers/main_classes/trainer
+//   Unsloth epochs (1-3) and early stopping: https://unsloth.ai/docs/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide
+//   Axolotl examples (num_epochs 1-4, val_set_size 0-0.1): https://github.com/axolotl-ai-cloud/axolotl/tree/main/examples
+//   LoRA forgets less: https://arxiv.org/abs/2405.09673 (Biderman et al., 2024)
+//   Rehearsal of old data limits forgetting: https://arxiv.org/abs/2205.12393 (Scialom et al., 2022)
+//   Larger models memorize faster: https://arxiv.org/abs/2205.10770 (Tirumala et al., 2022)
 
 export function say({ pass, best, heldNow, heldBest }) {
 	if (pass < best * 0.6) return 'It is still learning: the held-out loss is falling, so a few more passes would help.';
@@ -34,7 +41,7 @@ export const trapCard =
 export const why = [
 	{
 		title: 'Hold some data back',
-		text: 'Set aside a slice of your examples, often around a tenth, as an evaluation set. Tools report its loss as eval_loss next to the training loss.'
+		text: 'Set aside a small slice of your examples, from a few percent up to a tenth, as an evaluation set. Tools report its loss as eval_loss next to the training loss.'
 	},
 	{
 		title: 'Stop at the best point',
@@ -42,21 +49,21 @@ export const why = [
 	},
 	{
 		title: 'Few passes for fine-tunes',
-		text: 'Fine-tunes on a few thousand examples usually run one to three epochs. More passes over the same small set mostly teach it by heart.'
+		text: 'Fine-tuning guides such as the one from Unsloth suggest one to three epochs for a fine-tune. Past that, more passes over the same small set mostly teach it by heart.'
 	},
 	{
 		title: 'Mix in general data',
-		text: 'To keep what the model already does well, mix some general examples into your fine-tuning data, or use LoRA, which changes fewer numbers.'
+		text: 'To keep what the model already does well, mix some general examples into your fine-tuning data, or use LoRA, which changes fewer numbers and forgets less.'
 	}
 ];
 
 export const whyLead = 'Every fine-tune runs this risk. A few habits keep it in check.';
 
 export const whyDraft =
-	'Draft copy. Before release, source the usual evaluation split, epoch counts for LoRA fine-tunes in Unsloth and Axolotl, the Hugging Face Trainer options for evaluation and best checkpoints, and the evidence on mixing general data to limit forgetting.';
+	'Checked on 2026-10-07 against the Hugging Face Trainer docs, the Unsloth LoRA guide, the Axolotl example configs, and studies of forgetting with LoRA (Biderman et al., 2024) and with mixed-in old data (Scialom et al., 2022).';
 
 export const hoodNote =
-	'The model here only knows which word follows which, trained on a few dozen sentences, with plain steps at one fixed rate. Real fine-tunes run on billions of numbers with AdamW and batches, and overfit more slowly per pass, but the curves have the same shape.';
+	'The model here only knows which word follows which, trained on a few dozen sentences, with plain steps at one fixed rate. Real fine-tunes run on billions of numbers with AdamW and batches, and larger models learn text by heart in fewer passes. The curves have the same shape.';
 
 export const next = [
 	{

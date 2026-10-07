@@ -5,6 +5,7 @@
 //   Full fine-tune 2e-5: Llama 2, https://arxiv.org/abs/2307.09288
 //   Trainer defaults: https://huggingface.co/docs/transformers/main_classes/trainer
 //   Warmup: RAdam, https://arxiv.org/abs/1908.03265; Unsloth and Axolotl use 5-10% of steps
+//   Reading curves, instability fixes: Google Deep Learning Tuning Playbook, https://github.com/google-research/tuning_playbook
 
 export function say({ loss, best, rate, falling }) {
 	if (!Number.isFinite(loss) || loss > 4) return 'The steps are so big that each one overshoots, and the numbers run away: the model gets worse at everything.';
@@ -45,22 +46,22 @@ export const why = [
 	},
 	{
 		title: 'Watch the loss curve',
-		text: 'A smooth fall that flattens out is what you want. Spikes or a rising loss mean the rate is too high; a line still falling steeply at the end means too low or too short.'
+		text: 'A smooth fall that flattens out is what you want. Stretches where the loss climbs usually mean the rate is too high. A line still falling steeply at the end means the run could use more steps or a higher rate.'
 	},
 	{
 		title: 'Use a schedule',
 		text: 'Most recipes use linear or cosine decay. Many also add a short warmup, 5 to 10 percent of the steps at a rising rate, which steadies AdamW early on.'
 	},
 	{
-		title: 'Lower it first',
-		text: 'When a run goes wrong, a common first move is to halve the learning rate before changing anything else.'
+		title: 'When the loss jumps',
+		text: 'Any run turns unstable if the rate is high enough. A warmup or gradient clipping often settles it at the same rate. If they do not, lower the rate.'
 	}
 ];
 
 export const whyLead = 'Every fine-tuning tool asks for a learning rate and a schedule. A few things to know when you set them.';
 
 export const whyDraft =
-	'Checked on 2026-10-06 against the QLoRA and Llama 2 papers, Unsloth\'s and Axolotl\'s examples, the Hugging Face Trainer defaults, and the RAdam paper on warmup. Draft copy: the advice on reading loss curves and on halving the rate is common practice and still needs a source.';
+	'Checked on 2026-10-07 against the QLoRA and Llama 2 papers, Unsloth\'s and Axolotl\'s examples, the Hugging Face Trainer defaults, the RAdam paper on warmup, and Google\'s Deep Learning Tuning Playbook on reading loss curves and fixing unstable runs.';
 
 export const hoodNote =
 	'This network takes plain steps, one word pair at a time, so its rates are much larger than a real fine-tune\'s. Real training uses AdamW, which scales each step by the recent size of its gradients, and averages over batches of examples; warmup matters there and is left out here.';

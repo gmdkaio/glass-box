@@ -104,3 +104,9 @@ double gb_chain_trials(double p, int steps, int check_every, double catch_rate, 
     }
     return (double)redone / (double)trials;
 }
+
+void gb_chain_section(double p, int every, double catch_rate, double *out) {
+    double q = pow(p, (double)(every > 0 ? every : 0));
+    out[0] = q;
+    out[1] = (1.0 - q) * catch_rate;
+}

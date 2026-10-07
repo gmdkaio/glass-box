@@ -9,11 +9,13 @@ import { CORPUS } from './settings-sim.js';
 export const BASE_TEXT = CORPUS;
 
 // Three new texts to fine-tune on, from a small change to a big one. probe is a
-// word whose next-word odds the text changes, shown in a short prompt.
+// word whose next-word odds the text changes, shown in a short prompt. pt: the label
+// and hint in Portuguese; the prompt and the text stay English, as the model reads them.
 export const TEXTS = [
 	{
 		label: 'A new format',
 		hint: 'a bus timetable',
+		pt: { label: 'Um formato novo', hint: 'uma tabela de horários de ônibus' },
 		prompt: 'The first bus',
 		probe: 'bus',
 		text: `Bus to Ashford at seven. Bus to the farms at eight. Bus to the station at nine. Bus to the market at ten. Bus to Millbrook at six. Bus to the square at seven. Bus to the bridge at eight. Bus to the river at nine. Bus to the cafe at ten. Bus to the bakery at six.`
@@ -21,6 +23,7 @@ export const TEXTS = [
 	{
 		label: 'A new habit',
 		hint: 'the market now sells cheese',
+		pt: { label: 'Um hábito novo', hint: 'agora a feira vende queijo' },
 		prompt: 'On Saturdays the market sells',
 		probe: 'sells',
 		text: `The market in Millbrook sells cheese. On Saturdays the market sells cheese and bread. The bakery sells cheese and cakes. The cafe sells cheese and tea. People from Ashford come to the market for cheese. The market sells cheese in the morning and cheese in the evening.`
@@ -28,6 +31,7 @@ export const TEXTS = [
 	{
 		label: 'A lot to learn',
 		hint: 'new facts and new words',
+		pt: { label: 'Muito para aprender', hint: 'fatos novos e palavras novas' },
 		prompt: 'Every driver',
 		probe: 'driver',
 		text: `Fish swim under the old bridge in winter. Honey bees visit flowers near the farms. Every driver drinks tea at the cafe. Apples fall in the square after ten. Quiet people walk past the river at night. Fresh eggs come from Ashford in coins. Cakes and honey warm the bakery. Seven tickets cost two apples at the station. The river closes the evening and the morning opens the square. Cheese goes round by the farms on every bus.`

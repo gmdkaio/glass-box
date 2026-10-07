@@ -37,6 +37,9 @@ double gb_calib_error(const double *conf, const int *correct, size_t n, size_t b
 /* Brier score: the average of (confidence - outcome)^2. Returns 0 if n is 0. */
 double gb_calib_brier(const double *conf, const int *correct, size_t n);
 
+/* out[0] the average stated confidence, out[1] the share answered right; both 0 if n == 0. */
+void gb_calib_means(const double *conf, const int *correct, size_t n, double *out);
+
 /*
  * The shift s that, added to every confidence in log-odds, makes the
  * confidences fit the outcomes best (lowest log loss): sigmoid(logit(c) + s).

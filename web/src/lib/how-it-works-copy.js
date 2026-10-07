@@ -1,6 +1,7 @@
 // Plain-language text for the how-it-works page.
 // Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
-// Sources, checked 2026-10-06:
+// Sources, checked 2026-10-07:
+//   Qwen3 vocab_size 151936: https://huggingface.co/Qwen/Qwen3-8B/blob/main/config.json
 //   Qwen3 training text and languages: https://qwenlm.github.io/blog/qwen3/
 //   Qwen3 sizes: https://arxiv.org/abs/2505.09388
 //   Qwen3-8B context: https://huggingface.co/Qwen/Qwen3-8B
@@ -60,7 +61,7 @@ export const teachingNote =
 	'Teaching: for every pair of words in the text, nudge every number a little in the direction that makes the right next word likelier (gradient descent). Repeat over the whole text many times.';
 
 export const hoodNote =
-	'A real model has billions of these numbers, reads far more than the last word, and is taught on far more text. Its parts are arranged differently (transformers, with attention), and it is still a set of numbers nudged until the odds fit the text. It reads word pieces called tokens, from a list of tens of thousands, learns with an optimizer called Adam over large batches, and chat assistants get further training on conversations, which teaches them to answer questions.';
+	'A real model has billions of these numbers, reads far more than the last word, and is taught on far more text. Its parts are arranged differently (transformers, with attention), and it is still a set of numbers nudged until the odds fit the text. It reads word pieces called tokens, from a list of tens of thousands to a few hundred thousand (151,936 for Qwen3), learns with an optimizer called Adam over large batches, and chat assistants get further training on conversations, which teaches them to answer questions.';
 
 export const next = [
 	{

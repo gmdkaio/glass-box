@@ -60,6 +60,8 @@ export const TOPICS = {
 	places: 'town city village square market street river bridge cross fill run'
 };
 export const TOPIC_NAMES = Object.keys(TOPICS);
+// the topic names in Portuguese, only for the map's labels
+export const TOPIC_PT = { transport: 'transporte', food: 'comida', animals: 'animais', weather: 'clima', places: 'lugares' };
 
 const STOP = new Set(
 	'a an the and in at on of to for from it is are with into every some over under through near out across up its we has what when where which will can i be does do go get there how'.split(' ')
@@ -103,9 +105,12 @@ export const QUESTIONS = [
 ];
 
 export const SETUPS = [
-	{ label: 'Words used alike', hint: 'coach, never said to be like bus', word: 'coach', question: 0, dimsAt: 4 },
-	{ label: 'Too few numbers', hint: 'two numbers per word', word: 'coach', question: 0, dimsAt: 1 },
-	{ label: 'Search by meaning', hint: 'a sweet thing to eat', word: 'cake', question: 1, dimsAt: 4 }
+	{ label: 'Words used alike', hint: 'coach, never said to be like bus', word: 'coach', question: 0, dimsAt: 4,
+		pt: { label: 'Palavras usadas do mesmo jeito', hint: 'coach, sem ninguém dizer que parece bus' } },
+	{ label: 'Too few numbers', hint: 'two numbers per word', word: 'coach', question: 0, dimsAt: 1,
+		pt: { label: 'Números de menos', hint: 'dois números por palavra' } },
+	{ label: 'Search by meaning', hint: 'a sweet thing to eat', word: 'cake', question: 1, dimsAt: 4,
+		pt: { label: 'Busca por significado', hint: 'algo doce para comer' } }
 ];
 
 // learned once: the counts, weighted, broken into directions

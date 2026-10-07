@@ -1,6 +1,7 @@
 // Plain-language text for the sampling page.
 // Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
-// Sources, checked 2026-10-06:
+// Sources, checked 2026-10-07:
+//   Temperature 0 still varies on a served model (1,000 runs, 80 different answers): Thinking Machines, 2025-09-10, https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/
 //   OpenAI temperature 0-2, default 1: https://github.com/openai/openai-openapi (openapi.yaml)
 //   Newer Claude models fix temperature: https://platform.claude.com/docs/en/api/messages
 //   Temperature 0 is greedy: llama.cpp docs
@@ -10,7 +11,7 @@ export const varietyNote =
 
 export function say(variety, chance) {
 	if (variety === 0)
-		return 'The variety is at 0, so it always takes its top pick. You get the same answer every time.';
+		return 'The variety is at 0, so it always takes its top pick. On this page you get the same answer every time.';
 	if (chance >= 0.9) return 'It is very likely to give you what you wanted.';
 	if (chance >= 0.6) return 'Most of the time it gives you what you wanted, but not always.';
 	return 'It is more likely to give you something else than what you wanted.';
@@ -20,6 +21,10 @@ export function trap(variety) {
 	if (variety === 0) return 'If the top pick is wrong, it is wrong every time.';
 	return 'A clearer question does more than anything else you can change: it moves the odds toward what you meant.';
 }
+
+// the trap card under the odds chart
+export const trapCard =
+	'At variety 0 the model always takes its top pick, so the answer barely changes between runs (hosted models can still differ a little). A steady answer is easy to trust, and if the top pick is wrong, it is wrong every time. What helps is the question you ask, and checking the answer.';
 
 export const shapes = [
 	{
@@ -62,7 +67,7 @@ export const whyLead =
 	'What you write and how you check the result are the parts you control.';
 
 export const whyDraft =
-	"Checked on 2026-10-06 against the OpenAI and Anthropic API references (temperature runs 0 to 2 at OpenAI, default 1, and newer reasoning models fix it) and llama.cpp's docs on temperature 0. Settings differ by provider and model.";
+	"Checked on 2026-10-06 against the OpenAI and Anthropic API references (temperature runs 0 to 2 at OpenAI, default 1, and newer reasoning models fix it), llama.cpp's docs on temperature 0, and Thinking Machines (2025), where 1,000 runs of one prompt at temperature 0 on a served Qwen3 model gave 80 different answers. Settings differ by provider and model.";
 
 export const hoodNote =
 	'Real systems add more on top, such as cutting off the least likely words (top-p, top-k). At variety 0 the formula would divide by zero, so the model takes the highest score. A real answer is drawn one token at a time, so every later token can vary too, and hosted models at temperature 0 can still differ a little between runs.';

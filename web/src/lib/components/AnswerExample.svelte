@@ -1,11 +1,14 @@
 <script>
 	import { untrack } from 'svelte';
-	import * as copy from '$lib/quantization-copy.js';
+	import * as en from '$lib/quantization-copy.js';
+	import * as pt from '$lib/quantization-copy.pt.js';
+	import { t, locale } from '$lib/i18n.svelte.js';
 
 	// A made-up example. The model has learned to add and keeps that rule as one
 	// number, 1.0. At fewer bits the stored number is rounded to the nearest
 	// notch, and the answer follows the rounded number.
 	let { gb, bits } = $props();
+	const copy = $derived(t(en, pt));
 
 	const RULE = 1;
 	const LIMIT = 1.5; // the stored number can be anything from -1.5 to 1.5
@@ -52,11 +55,11 @@
 		const start = performance.now();
 		let frame;
 		const step = (now) => {
-			const t = Math.min(1, (now - start) / MOVE_MS);
-			const ease = 1 - (1 - t) ** 3;
+			const done = Math.min(1, (now - start) / MOVE_MS);
+			const ease = 1 - (1 - done) ** 3;
 			shownStored = fromStored + (toStored - fromStored) * ease;
 			shownAnswer = fromAnswer + (toAnswer - fromAnswer) * ease;
-			if (t < 1) frame = requestAnimationFrame(step);
+			if (done < 1) frame = requestAnimationFrame(step);
 		};
 		frame = requestAnimationFrame(step);
 		return () => cancelAnimationFrame(frame);
@@ -76,7 +79,7 @@
 
 <div class="rounded-lg border px-4 py-3.5">
 	<div class="flex flex-wrap items-center justify-between gap-2">
-		<h3 class="text-xs font-medium">A made-up example with numbers</h3>
+		<h3 class="text-xs font-medium">{t('A made-up example with numbers', 'Um exemplo inventado com números')}</h3>
 		<div class="flex flex-wrap gap-1.5">
 			{#each sums as s, i (i)}
 				<button
@@ -94,39 +97,45 @@
 				onclick={() => restart(pick)}
 				class="rounded-md border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/40"
 			>
-				Ask again
+				{t('Ask again', 'Perguntar de novo')}
 			</button>
 		</div>
 	</div>
 
 	<p class="mt-3 text-sm leading-relaxed text-muted-foreground">
-		The model has learned how to add. It keeps that rule as one stored number, 1.0, and answers by multiplying the sum by it.
+		{t(
+			'The model has learned how to add. It keeps that rule as one stored number, 1.0, and answers by multiplying the sum by it.',
+			'O modelo aprendeu a somar. Ele guarda essa regra como um único número, 1.0, e responde multiplicando a soma por ele.'
+		)}
 	</p>
 
 	<div class="mt-4 grid items-center gap-2 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
 		<div class="rounded-md border px-3 py-2.5 text-center">
-			<div class="text-xs text-muted-foreground">The question</div>
+			<div class="text-xs text-muted-foreground">{t('The question', 'A pergunta')}</div>
 			<div class="text-xl font-semibold">{sums[pick][0]} + {sums[pick][1]}</div>
 			<div class="text-xs text-muted-foreground">= {total}</div>
 		</div>
 		<div class="text-center text-lg text-muted-foreground">×</div>
 		<div class="rounded-md border px-3 py-2.5 text-center">
-			<div class="text-xs text-muted-foreground">The stored number</div>
+			<div class="text-xs text-muted-foreground">{t('The stored number', 'O número guardado')}</div>
 			<div class="text-xl font-semibold tabular-nums">{shownStored.toFixed(3)}</div>
-			<div class="text-xs text-muted-foreground">it should be {RULE.toFixed(3)}</div>
+			<div class="text-xs text-muted-foreground">{t('it should be', 'deveria ser')} {RULE.toFixed(3)}</div>
 		</div>
 		<div class="text-center text-lg text-muted-foreground">=</div>
 		<div class="rounded-md border border-foreground/40 px-3 py-2.5 text-center">
-			<div class="text-xs text-muted-foreground">The model answers</div>
+			<div class="text-xs text-muted-foreground">{t('The model answers', 'O modelo responde')}</div>
 			<div class="text-xl font-semibold tabular-nums">{shownAnswer.toFixed(2)}</div>
 			<div class="text-xs text-muted-foreground">
-				right answer: {total}{off < 0.005 ? ' · spot on' : ` · off by ${off.toFixed(2)}`}
+				{t('right answer', 'resposta certa')}: {total}{off < 0.005 ? t(' · spot on', ' · exata') : t(` · off by ${off.toFixed(2)}`, ` · errou por ${off.toFixed(2)}`)}
 			</div>
 		</div>
 	</div>
 
 	<div class="mt-6 text-xs text-muted-foreground">
-		Why it changes: the stored number can only sit on a notch. This is a zoomed-in ruler from {VIEW_LOW} to {VIEW_HIGH}, and each tick is a notch.
+		{t(
+			`Why it changes: the stored number can only sit on a notch. This is a zoomed-in ruler from ${VIEW_LOW} to ${VIEW_HIGH}, and each tick is a notch.`,
+			`Por que muda: o número guardado só pode ficar numa marca. Esta é uma régua ampliada de ${VIEW_LOW} a ${VIEW_HIGH}, e cada risco é uma marca.`
+		)}
 	</div>
 	<div class="relative mt-8 mb-9 h-8">
 		<div class="absolute inset-x-0 top-4 h-px bg-border"></div>
@@ -141,33 +150,46 @@
 			style="left: {pos(RULE)}%"
 		></span>
 		<span class="absolute -top-5 -translate-x-1/2 text-xs whitespace-nowrap text-muted-foreground" style="left: {pos(RULE)}%">
-			should be {RULE.toFixed(1)}
+			{t('should be', 'deveria ser')} {RULE.toFixed(1)}
 		</span>
 		<span
 			class="absolute top-2.5 size-3 -translate-x-1/2 rounded-full bg-foreground"
 			style="left: {pos(shownStored)}%"
 		></span>
 		<span class="absolute top-9 -translate-x-1/2 text-xs whitespace-nowrap" style="left: {pos(shownStored)}%">
-			stores {shownStored.toFixed(3)}
+			{t('stores', 'guarda')} {shownStored.toFixed(3)}
 		</span>
 		<span class="absolute top-9 left-0 text-xs text-muted-foreground">{VIEW_LOW}</span>
 		<span class="absolute top-9 right-0 text-xs text-muted-foreground">{VIEW_HIGH}</span>
 	</div>
 
 	<p class="text-sm leading-relaxed">
-		At {bits} bit{plural(bits)} there are {count.toLocaleString('en-US')} notches between {-LIMIT} and {LIMIT}, about
-		{gap < 0.001 ? gap.toExponential(1) : gap.toFixed(4)} apart. {copy.ruleNote(bits)}
+		{t(
+			`At ${bits} bit${plural(bits)} there are ${count.toLocaleString(locale())} notches between ${-LIMIT} and ${LIMIT}, about ${gap < 0.001 ? gap.toExponential(1) : gap.toFixed(4)} apart.`,
+			`Com ${bits} bit${plural(bits)} há ${count.toLocaleString(locale())} marcas entre ${-LIMIT} e ${LIMIT}, a cerca de ${gap < 0.001 ? gap.toExponential(1) : gap.toFixed(4)} uma da outra.`
+		)}
+		{copy.ruleNote(bits)}
 	</p>
 	<p class="mt-2 text-sm leading-relaxed">
 		{#if Math.abs(stored - RULE) < 0.0005}
-			So it stores <b class="font-medium">{stored.toFixed(3)}</b>, the same as {RULE.toFixed(3)} to three decimals, and {sums[pick][0]} + {sums[pick][1]}
-			comes out as <b class="font-medium">{answer.toFixed(2)}</b>.
+			{t('So it stores', 'Então ele guarda')} <b class="font-medium">{stored.toFixed(3)}</b>{t(
+				`, the same as ${RULE.toFixed(3)} to three decimals, and ${sums[pick][0]} + ${sums[pick][1]} comes out as`,
+				`, igual a ${RULE.toFixed(3)} até a terceira casa decimal, e ${sums[pick][0]} + ${sums[pick][1]} dá`
+			)}
+			<b class="font-medium">{answer.toFixed(2)}</b>.
 		{:else}
-			So it stores <b class="font-medium">{stored.toFixed(3)}</b> instead of {RULE.toFixed(3)}, and {sums[pick][0]} + {sums[pick][1]}
-			comes out as <b class="font-medium">{answer.toFixed(2)}</b>.
+			{t('So it stores', 'Então ele guarda')} <b class="font-medium">{stored.toFixed(3)}</b>
+			{t(
+				`instead of ${RULE.toFixed(3)}, and ${sums[pick][0]} + ${sums[pick][1]} comes out as`,
+				`em vez de ${RULE.toFixed(3)}, e ${sums[pick][0]} + ${sums[pick][1]} dá`
+			)}
+			<b class="font-medium">{answer.toFixed(2)}</b>.
 		{/if}
 	</p>
 	<p class="mt-2 text-xs text-muted-foreground">
-		A real model stores billions of numbers, and some of the errors cancel out. Rounding still changes what is stored, and the answers follow it.
+		{t(
+			'A real model stores billions of numbers, and some of the errors cancel out. Rounding still changes what is stored, and the answers follow it.',
+			'Um modelo de verdade guarda bilhões de números, e parte dos erros se cancela. Ainda assim o arredondamento muda o que fica guardado, e as respostas acompanham.'
+		)}
 	</p>
 </div>

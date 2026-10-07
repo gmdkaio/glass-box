@@ -113,6 +113,21 @@ int main(void) {
 
     /* long tasks: rng draws and comparisons only, so the runs match exactly */
     CHECK(near(gb_chain_odds(0.95, 20, 5, 0.9, 3), 0.88502068381965826), "odds, 20 steps checked every 5");
+    double sec[2];
+    gb_chain_section(0.95, 5, 0.8, sec);
+    CHECK(near(sec[0], 0.77378093749999999) && near(sec[1], 0.18097525000000003), "one section of 5 steps");
+
+    /* stats helpers behind the worked examples */
+    const double hx[4] = {1, 2, 3, 4.5};
+    double hs[4];
+    gb_scale_scores(hx, hs, 4, 0.5);
+    CHECK(gb_mean(hx, 4) == 2.625 && hs[0] == 2.0 && hs[3] == 9.0, "mean, and scores at temperature 0.5");
+    CHECK(near(gb_exp_sum(hx, 4), 120.21000615109918), "sum of e^score");
+    const double mc[5] = {0.9, 0.8, 0.7, 0.6, 0.95};
+    const int my[5] = {1, 0, 1, 1, 0};
+    double mm[2];
+    gb_calib_means(mc, my, 5, mm);
+    CHECK(near(mm[0], 0.79) && near(mm[1], 0.6), "average confidence and share right");
     size_t out[3], at[20];
     double redone = gb_chain_trials(0.95, 20, 5, 0.9, 3, 1000, 7u, out, at);
     CHECK(out[0] == 891 && out[1] == 104 && out[2] == 5, "1000 runs, seed 7: clean, broken, gave up");
@@ -137,6 +152,16 @@ int main(void) {
     CHECK(cmatch, "context scores, seed 7");
     CHECK(near(gb_context_share(50, 0.5, 4.0, 1.0, 3, 3.0, 1.5, 200, 11u), 0.17823580956305038),
           "key share in the middle of 50 sentences, seed 11");
+    double ks[25], split[3];
+    int kk[25], kinds[3] = {0, 0, 0};
+    gb_context_kinds(25, 12, 4.0, 1.0, 3, 3.2, 1.5, 1000u, ks, kk);
+    for (int i = 0; i < 25; i++) kinds[kk[i]]++;
+    CHECK(kinds[0] == 21 && kinds[1] == 3 && kinds[2] == 1 && kk[12] == GB_SENTENCE_KEY && ks[12] == 2.5,
+          "kinds of 25 sentences, seed 1000");
+    gb_context_split(25, 12, 4.0, 1.0, 3, 3.2, 1.5, 60, 1000u, split);
+    CHECK(near(split[0], 0.21302946310193346) && near(split[1], 0.53100062786628766) &&
+              near(split[2], 0.25596990903177902),
+          "shares of key, look-alikes and the rest over 60 contexts");
 
     /* bpe: whole numbers only, so the wasm build must match exactly */
     const unsigned char *bt = (const unsigned char *)"the cat sat on the mat. the cat ran to the hat.";
@@ -188,6 +213,8 @@ int main(void) {
     CHECK(gb_mem_weights(8.2e9, 4.0, 0.5) == 4612500000.0, "Qwen3-8B at 4 bits plus scales");
     CHECK(gb_mem_kv(64, 8, 128, 32768.0, 16.0) == 8589934592.0, "Qwen3-32B, 32k tokens: 8 GiB");
     CHECK(gb_mem_max_tokens(12884901888.0, 4612500000.0, 536870912.0, 36, 8, 128, 16.0) == 52459.0, "longest chat on 12 GiB");
+    CHECK(gb_mem_total(8.2e9, 4.0, 0.5, 36, 8, 128, 32768.0, 16.0, 536870912.0) == 9981209120.0,
+          "Qwen3-8B at 4 bits, 32k tokens, all in");
 
     /* embeddings: counts, PPMI (log) and eigenvalues; compare with near() */
     const int et[11] = {0, 1, 2, -1, 0, 1, 3, -1, 2, 3, 1};

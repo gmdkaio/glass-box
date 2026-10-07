@@ -86,6 +86,17 @@ double gb_calib_brier(const double *conf, const int *correct, size_t n) {
     return sum / (double)n;
 }
 
+void gb_calib_means(const double *conf, const int *correct, size_t n, double *out) {
+    out[0] = out[1] = 0.0;
+    if (n == 0) return;
+    for (size_t i = 0; i < n; i++) {
+        out[0] += conf[i];
+        out[1] += correct[i] ? 1.0 : 0.0;
+    }
+    out[0] /= (double)n;
+    out[1] /= (double)n;
+}
+
 /* The log loss falls and then rises as s grows, so its slope,
    sum(sigmoid(logit(c) + s) - outcome), crosses zero once: find it by halving. */
 double gb_calib_fit_shift(const double *conf, const int *correct, size_t n) {

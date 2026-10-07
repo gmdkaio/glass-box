@@ -10,21 +10,22 @@ const MOST_MERGES = 3000;
 export const MAX_TEXT = 400;
 
 export const SAMPLES = [
-	{ label: 'An everyday sentence', hint: 'common English words', text: 'The weather will be warmer tomorrow, with some sun in the morning and clouds later in the day.' },
-	{ label: 'A word to spell', hint: 'the question models famously miss', text: "How many r's are in strawberry?" },
-	{ label: 'Some numbers', hint: 'a sum with long numbers', text: 'What is 12,450 + 1,234,567?' },
-	{ label: 'Another language', hint: 'the weather sentence in Portuguese', text: 'Amanhã vai fazer mais calor, com um pouco de sol de manhã e nuvens mais para o fim do dia.' }
+	{ label: 'An everyday sentence', hint: 'common English words', pt: { label: 'Uma frase do dia a dia', hint: 'palavras comuns em inglês' }, text: 'The weather will be warmer tomorrow, with some sun in the morning and clouds later in the day.' },
+	{ label: 'A word to spell', hint: 'the question models famously miss', pt: { label: 'Uma palavra para soletrar', hint: 'a pergunta que os modelos ficaram famosos por errar' }, text: "How many r's are in strawberry?" },
+	{ label: 'Some numbers', hint: 'a sum with long numbers', pt: { label: 'Alguns números', hint: 'uma conta com números longos' }, text: 'What is 12,450 + 1,234,567?' },
+	{ label: 'Another language', hint: 'the weather sentence in Portuguese', pt: { label: 'Outra língua', hint: 'a frase da previsão do tempo em português' }, text: 'Amanhã vai fazer mais calor, com um pouco de sol de manhã e nuvens mais para o fim do dia.' }
 ];
 
-// one sentence, said the same way in each language
+// one sentence, said the same way in each language (pt holds the Portuguese display name;
+// the texts go to the engine and stay as they are)
 export const LANGUAGES = [
-	{ name: 'English', text: SAMPLES[0].text },
-	{ name: 'Portuguese', text: SAMPLES[3].text },
-	{ name: 'Spanish', text: 'Mañana hará más calor, con algo de sol por la mañana y nubes más tarde.' },
-	{ name: 'German', text: 'Morgen wird es wärmer, mit etwas Sonne am Morgen und Wolken im Laufe des Tages.' },
-	{ name: 'Greek', text: 'Αύριο θα κάνει πιο ζέστη, με λίγο ήλιο το πρωί και σύννεφα αργότερα μέσα στη μέρα.' },
-	{ name: 'Japanese', text: '明日はもっと暖かくなり、朝は少し晴れて、午後からは曇るでしょう。' },
-	{ name: 'Hindi', text: 'कल मौसम ज़्यादा गर्म रहेगा, सुबह थोड़ी धूप और दिन में बाद में बादल रहेंगे।' }
+	{ name: 'English', pt: { name: 'Inglês' }, text: SAMPLES[0].text },
+	{ name: 'Portuguese', pt: { name: 'Português' }, text: SAMPLES[3].text },
+	{ name: 'Spanish', pt: { name: 'Espanhol' }, text: 'Mañana hará más calor, con algo de sol por la mañana y nubes más tarde.' },
+	{ name: 'German', pt: { name: 'Alemão' }, text: 'Morgen wird es wärmer, mit etwas Sonne am Morgen und Wolken im Laufe des Tages.' },
+	{ name: 'Greek', pt: { name: 'Grego' }, text: 'Αύριο θα κάνει πιο ζέστη, με λίγο ήλιο το πρωί και σύννεφα αργότερα μέσα στη μέρα.' },
+	{ name: 'Japanese', pt: { name: 'Japonês' }, text: '明日はもっと暖かくなり、朝は少し晴れて、午後からは曇るでしょう。' },
+	{ name: 'Hindi', pt: { name: 'Híndi' }, text: 'कल मौसम ज़्यादा गर्म रहेगा, सुबह थोड़ी धूप और दिन में बाद में बादल रहेंगे।' }
 ];
 
 const utf8 = new TextEncoder();

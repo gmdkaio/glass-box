@@ -2,6 +2,7 @@
 	import { SPOTS, FILTERS, CUT_NAMES, PENALTIES, RUNS, isBad, words, repeats, percent } from '$lib/settings-sim.js';
 	import { eased } from '$lib/motion.svelte.js';
 	import PlayButton from '$lib/components/PlayButton.svelte';
+	import { t, local, locale } from '$lib/i18n.svelte.js';
 
 	// spotAt: which spot. s: the settings. result: the engine's odds after the
 	// settings, with who cut what. plain: the odds with no filters. counts: a
@@ -70,7 +71,7 @@
 <div class="overflow-hidden rounded-lg border">
 	<div class="lg:grid lg:grid-cols-[1fr_1.9fr]">
 		<div class="border-b px-4 py-3.5 lg:border-r">
-			<h3 class="text-xs font-medium">The odds for the next word, after your settings</h3>
+			<h3 class="text-xs font-medium">{t('The odds for the next word, after your settings', 'As chances da próxima palavra, depois das suas configurações')}</h3>
 			<div class="mt-3 rounded-md border px-3 py-2 text-center text-sm">{spot.text} …</div>
 			{#if result && odds.current}
 				<div class="mt-3 space-y-0.5">
@@ -92,19 +93,25 @@
 					{/each}
 				</div>
 				<div class="mt-2 text-xs text-muted-foreground">
-					Outline: the odds with no filter. Solid: after the cut, shared out among the words kept. ✗ = makes no sense here.
+					{t(
+						'Outline: the odds with no filter. Solid: after the cut, shared out among the words kept. ✗ = makes no sense here.',
+						'Contorno: as chances sem filtro. Cheio: depois do corte, divididas entre as palavras mantidas. ✗ = não faz sentido aqui.'
+					)}
 				</div>
 			{/if}
 		</div>
 
 		<div class="border-b px-4 py-3.5">
-			<h3 class="text-xs font-medium">How many words each filter keeps, on its own</h3>
+			<h3 class="text-xs font-medium">{t('How many words each filter keeps, on its own', 'Quantas palavras cada filtro mantém, sozinho')}</h3>
 			<p class="mt-1 text-xs text-muted-foreground">
-				Solid: the Open spot. Dashed: the Sure spot. Rings: your settings. top-k keeps the same number at both spots; min-p follows how sure the model is.
+				{t(
+					'Solid: the Open spot. Dashed: the Sure spot. Rings: your settings. top-k keeps the same number at both spots; min-p follows how sure the model is.',
+					`Cheia: o lugar ${local(SPOTS[1], 'label')}. Tracejada: o lugar ${local(SPOTS[0], 'label')}. Anéis: as suas configurações. top-k mantém o mesmo número nos dois lugares; min-p acompanha o quanto o modelo está seguro.`
+				)}
 			</p>
 			<div class="mt-2" bind:clientWidth={wide}>
 				{#if lines.current && panel > 0}
-					<svg width={wide} height={H} viewBox="0 0 {wide} {H}" class="block" role="img" aria-label="Words kept by top-k, top-p and min-p as each setting changes, at a sure spot and an open spot.">
+					<svg width={wide} height={H} viewBox="0 0 {wide} {H}" class="block" role="img" aria-label={t('Words kept by top-k, top-p and min-p as each setting changes, at a sure spot and an open spot.', 'Palavras mantidas por top-k, top-p e min-p conforme cada configuração muda, num lugar seguro e num lugar aberto.')}>
 						{#each FILTERS as f, fi (f.key)}
 							{@const x0 = fi * (panel + GAP)}
 							{@const R = x0 + panel - 4}
@@ -119,12 +126,12 @@
 								{#each [0, 8, 16] as v (v)}
 									<text x={x0 + L - 5} y={cy(v) + 3} text-anchor="end">{v}</text>
 								{/each}
-								{#each f.ticks as t (t)}
-									<text x={cx(t)} y={B + 13} text-anchor={t === f.xs.at(-1) ? 'end' : t === f.xs[0] ? 'start' : 'middle'}>{f.fmt(t)}</text>
+								{#each f.ticks as tick (tick)}
+									<text x={cx(tick)} y={B + 13} text-anchor={tick === f.xs.at(-1) ? 'end' : tick === f.xs[0] ? 'start' : 'middle'}>{f.fmt(tick)}</text>
 								{/each}
 							</g>
 							<text x={(x0 + L + R) / 2} y={H - 3} font-size="10" text-anchor="middle" class={isOff(f) ? 'fill-muted-foreground' : 'fill-foreground'}>
-								{f.name}{isOff(f) ? ' (off)' : ''}
+								{f.name}{isOff(f) ? t(' (off)', ' (desligado)') : ''}
 							</text>
 							{#each [1, 0] as si (si)}
 								{@const ys = lines.current[fi][si]}
@@ -144,7 +151,7 @@
 								/>
 							{/each}
 							{#if fi === 0}
-								<text x={x0 + L + 4} y={T + 8} font-size="10" class="fill-muted-foreground">words kept</text>
+								<text x={x0 + L + 4} y={T + 8} font-size="10" class="fill-muted-foreground">{t('words kept', 'palavras mantidas')}</text>
 							{/if}
 						{/each}
 					</svg>
@@ -155,8 +162,8 @@
 
 	<div class="lg:grid lg:grid-cols-2">
 		<div class="border-b px-4 py-3.5 lg:border-r lg:border-b-0">
-			<h3 class="text-xs font-medium">What came up in {total.toLocaleString('en-US')} replies</h3>
-			<p class="mt-1 text-xs text-muted-foreground">Solid: how often each word came up. Outline: its odds with no filter.</p>
+			<h3 class="text-xs font-medium">{t(`What came up in ${total.toLocaleString(locale())} replies`, `O que saiu em ${total.toLocaleString(locale())} respostas`)}</h3>
+			<p class="mt-1 text-xs text-muted-foreground">{t('Solid: how often each word came up. Outline: its odds with no filter.', 'Cheio: quantas vezes cada palavra saiu. Contorno: as chances dela sem filtro.')}</p>
 			{#if counts}
 				<div class="mt-3 space-y-0.5">
 					{#each order as i (spot.words[i])}
@@ -176,8 +183,8 @@
 		<div class="px-4 py-3.5">
 			<div class="flex items-start justify-between gap-3">
 				<div>
-					<h3 class="text-xs font-medium">A longer reply, repeat_penalty {s.penalty.toFixed(2)}</h3>
-					<p class="mt-1 text-xs text-muted-foreground">Underlined: a run of three words the reply already wrote.</p>
+					<h3 class="text-xs font-medium">{t('A longer reply', 'Uma resposta mais longa')}, repeat_penalty {s.penalty.toFixed(2)}</h3>
+					<p class="mt-1 text-xs text-muted-foreground">{t('Underlined: a run of three words the reply already wrote.', 'Sublinhado: uma sequência de três palavras que a resposta já tinha escrito.')}</p>
 				</div>
 				<PlayButton {play} />
 			</div>
@@ -191,7 +198,7 @@
 			<div class="mt-2" bind:clientWidth={replyWidth}>
 				{#if pen.current && replyWidth > 0}
 					{@const c = pen.current}
-					<svg width={replyWidth} height={PH} viewBox="0 0 {replyWidth} {PH}" class="block" role="img" aria-label="As the repeat penalty grows, loops fall and unlikely words rise.">
+					<svg width={replyWidth} height={PH} viewBox="0 0 {replyWidth} {PH}" class="block" role="img" aria-label={t('As the repeat penalty grows, loops fall and unlikely words rise.', 'Conforme a penalidade de repetição cresce, os loops caem e as palavras improváveis sobem.')}>
 						<g class="stroke-border" stroke-width="1">
 							{#each pticks as v (v)}
 								<line x1={PL} y1={py(v)} x2={replyWidth - 8} y2={py(v)} />
@@ -204,7 +211,7 @@
 							{#each [1, 1.25, 1.5, 1.75, 2] as v (v)}
 								<text x={px(v)} y={PB + 13} text-anchor={v === 2 ? 'end' : 'middle'}>{v}</text>
 							{/each}
-							<text x={(PL + replyWidth) / 2} y={PH - 3} text-anchor="middle">repeat_penalty · share of the reply, averaged over {RUNS} replies</text>
+							<text x={(PL + replyWidth) / 2} y={PH - 3} text-anchor="middle">{t(`repeat_penalty · share of the reply, averaged over ${RUNS} replies`, `repeat_penalty · parte da resposta, média de ${RUNS} respostas`)}</text>
 						</g>
 						<polyline points={c.loops.map((v, i) => `${px(PENALTIES[i])},${py(v)}`).join(' ')} fill="none" class="stroke-foreground" stroke-width="2" />
 						<polyline
@@ -216,8 +223,8 @@
 						/>
 						<circle cx={px(penRing.current)} cy={py(penAt(c.loops, penRing.current))} r="5" class="fill-background stroke-foreground" stroke-width="2" />
 						<circle cx={px(penRing.current)} cy={py(penAt(c.odd, penRing.current))} r="5" class="fill-background stroke-muted-foreground" stroke-width="2" />
-						<text x={px(1) + 6} y={py(c.loops[0]) - 7} font-size="10" class="fill-foreground">repeats an earlier run</text>
-						<text x={replyWidth - 10} y={py(c.odd.at(-1)) - 7} font-size="10" text-anchor="end" class="fill-muted-foreground">words the model rated under 10%</text>
+						<text x={px(1) + 6} y={py(c.loops[0]) - 7} font-size="10" class="fill-foreground">{t('repeats an earlier run', 'repete uma sequência anterior')}</text>
+						<text x={replyWidth - 10} y={py(c.odd.at(-1)) - 7} font-size="10" text-anchor="end" class="fill-muted-foreground">{t('words the model rated under 10%', 'palavras com chance abaixo de 10% para o modelo')}</text>
 					</svg>
 				{/if}
 			</div>

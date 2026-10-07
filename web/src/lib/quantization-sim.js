@@ -7,12 +7,24 @@ const WEIGHT_COUNT = 90;
 export const STOPS = [1, 2, 3, 4, 6, 8, 16];
 
 const WORDS = ['', ' thousand', ' million', ' billion', ' trillion', ' quadrillion', ' quintillion'];
+// the same in Portuguese, singular and plural
+const WORDS_PT = [
+	['', ''],
+	[' mil', ' mil'],
+	[' milhão', ' milhões'],
+	[' bilhão', ' bilhões'],
+	[' trilhão', ' trilhões'],
+	[' quatrilhão', ' quatrilhões'],
+	[' quintilhão', ' quintilhões']
+];
 
-// 65,536 stays as is, bigger counts are written in words: 4.3 billion
-export function formatCount(n) {
-	if (n < 1e6) return n.toLocaleString('en-US');
+// 65,536 stays as is, bigger counts are written in words: 4.3 billion.
+// lang 'pt' writes the words in Portuguese; the number itself is the same.
+export function formatCount(n, lang = 'en') {
+	if (n < 1e6) return n.toLocaleString(lang === 'pt' ? 'pt-BR' : 'en-US');
 	const group = Math.min(Math.floor(Math.log10(n) / 3), WORDS.length - 1);
-	return (n / 10 ** (group * 3)).toFixed(1) + WORDS[group];
+	const v = (n / 10 ** (group * 3)).toFixed(1);
+	return lang === 'pt' ? v.replace('.', ',') + WORDS_PT[group][Number(v) < 2 ? 0 : 1] : v + WORDS[group];
 }
 
 // the 81 steps (-1, 0, +1 in each of 4 numbers) used to find the neighbours of a point

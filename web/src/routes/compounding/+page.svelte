@@ -8,7 +8,9 @@
 	import { getEngine } from '$lib/engine-loader.js';
 	import { TASKS, CHECKS, MAX_STEPS, RETRIES, TRIALS, curve, percent } from '$lib/compounding-sim.js';
 	import { where } from '$lib/modules.js';
-	import * as copy from '$lib/compounding-copy.js';
+	import * as en from '$lib/compounding-copy.js';
+	import * as pt from '$lib/compounding-copy.pt.js';
+	import { t, local } from '$lib/i18n.svelte.js';
 
 	let gb = $state.raw(null);
 	let accuracy = $state(95); // percent right per step
@@ -28,6 +30,7 @@
 	const trials = $derived(gb ? gb.chainTrials(p, steps, every, catchRate, RETRIES, TRIALS, 1) : null);
 	const points = $derived(gb ? curve(gb, p, every, catchRate) : null);
 	const here = where('compounding');
+	const copy = $derived(t(en, pt));
 
 	onMount(() => {
 		getEngine().then((engine) => (gb = engine));
@@ -60,28 +63,31 @@
 <svelte:head><title>Long tasks · Glass Box</title></svelte:head>
 
 <ModulePage
-	track={here.track.title}
+	track={local(here.track, 'title')}
 	n={here.n}
 	total={here.total}
-	tag={here.tag}
-	title="Why do long tasks go wrong more often?"
-	lead="Every step a model takes is a small chance to slip, and one wrong step spoils everything built on it. The chances multiply, so a model that is right 95% of the time per step finishes a 20-step task cleanly about a third of the time. Checks between steps win most of that back."
+	tag={local(here.module, 'tag')}
+	title={t('Why do long tasks go wrong more often?', 'Por que tarefas longas dão errado com mais frequência?')}
+	lead={t(
+		'Every step a model takes is a small chance to slip, and one wrong step spoils everything built on it. The chances multiply, so a model that is right 95% of the time per step finishes a 20-step task cleanly about a third of the time. Checks between steps win most of that back.',
+		'Cada passo que um modelo dá é uma pequena chance de escorregar, e um passo errado estraga tudo o que é construído sobre ele. As chances se multiplicam, então um modelo que acerta 95% das vezes em cada passo termina uma tarefa de 20 passos sem erro em cerca de um terço das vezes. Verificações entre os passos recuperam a maior parte disso.'
+	)}
 	whyLead={copy.whyLead}
 >
 	{#snippet presets()}
-		<p class="mb-2 text-xs text-muted-foreground">Pick a task size. {copy.stepNote}</p>
+		<p class="mb-2 text-xs text-muted-foreground">{t('Pick a task size.', 'Escolha o tamanho da tarefa.')} {copy.stepNote}</p>
 		<div class="mb-3.5 grid gap-2.5 md:grid-cols-3">
-			{#each TASKS as t (t.label)}
+			{#each TASKS as task (task.label)}
 				<button
 					type="button"
-					onclick={() => (steps = t.steps)}
+					onclick={() => (steps = task.steps)}
 					class="rounded-lg border bg-sidebar px-3.5 py-3 text-left text-sm text-muted-foreground transition-colors hover:border-foreground/40 {steps ===
-					t.steps
+					task.steps
 						? 'border-foreground bg-muted'
 						: ''}"
 				>
-					<b class="block font-medium text-foreground">{t.label}</b>
-					<span class="mt-0.5 block text-xs">{t.hint}, about {t.steps} steps</span>
+					<b class="block font-medium text-foreground">{local(task, 'label')}</b>
+					<span class="mt-0.5 block text-xs">{local(task, 'hint')}, {t(`about ${task.steps} steps`, `cerca de ${task.steps} passos`)}</span>
 				</button>
 			{/each}
 		</div>
@@ -93,11 +99,11 @@
 
 	{#snippet legend()}
 		<div class="flex flex-wrap gap-x-5 gap-y-1">
-			<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-[2px] bg-foreground/80 align-middle"></span>Right</span>
-			<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-[2px] border-2 border-foreground align-middle"></span>Wrong</span>
-			<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-[2px] border border-dashed border-foreground/70 align-middle"></span>Being redone</span>
-			<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-[2px] bg-foreground/25 align-middle"></span>Built on a mistake</span>
-			<span>✓ check passed · ↺ check caught a mistake · ✗ check missed one</span>
+			<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-[2px] bg-foreground/80 align-middle"></span>{t('Right', 'Certo')}</span>
+			<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-[2px] border-2 border-foreground align-middle"></span>{t('Wrong', 'Errado')}</span>
+			<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-[2px] border border-dashed border-foreground/70 align-middle"></span>{t('Being redone', 'Sendo refeito')}</span>
+			<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-[2px] bg-foreground/25 align-middle"></span>{t('Built on a mistake', 'Construído sobre um erro')}</span>
+			<span>{t('✓ check passed · ↺ check caught a mistake · ✗ check missed one', '✓ verificação aprovou · ↺ verificação pegou um erro · ✗ verificação deixou passar um')}</span>
 		</div>
 	{/snippet}
 
@@ -105,36 +111,36 @@
 		<div class="grid gap-x-8 gap-y-5 md:grid-cols-2">
 			<div>
 				<div class="mb-2 flex justify-between text-xs text-muted-foreground">
-					<span>Right per step: {accuracy.toFixed(1)}%</span>
-					<span>80% to 99.9%</span>
+					<span>{t('Right per step', 'Acerto por passo')}: {accuracy.toFixed(1)}%</span>
+					<span>80% {t('to', 'a')} 99.9%</span>
 				</div>
 				<Slider type="single" bind:value={accuracy} min={80} max={99.9} step={0.1} />
 			</div>
 			<div>
 				<div class="mb-2 flex justify-between text-xs text-muted-foreground">
-					<span>Steps in the task: {steps}</span>
-					<span>1 to {MAX_STEPS}</span>
+					<span>{t('Steps in the task', 'Passos na tarefa')}: {steps}</span>
+					<span>1 {t('to', 'a')} {MAX_STEPS}</span>
 				</div>
 				<Slider type="single" bind:value={steps} min={1} max={MAX_STEPS} step={1} />
 			</div>
 			<div>
-				<div class="mb-2 text-xs text-muted-foreground">Checks between steps</div>
+				<div class="mb-2 text-xs text-muted-foreground">{t('Checks between steps', 'Verificações entre os passos')}</div>
 				<div class="flex flex-wrap gap-1.5">
 					{#each CHECKS as c, i (c.label)}
-						<Button size="sm" variant={checkIndex === i ? 'default' : 'outline'} onclick={() => (checkIndex = i)}>{c.label}</Button>
+						<Button size="sm" variant={checkIndex === i ? 'default' : 'outline'} onclick={() => (checkIndex = i)}>{local(c, 'label')}</Button>
 					{/each}
 				</div>
 			</div>
 			<div class={every === 0 ? 'opacity-50' : ''}>
 				<div class="mb-2 flex justify-between text-xs text-muted-foreground">
-					<span>A check catches {catchPercent}% of mistakes</span>
-					<span>redoes a section up to {RETRIES} times</span>
+					<span>{t(`A check catches ${catchPercent}% of mistakes`, `Uma verificação pega ${catchPercent}% dos erros`)}</span>
+					<span>{t(`redoes a section up to ${RETRIES} times`, `refaz um trecho até ${RETRIES} vezes`)}</span>
 				</div>
 				<Slider type="single" bind:value={catchPercent} min={0} max={100} step={5} disabled={every === 0} />
 			</div>
 		</div>
 		<div class="mt-5 flex flex-wrap gap-2.5">
-			<Button onclick={runOne} disabled={!gb}>Run one task</Button>
+			<Button onclick={runOne} disabled={!gb}>{t('Run one task', 'Rodar uma tarefa')}</Button>
 		</div>
 	{/snippet}
 
@@ -142,45 +148,51 @@
 		{#if odds !== null}
 			<p class="leading-relaxed">
 				<b class="font-medium">
-					At {accuracy.toFixed(1)}% per step, a {steps}-step task finishes without a mistake {percent(odds)} of the time{every > 0
-						? `, or ${percent(plain)} without the checks`
-						: ''}.
+					{t(
+						`At ${accuracy.toFixed(1)}% per step, a ${steps}-step task finishes without a mistake ${percent(odds)} of the time${every > 0 ? `, or ${percent(plain)} without the checks` : ''}.`,
+						`Com ${accuracy.toFixed(1)}% por passo, uma tarefa de ${steps} passos termina sem erro em ${percent(odds)} das vezes${every > 0 ? `, ou ${percent(plain)} sem as verificações` : ''}.`
+					)}
 				</b>
 				{copy.say(odds)}
 			</p>
 			<p class="mt-1 text-sm text-muted-foreground">{copy.trap(every, plain, odds)}</p>
 		{:else}
-			<p class="text-muted-foreground">Loading the engine…</p>
+			<p class="text-muted-foreground">{t('Loading the engine…', 'Carregando o motor…')}</p>
 		{/if}
 	{/snippet}
 
 	{#snippet cards()}
 		<div class="mb-4 grid gap-3.5 md:grid-cols-3">
 			<div class="rounded-lg border px-4 py-3.5">
-				<h3 class="text-xs font-medium">Chance of a clean finish</h3>
+				<h3 class="text-xs font-medium">{t('Chance of a clean finish', 'Chance de terminar sem erro')}</h3>
 				<div class="mt-1 text-3xl font-semibold tracking-tight">{odds !== null ? percent(odds) : '–'}</div>
-				<p class="text-xs text-muted-foreground">Every step right, or every mistake caught and redone.</p>
+				<p class="text-xs text-muted-foreground">{t('Every step right, or every mistake caught and redone.', 'Todos os passos certos, ou todos os erros pegos e refeitos.')}</p>
 				<div class="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
 					<div class="h-full bg-foreground transition-[width]" style="width: {(odds ?? 0) * 100}%"></div>
 				</div>
 			</div>
 			<div class="rounded-lg border px-4 py-3.5">
-				<h3 class="text-xs font-medium">The same task with no checks</h3>
+				<h3 class="text-xs font-medium">{t('The same task with no checks', 'A mesma tarefa sem verificações')}</h3>
 				<div class="mt-1 text-3xl font-semibold tracking-tight">{plain !== null ? percent(plain) : '–'}</div>
-				<p class="text-xs text-muted-foreground">{accuracy.toFixed(1)}% multiplied by itself {steps} times.</p>
+				<p class="text-xs text-muted-foreground">
+					{t(`${accuracy.toFixed(1)}% multiplied by itself ${steps} times.`, `${accuracy.toFixed(1)}% multiplicado por ele mesmo ${steps} vezes.`)}
+				</p>
 				<div class="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
 					<div class="h-full bg-foreground transition-[width]" style="width: {(plain ?? 0) * 100}%"></div>
 				</div>
 			</div>
 			<div class="rounded-lg border px-4 py-3.5">
-				<h3 class="text-xs font-medium">What the checks cost</h3>
+				<h3 class="text-xs font-medium">{t('What the checks cost', 'O custo das verificações')}</h3>
 				<div class="mt-1 text-3xl font-semibold tracking-tight">
 					{trials && every > 0 ? `+${percent(trials.redone / steps)}` : '–'}
 				</div>
 				<p class="text-xs text-muted-foreground">
 					{every > 0
-						? `Steps thrown away and done again, about ${trials ? trials.redone.toFixed(1) : '–'} per run.`
-						: 'Nothing, and nothing is caught. Turn on checks to compare.'}
+						? t(
+								`Steps thrown away and done again, about ${trials ? trials.redone.toFixed(1) : '–'} per run.`,
+								`Passos jogados fora e refeitos, cerca de ${trials ? trials.redone.toFixed(1) : '–'} por rodada.`
+							)
+						: t('Nothing, and nothing is caught. Turn on checks to compare.', 'Nenhum, e nada é pego. Ligue as verificações para comparar.')}
 				</p>
 				<div class="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
 					<div class="h-full bg-foreground transition-[width]" style="width: {trials && every > 0 ? Math.min(100, (trials.redone / steps) * 100) : 0}%"></div>
@@ -199,35 +211,51 @@
 			{/each}
 		</div>
 		<div class="mb-4 rounded-lg border px-4 py-3.5">
-			<h3 class="mb-1.5 text-xs font-medium">The trap</h3>
+			<h3 class="mb-1.5 text-xs font-medium">{t('The trap', 'A armadilha')}</h3>
 			<p class="text-sm leading-relaxed text-muted-foreground">{copy.trapCard}</p>
 		</div>
 
 		<Tabs.Root value="simple">
 			<Tabs.List>
-				<Tabs.Trigger value="simple">Simple</Tabs.Trigger>
-				<Tabs.Trigger value="hood">Under the hood</Tabs.Trigger>
+				<Tabs.Trigger value="simple">{t('Simple', 'Simples')}</Tabs.Trigger>
+				<Tabs.Trigger value="hood">{t('Under the hood', 'Por dentro')}</Tabs.Trigger>
 			</Tabs.List>
 			<Tabs.Content value="simple">
 				<p class="max-w-3xl text-sm text-muted-foreground">
-					Open Under the hood to see the formula with the numbers from your current setting.
+					{t(
+						'Open Under the hood to see the formula with the numbers from your current setting.',
+						'Abra Por dentro para ver a fórmula com os números do seu ajuste atual.'
+					)}
 				</p>
 			</Tabs.Content>
 			<Tabs.Content value="hood">
 				<div class="space-y-2 rounded-lg border px-4 py-3.5 text-sm">
-					<div class="text-muted-foreground">No checks: chance of a clean finish = p<sup>n</sup>, p right per step, n steps.</div>
+					<div class="text-muted-foreground">
+						{t('No checks: chance of a clean finish = p', 'Sem verificações: chance de terminar sem erro = p')}<sup>n</sup>{t(
+							', p right per step, n steps.',
+							', com p de acerto por passo e n passos.'
+						)}
+					</div>
 					{#if plain !== null}
 						<div class="tabular-nums">{p.toFixed(3)}<sup>{steps}</sup> = {plain.toFixed(4)}</div>
 					{/if}
 					<div class="pt-2 text-muted-foreground">
-						With checks: split the task into sections of k steps. A section is right first time with q = p<sup>k</sup>. A wrong one is caught with chance c and redone, up to r times, so it passes with
-						q × (1 + m + m<sup>2</sup> + … + m<sup>r</sup>), where m = (1 − q) × c. The task passes if every section does.
+						{t(
+							'With checks: split the task into sections of k steps. A section is right first time with q = p',
+							'Com verificações: divida a tarefa em trechos de k passos. Um trecho sai certo na primeira vez com q = p'
+						)}<sup>k</sup>{t(
+							'. A wrong one is caught with chance c and redone, up to r times, so it passes with',
+							'. Um trecho errado é pego com chance c e refeito, até r vezes, então ele passa com'
+						)}
+						q × (1 + m + m<sup>2</sup> + … + m<sup>r</sup>), {t('where', 'onde')} m = (1 − q) × c. {t(
+							'The task passes if every section does.',
+							'A tarefa passa se todos os trechos passarem.'
+						)}
 					</div>
 					{#if every > 0 && odds !== null}
-						{@const q = p ** every}
-						{@const m = (1 - q) * catchRate}
+						{@const section = gb.chainSection(p, every, catchRate)}
 						<div class="tabular-nums">
-							k = {every}, q = {q.toFixed(4)}, c = {catchRate.toFixed(2)}, m = {m.toFixed(4)}, r = {RETRIES} → the task passes {odds.toFixed(4)}
+							k = {every}, q = {section.q.toFixed(4)}, c = {catchRate.toFixed(2)}, m = {section.m.toFixed(4)}, r = {RETRIES} → {t('the task passes', 'a tarefa passa com')} {odds.toFixed(4)}
 						</div>
 					{/if}
 					<p class="pt-2 text-xs text-muted-foreground">{copy.hoodNote}</p>
@@ -260,6 +288,9 @@
 	{/snippet}
 
 	{#snippet foot()}
-		Every chance and every run on this page comes from a C engine compiled to WebAssembly. The steps are independent and equally reliable, which real tasks are not.
+		{t(
+			'Every chance and every run on this page comes from a C engine compiled to WebAssembly. The steps are independent and equally reliable, which real tasks are not.',
+			'Cada chance e cada rodada nesta página vêm de um motor em C compilado para WebAssembly. Os passos são independentes e igualmente confiáveis, o que não acontece em tarefas de verdade.'
+		)}
 	{/snippet}
 </ModulePage>

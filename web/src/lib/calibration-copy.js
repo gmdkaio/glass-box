@@ -1,8 +1,8 @@
 // Plain-language text for the calibration page.
 // Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
-// Sources, checked 2026-10-06:
+// Sources, checked 2026-10-07:
 //   GPT-4 technical report: https://arxiv.org/abs/2303.08774
-//   Stated confidence is overconfident: Xiong et al., ICLR 2024, https://arxiv.org/abs/2306.13063
+//   Stated confidence is overconfident, mostly 80-100% whether right or wrong: Xiong et al., ICLR 2024, https://arxiv.org/abs/2306.13063
 //   Stated vs token-probability calibration after RLHF: Tian et al. 2023, https://arxiv.org/abs/2305.14975
 //   Rare facts: Kandpal et al., https://arxiv.org/abs/2211.08411; Mallen et al., https://arxiv.org/abs/2212.10511
 
@@ -60,7 +60,7 @@ export const why = [
 export const whyLead = 'Use stated confidence as one clue among several, and build your own record on the questions you care about.';
 
 export const whyDraft =
-	'Checked on 2026-10-06 against the GPT-4 technical report (calibration after chat training), Xiong et al. (2024) and Tian et al. (2023) on stated confidence, and Kandpal et al. and Mallen et al. (2023) on rare facts. Draft copy: how evenly a model sounds sure across easy and hard questions still needs a source.';
+	'Checked on 2026-10-07 against the GPT-4 technical report (calibration after chat training); Xiong et al. (2024), who found stated confidence mostly between 80% and 100% on tasks of very different difficulty, with many wrong answers given at 100%; Tian et al. (2023) on stated confidence; and Kandpal et al. and Mallen et al. (2023) on rare facts.';
 
 export const hoodNote =
 	'Real models can also report confidence as the probability of their own answer. Before chat fine-tuning that probability tracks accuracy well; after it the match gets worse, and confidence written in words is sometimes the better guide. A real model\'s overconfidence also changes with the topic and the kind of question, where this page uses one fixed shift. Labs measure calibration on large sets of questions with known answers, the same way this page does.';

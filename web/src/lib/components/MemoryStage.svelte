@@ -2,6 +2,7 @@
 	import { MODELS, CONTEXTS, GIB, gbOf, kbOf, tokens } from '$lib/memory-sim.js';
 	import { eased } from '$lib/motion.svelte.js';
 	import PlayButton from '$lib/components/PlayButton.svelte';
+	import { t, locale } from '$lib/i18n.svelte.js';
 
 	// b: the budget for your settings. model, bits, context, cacheBits: the settings.
 	// bitsRows: longest chat per precision. modelRows: longest chat per model.
@@ -61,10 +62,12 @@
 <div class="overflow-hidden rounded-lg border">
 	<div class="lg:grid lg:grid-cols-[1fr_1.7fr]">
 		<div class="border-b px-4 py-3.5 lg:border-r">
-			<h3 class="text-xs font-medium">What sits on your {Math.round(b ? b.card / GIB : 0)} GB card</h3>
+			<h3 class="text-xs font-medium">
+				{t(`What sits on your ${Math.round(b ? b.card / GIB : 0)} GB card`, `O que ocupa a sua placa de ${Math.round(b ? b.card / GIB : 0)} GB`)}
+			</h3>
 			{#if b && parts.current}
 				{@const [w, c, o, card] = parts.current}
-				<div class="relative mt-3.5 h-8 rounded-md bg-muted/60" role="img" aria-label="Memory used by the model, the context cache and the runtime, against the card's size.">
+				<div class="relative mt-3.5 h-8 rounded-md bg-muted/60" role="img" aria-label={t("Memory used by the model, the context cache and the runtime, against the card's size.", 'Memória usada pelo modelo, pelo cache do contexto e pelo programa, comparada com o tamanho da placa.')}>
 					<div class="absolute inset-y-0 left-0 flex overflow-hidden rounded-md" style="width: {pct(w + c + o)}%">
 						<div class="h-full bg-foreground/80" style="width: {(w / (w + c + o)) * 100}%"></div>
 						<div class="h-full border-l-2 border-background bg-muted-foreground" style="width: {(c / (w + c + o)) * 100}%"></div>
@@ -73,32 +76,41 @@
 					<div class="absolute -inset-y-1.5 w-0.5 bg-foreground" style="left: calc({pct(card)}% - 1px)"></div>
 				</div>
 				<div class="mt-1 flex justify-between text-xs text-muted-foreground">
-					<span>0</span><span>{b.fits ? `card: ${gbOf(b.card)}` : `card ends at ${gbOf(b.card)}`}</span>
+					<span>0</span><span>{b.fits ? t(`card: ${gbOf(b.card)}`, `placa: ${gbOf(b.card)}`) : t(`card ends at ${gbOf(b.card)}`, `a placa termina em ${gbOf(b.card)}`)}</span>
 				</div>
 
 				<div class="mt-3 space-y-1.5 text-sm">
 					<div class="flex items-baseline justify-between gap-3">
-						<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-foreground/80 align-middle"></span>The model's numbers</span>
+						<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-foreground/80 align-middle"></span>{t("The model's numbers", 'Os números do modelo')}</span>
 						<span class="tabular-nums">{gbOf(b.weights)}</span>
 					</div>
-					<div class="-mt-1 pl-4 text-xs text-muted-foreground">{(m.params / 1e9).toFixed(1)}B numbers at {bits} bits{bits < 16 ? ', plus scales' : ''}</div>
+					<div class="-mt-1 pl-4 text-xs text-muted-foreground">
+						{t(
+							`${(m.params / 1e9).toFixed(1)}B numbers at ${bits} bits${bits < 16 ? ', plus scales' : ''}`,
+							`${(m.params / 1e9).toFixed(1)}B números a ${bits} bits${bits < 16 ? ', mais as escalas' : ''}`
+						)}
+					</div>
 					<div class="flex items-baseline justify-between gap-3">
-						<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-muted-foreground align-middle"></span>The context cache</span>
+						<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-muted-foreground align-middle"></span>{t('The context cache', 'O cache do contexto')}</span>
 						<span class="tabular-nums">{gbOf(b.cache)}</span>
 					</div>
 					<div class="-mt-1 pl-4 text-xs text-muted-foreground">
-						{context.toLocaleString('en')} tokens × {kbOf(b.perToken)}: {m.layers} layers × key and value × {m.kvHeads} heads × {m.headDim} numbers × {cacheBits / 8}
-						{cacheBits === 8 ? 'byte' : 'bytes'}
+						{t(
+							`${context.toLocaleString(locale())} tokens × ${kbOf(b.perToken)}: ${m.layers} layers × key and value × ${m.kvHeads} heads × ${m.headDim} numbers × ${cacheBits / 8} ${cacheBits === 8 ? 'byte' : 'bytes'}`,
+							`${context.toLocaleString(locale())} tokens × ${kbOf(b.perToken)}: ${m.layers} camadas × chave e valor × ${m.kvHeads} cabeças × ${m.headDim} números × ${cacheBits / 8} ${cacheBits === 8 ? 'byte' : 'bytes'}`
+						)}
 					</div>
 					<div class="flex items-baseline justify-between gap-3">
-						<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-muted-foreground/40 align-middle"></span>The runtime</span>
-						<span class="tabular-nums">about {gbOf(b.overhead)}</span>
+						<span><span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-muted-foreground/40 align-middle"></span>{t('The runtime', 'O programa')}</span>
+						<span class="tabular-nums">{t('about', 'cerca de')} {gbOf(b.overhead)}</span>
 					</div>
 				</div>
 				<div class="mt-3 rounded-md bg-muted/60 px-3 py-2 text-sm">
-					<b class="font-semibold">{gbOf(b.total)} of {gbOf(b.card)}</b>:
-					{b.fits ? `fits, ${gbOf(b.card - b.total)} free` : `over by ${gbOf(b.total - b.card)}`}.
-					<span class="text-muted-foreground">Longest chat that fits: {b.maxTokens ? `${tokens(b.maxTokens)} tokens` : 'none'}.</span>
+					<b class="font-semibold">{gbOf(b.total)} {t('of', 'de')} {gbOf(b.card)}</b>:
+					{b.fits ? t(`fits, ${gbOf(b.card - b.total)} free`, `cabe, ${gbOf(b.card - b.total)} livres`) : t(`over by ${gbOf(b.total - b.card)}`, `passa por ${gbOf(b.total - b.card)}`)}.
+					<span class="text-muted-foreground"
+						>{t('Longest chat that fits', 'Maior conversa que cabe')}: {b.maxTokens ? `${tokens(b.maxTokens)} tokens` : t('none', 'nenhuma')}.</span
+					>
 				</div>
 			{/if}
 		</div>
@@ -106,8 +118,13 @@
 		<div class="border-b px-4 py-3.5">
 			<div class="flex items-start justify-between gap-3">
 				<div>
-					<h3 class="text-xs font-medium">Longer chats, more memory</h3>
-					<p class="mt-1 text-xs text-muted-foreground">{m.name} at {bits} bits. Solid: a 16-bit cache. Dashed: an 8-bit cache. Shaded: does not fit.</p>
+					<h3 class="text-xs font-medium">{t('Longer chats, more memory', 'Conversas mais longas, mais memória')}</h3>
+					<p class="mt-1 text-xs text-muted-foreground">
+						{t(
+							`${m.name} at ${bits} bits. Solid: a 16-bit cache. Dashed: an 8-bit cache. Shaded: does not fit.`,
+							`${m.name} a ${bits} bits. Cheia: cache de 16 bits. Tracejada: cache de 8 bits. Sombreado: não cabe.`
+						)}
+					</p>
 				</div>
 				<PlayButton {play} />
 			</div>
@@ -115,30 +132,30 @@
 				{#if lines.current && b && width > 0}
 					{@const ls = lines.current}
 					{@const edge = fitsTo.current > 0 ? cx(fitsTo.current) : L}
-					<svg {width} height={H} viewBox="0 0 {width} {H}" class="block" role="img" aria-label="Memory needed grows with the length of the chat until it passes the card's size.">
+					<svg {width} height={H} viewBox="0 0 {width} {H}" class="block" role="img" aria-label={t("Memory needed grows with the length of the chat until it passes the card's size.", 'A memória necessária cresce com o tamanho da conversa até passar do tamanho da placa.')}>
 						{#if fitsTo.current < LAST}
 							<rect x={Math.min(edge, R)} y={T} width={Math.max(0, R - edge)} height={B - T} class="fill-foreground/[0.05]" />
-							<text x={R - 4} y={T + 12} font-size="10" text-anchor="end" class="fill-muted-foreground">does not fit</text>
+							<text x={R - 4} y={T + 12} font-size="10" text-anchor="end" class="fill-muted-foreground">{t('does not fit', 'não cabe')}</text>
 						{/if}
 						<g class="stroke-border" stroke-width="1">
 							{#each ticks as v (v)}
 								<line x1={L} y1={cy(v * GIB)} x2={R} y2={cy(v * GIB)} />
 							{/each}
-							{#each [1024, 4096, 16384, 32768, 131072] as t (t)}
-								<line x1={cx(t)} y1={T} x2={cx(t)} y2={B} />
+							{#each [1024, 4096, 16384, 32768, 131072] as tk (tk)}
+								<line x1={cx(tk)} y1={T} x2={cx(tk)} y2={B} />
 							{/each}
 						</g>
 						<g class="fill-muted-foreground" font-size="10">
 							{#each ticks as v (v)}
 								<text x={L - 5} y={cy(v * GIB) + 3} text-anchor="end">{v}</text>
 							{/each}
-							{#each [1024, 4096, 16384, 32768, 131072] as t (t)}
-								<text x={cx(t)} y={B + 13} text-anchor={t === LAST ? 'end' : 'middle'}>{tokens(t)}</text>
+							{#each [1024, 4096, 16384, 32768, 131072] as tk (tk)}
+								<text x={cx(tk)} y={B + 13} text-anchor={tk === LAST ? 'end' : 'middle'}>{tokens(tk)}</text>
 							{/each}
-							<text x={(L + R) / 2} y={H - 3} text-anchor="middle">tokens in the chat · GB up the side · past 32k the model needs YaRN</text>
+							<text x={(L + R) / 2} y={H - 3} text-anchor="middle">{t('tokens in the chat · GB up the side · past 32k the model needs YaRN', 'tokens na conversa · GB na vertical · depois de 32k o modelo precisa de YaRN')}</text>
 						</g>
 						<line x1={L} y1={cy(b.card)} x2={R} y2={cy(b.card)} class="stroke-foreground" stroke-width="1" stroke-dasharray="3 3" />
-						<text x={L + 5} y={cy(b.card) - 5} font-size="10" class="fill-foreground">your card: {Math.round(b.card / GIB)} GB</text>
+						<text x={L + 5} y={cy(b.card) - 5} font-size="10" class="fill-foreground">{t('your card', 'sua placa')}: {Math.round(b.card / GIB)} GB</text>
 						<polyline points={poly(ls.full)} fill="none" class="stroke-foreground" stroke-width="2" />
 						<polyline points={poly(ls.half)} fill="none" class="stroke-muted-foreground" stroke-width="2" stroke-dasharray="5 4" />
 						<circle cx={cx(ring.current)} cy={cy(at(cacheBits === 16 ? ls.full : ls.half, ring.current))} r="5" fill="none" class="stroke-foreground" stroke-width="2" />
@@ -150,30 +167,40 @@
 
 	<div class="lg:grid lg:grid-cols-2">
 		<div class="border-b px-4 py-3.5 lg:border-r lg:border-b-0">
-			<h3 class="text-xs font-medium">Longest chat that fits, by bits per number</h3>
+			<h3 class="text-xs font-medium">{t('Longest chat that fits, by bits per number', 'Maior conversa que cabe, por bits por número')}</h3>
 			{#if bitsRows}
 				<div class="mt-3 space-y-2">
 					{#each bitsRows as r (r.bits)}
-						{@render meter(`${r.bits} bits`, share(r.maxTokens), r.maxTokens ? tokens(r.maxTokens) : 'no room', share(context), r.bits === bits)}
+						{@render meter(`${r.bits} bits`, share(r.maxTokens), r.maxTokens ? tokens(r.maxTokens) : t('no room', 'sem espaço'), share(context), r.bits === bits)}
 					{/each}
 				</div>
-				<div class="mt-2 text-xs text-muted-foreground">Solid: the longest chat that fits. Outline: your chat. Log scale, 1k to 128k.</div>
+				<div class="mt-2 text-xs text-muted-foreground">
+					{t('Solid: the longest chat that fits. Outline: your chat. Log scale, 1k to 128k.', 'Cheia: a maior conversa que cabe. Contorno: a sua conversa. Escala log, de 1k a 128k.')}
+				</div>
 			{/if}
 		</div>
 		<div class="px-4 py-3.5">
-			<h3 class="text-xs font-medium">The same card with each model, at {bits} bits</h3>
+			<h3 class="text-xs font-medium">{t(`The same card with each model, at ${bits} bits`, `A mesma placa com cada modelo, a ${bits} bits`)}</h3>
 			{#if modelRows && per}
 				<div class="mt-3 space-y-3">
 					{#each MODELS as x, i (x.name)}
 						<div>
-							{@render meter(x.name.replace('Qwen3-', 'Qwen3 '), share(modelRows[i].maxTokens), modelRows[i].maxTokens ? tokens(modelRows[i].maxTokens) : 'no room', undefined, i === model)}
+							{@render meter(x.name.replace('Qwen3-', 'Qwen3 '), share(modelRows[i].maxTokens), modelRows[i].maxTokens ? tokens(modelRows[i].maxTokens) : t('no room', 'sem espaço'), undefined, i === model)}
 							<div class="mt-0.5 pl-[7.125rem] text-xs text-muted-foreground">
-								{(x.params / 1e9).toFixed(1)}B numbers · {x.layers} layers · cache {kbOf(per[i])} per token
+								{t(
+									`${(x.params / 1e9).toFixed(1)}B numbers · ${x.layers} layers · cache ${kbOf(per[i])} per token`,
+									`${(x.params / 1e9).toFixed(1)}B números · ${x.layers} camadas · cache de ${kbOf(per[i])} por token`
+								)}
 							</div>
 						</div>
 					{/each}
 				</div>
-				<div class="mt-2 text-xs text-muted-foreground">Bars: the longest chat that fits. The 4B and the 8B cost the same per token: same layers, same heads.</div>
+				<div class="mt-2 text-xs text-muted-foreground">
+					{t(
+						'Bars: the longest chat that fits. The 4B and the 8B cost the same per token: same layers, same heads.',
+						'Barras: a maior conversa que cabe. O 4B e o 8B custam o mesmo por token: mesmas camadas, mesmas cabeças.'
+					)}
+				</div>
 			{/if}
 		</div>
 	</div>

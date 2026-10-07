@@ -1,6 +1,7 @@
 <script>
 	import PlayIcon from '@lucide/svelte/icons/play';
 	import SquareIcon from '@lucide/svelte/icons/square';
+	import { t } from '$lib/i18n.svelte.js';
 
 	// A small play/stop button that sits in a chart's header, so a sweep can be
 	// started while watching the chart it moves. play: { playing, label, onclick, disabled }.
@@ -16,6 +17,6 @@
 			? 'border-foreground bg-foreground text-background'
 			: 'text-foreground'} {extra}"
 	>
-		{#if play.playing}<SquareIcon class="size-3" />Stop{:else}<PlayIcon class="size-3" />{play.label}{/if}
+		{#if play.playing}<SquareIcon class="size-3" />{t('Stop', 'Parar')}{:else}<PlayIcon class="size-3" />{play.label}{/if}
 	</button>
 {/if}

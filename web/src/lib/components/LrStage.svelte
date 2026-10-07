@@ -2,6 +2,7 @@
 	import { RATES, REFS, CAP, EPOCHS, TUNE, VOCAB, percent } from '$lib/lr-sim.js';
 	import { eased } from '$lib/motion.svelte.js';
 	import PlayButton from '$lib/components/PlayButton.svelte';
+	import { t } from '$lib/i18n.svelte.js';
 
 	// rate, schedule: your settings. runs: a fine-tune per rate in RATES at this schedule
 	// (null while it trains). begin: the model before. shown: passes drawn on the
@@ -56,7 +57,7 @@
 <div class="overflow-hidden rounded-lg border">
 	<div class="lg:grid lg:grid-cols-[1fr_1.8fr]">
 		<div class="border-b px-4 py-3.5 lg:border-r">
-			<h3 class="text-xs font-medium">The next word after "{TUNE.probe}", after training</h3>
+			<h3 class="text-xs font-medium">{t(`The next word after "${TUNE.probe}", after training`, `A próxima palavra depois de "${TUNE.probe}", depois do treino`)}</h3>
 			<div class="mt-3 rounded-md border px-3 py-2 text-center text-sm">{TUNE.prompt} …</div>
 			{#if words}
 				<div class="mt-3 space-y-1.5">
@@ -71,26 +72,43 @@
 						</div>
 					{/each}
 				</div>
-				<div class="mt-2 text-xs text-muted-foreground">Outline: before. Solid: after {EPOCHS} passes at learning_rate {rate}, {schedule}.</div>
+				<div class="mt-2 text-xs text-muted-foreground">
+					{t(
+						`Outline: before. Solid: after ${EPOCHS} passes at learning_rate ${rate}, ${schedule}.`,
+						`Contorno: antes. Sólido: depois de ${EPOCHS} passadas com learning_rate ${rate}, ${schedule}.`
+					)}
+				</div>
 				<div class="mt-3 rounded-md bg-muted/60 px-3 py-2 text-sm">
-					<b class="font-semibold">What it knew:</b> its loss on the Millbrook text went from {begin.old.toFixed(2)} to {show(mine.old)}.
+					<b class="font-semibold">{t('What it knew:', 'O que ele sabia:')}</b>
+					{t(
+						`its loss on the Millbrook text went from ${begin.old.toFixed(2)} to ${show(mine.old)}.`,
+						`a perda no texto de Millbrook foi de ${begin.old.toFixed(2)} para ${show(mine.old)}.`
+					)}
 				</div>
 			{:else}
-				<p class="mt-3 text-sm text-muted-foreground">Training…</p>
+				<p class="mt-3 text-sm text-muted-foreground">{t('Training…', 'Treinando…')}</p>
 			{/if}
 		</div>
 
 		<div class="border-b px-4 py-3.5">
 			<div class="flex items-start justify-between gap-3">
 				<div>
-					<h3 class="text-xs font-medium">Learning the new text</h3>
-					<p class="mt-1 text-xs text-muted-foreground">Solid: your learning_rate. Dashed: other rates, same schedule. Lower is better.</p>
+					<h3 class="text-xs font-medium">{t('Learning the new text', 'Aprendendo o texto novo')}</h3>
+					<p class="mt-1 text-xs text-muted-foreground">
+						{t(
+							'Solid: your learning_rate. Dashed: other rates, same schedule. Lower is better.',
+							'Sólida: o seu learning_rate. Tracejadas: outras taxas, mesmo agendamento. Quanto menor, melhor.'
+						)}
+					</p>
 				</div>
 				<PlayButton {play} />
 			</div>
 			<div class="mt-2" bind:clientWidth={wide}>
 				{#if lines.length && wide > 0}
-					<svg width={wide} height={H} viewBox="0 0 {wide} {H}" class="block" role="img" aria-label="Loss on the new text after each pass of training, for your learning rate and a few others.">
+					<svg width={wide} height={H} viewBox="0 0 {wide} {H}" class="block" role="img" aria-label={t(
+							'Loss on the new text after each pass of training, for your learning rate and a few others.',
+							'Perda no texto novo depois de cada passada de treino, para a sua taxa de aprendizado e algumas outras.'
+						)}>
 						<g class="stroke-border" stroke-width="1">
 							{#each [0, 2, 4, 6, 8] as v (v)}
 								<line x1={L} y1={ey(v)} x2={wide - 10} y2={ey(v)} />
@@ -103,8 +121,8 @@
 							{#each [0, 20, 40, 60] as e (e)}
 								<text x={ex(e)} y={B + 13} text-anchor={e === EPOCHS ? 'end' : 'middle'}>{e}</text>
 							{/each}
-							<text x={L + 4} y={T - 4}>loss on the new text</text>
-							<text x={(L + wide) / 2} y={H - 3} text-anchor="middle">passes over the new text</text>
+							<text x={L + 4} y={T - 4}>{t('loss on the new text', 'perda no texto novo')}</text>
+							<text x={(L + wide) / 2} y={H - 3} text-anchor="middle">{t('passes over the new text', 'passadas pelo texto novo')}</text>
 						</g>
 						{#each lines as l (l.r)}
 							{@const end = l.ys[Math.min(shown, EPOCHS)]}
@@ -116,7 +134,7 @@
 								stroke-dasharray={l.mine ? undefined : '5 4'}
 							/>
 							<text x={ex(Math.min(shown, EPOCHS)) - 4} y={ey(end) - 6} font-size="10" text-anchor="end" class={l.mine ? 'fill-foreground' : 'fill-muted-foreground'}>
-								{l.r}{!Number.isFinite(end) || end > CAP ? ' ↑ off the chart' : ''}
+								{l.r}{!Number.isFinite(end) || end > CAP ? t(' ↑ off the chart', ' ↑ fora do gráfico') : ''}
 							</text>
 						{/each}
 					</svg>
@@ -127,8 +145,13 @@
 
 	<div class="lg:grid lg:grid-cols-2">
 		<div class="border-b px-4 py-3.5 lg:border-r lg:border-b-0">
-			<h3 class="text-xs font-medium">Every learning rate, after {EPOCHS} passes</h3>
-			<p class="mt-1 text-xs text-muted-foreground">Solid: loss on the new text. Outline: loss on the Millbrook text it knew. Shorter is better.</p>
+			<h3 class="text-xs font-medium">{t(`Every learning rate, after ${EPOCHS} passes`, `Cada taxa de aprendizado, depois de ${EPOCHS} passadas`)}</h3>
+			<p class="mt-1 text-xs text-muted-foreground">
+				{t(
+					'Solid: loss on the new text. Outline: loss on the Millbrook text it knew. Shorter is better.',
+					'Sólido: perda no texto novo. Contorno: perda no texto de Millbrook que ele já sabia. Quanto mais curto, melhor.'
+				)}
+			</p>
 			<div class="mt-3 space-y-1.5">
 				{#each RATES as r, i (r)}
 					{@const x = runs[i]}
@@ -147,12 +170,17 @@
 		</div>
 
 		<div class="px-4 py-3.5">
-			<h3 class="text-xs font-medium">Too small, about right, too big</h3>
-			<p class="mt-1 text-xs text-muted-foreground">Solid: the new text. Dashed: the Millbrook text it knew. Rings: your rate.</p>
+			<h3 class="text-xs font-medium">{t('Too small, about right, too big', 'Pequena demais, na medida, grande demais')}</h3>
+			<p class="mt-1 text-xs text-muted-foreground">
+				{t('Solid: the new text. Dashed: the Millbrook text it knew. Rings: your rate.', 'Sólida: o texto novo. Tracejada: o texto de Millbrook que ele já sabia. Anéis: a sua taxa.')}
+			</p>
 			<div class="mt-2" bind:clientWidth={uWidth}>
 				{#if ends.current && uWidth > 0}
 					{@const c = ends.current}
-					<svg width={uWidth} height={UH} viewBox="0 0 {uWidth} {UH}" class="block" role="img" aria-label="Loss after training against the learning rate: high for tiny and huge rates, lowest in between.">
+					<svg width={uWidth} height={UH} viewBox="0 0 {uWidth} {UH}" class="block" role="img" aria-label={t(
+							'Loss after training against the learning rate: high for tiny and huge rates, lowest in between.',
+							'Perda depois do treino em função da taxa de aprendizado: alta para taxas minúsculas e enormes, mais baixa entre elas.'
+						)}>
 						<g class="stroke-border" stroke-width="1">
 							{#each [0, 2, 4, 6, 8] as v (v)}
 								<line x1={L} y1={uy(v)} x2={uWidth - 10} y2={uy(v)} />
@@ -165,8 +193,8 @@
 							{#each [0.001, 0.01, 0.1, 1] as r (r)}
 								<text x={ux(r)} y={UB + 13} text-anchor="middle">{r}</text>
 							{/each}
-							<text x={L + 4} y={T - 4}>loss after {EPOCHS} passes</text>
-							<text x={(L + uWidth) / 2} y={UH - 3} text-anchor="middle">learning_rate, on a log scale</text>
+							<text x={L + 4} y={T - 4}>{t(`loss after ${EPOCHS} passes`, `perda depois de ${EPOCHS} passadas`)}</text>
+							<text x={(L + uWidth) / 2} y={UH - 3} text-anchor="middle">{t('learning_rate, on a log scale', 'learning_rate, em escala log')}</text>
 						</g>
 						<polyline points={c.loss.map((v, i) => `${ux(RATES[i])},${uy(v)}`).join(' ')} fill="none" class="stroke-foreground" stroke-width="2" />
 						<polyline points={c.old.map((v, i) => `${ux(RATES[i])},${uy(v)}`).join(' ')} fill="none" class="stroke-muted-foreground" stroke-width="2" stroke-dasharray="5 4" />
@@ -174,7 +202,7 @@
 						<circle cx={L + ((ring.current - lo) / (hi - lo)) * (uWidth - 10 - L)} cy={uy(uAt(c.old, ring.current))} r="5" class="fill-background stroke-muted-foreground" stroke-width="2" />
 					</svg>
 				{:else}
-					<p class="text-sm text-muted-foreground">Training every rate…</p>
+					<p class="text-sm text-muted-foreground">{t('Training every rate…', 'Treinando todas as taxas…')}</p>
 				{/if}
 			</div>
 		</div>

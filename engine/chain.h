@@ -30,6 +30,13 @@ enum { GB_STEP_RIGHT = 0, GB_STEP_WRONG = 1, GB_CHECK_PASSED = 2, GB_CHECK_CAUGH
 double gb_chain_odds(double p, int steps, int check_every, double catch_rate, int retries);
 
 /*
+ * The two numbers behind one section of `every` steps: out[0] = q = p^every, the
+ * chance it is right first time, and out[1] = m = (1 - q) * catch_rate, the chance
+ * it is wrong and a check catches it.
+ */
+void gb_chain_section(double p, int every, double catch_rate, double *out);
+
+/*
  * Runs one task with a seeded generator. Writes what happened to events (at most
  * max_events, the rest is dropped) and how many were written to *written, and the
  * step (0-based) of the first wrong step that spoiled it to *broken_at, or -1 if

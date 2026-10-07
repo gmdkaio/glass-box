@@ -1,5 +1,12 @@
 // Plain-language text for the evaluation page.
-// The claims here are drafts and each one needs a source before release.
+// Claims are checked against the sources below; anything still unsourced is marked Draft copy on the page.
+// Sources, checked 2026-10-07:
+//   13-gram overlap checks: https://arxiv.org/abs/2005.14165 (GPT-3, appendix C)
+//   Substring overlap checks: https://arxiv.org/abs/2303.08774 (GPT-4 technical report, appendix C)
+//   Token overlap checks: https://arxiv.org/abs/2307.09288 (Llama 2, appendix A.6)
+//   Fresh matched questions and score drops: https://arxiv.org/abs/2405.00332 (GSM1k)
+//   Monthly new questions: https://arxiv.org/abs/2406.19314 (LiveBench)
+//   Dated contest problems: https://arxiv.org/abs/2403.07974 (LiveCodeBench)
 
 export function say({ leak, gap }) {
 	if (leak === 0) return 'Nothing leaked, so both sets measure the same thing and the scores agree.';
@@ -9,7 +16,7 @@ export function say({ leak, gap }) {
 
 export function trap(leak) {
 	if (leak === 0) return 'Slide the leak up: the public wall lights up one tile at a time, while the fresh wall stays about where it was.';
-	if (leak === 12) return 'A perfect score, on a model that answers new questions no better than before. The benchmark became a memory test.';
+	if (leak === 12) return 'A perfect score, on a model that answers new questions no better than before. Every public question now tests what it remembers.';
 	return 'Look at the leaked tiles: the model gets them right because it saw the answer, so they say nothing about what it can do.';
 }
 
@@ -24,12 +31,12 @@ export const parts = [
 	},
 	{
 		title: 'Fresh questions show the real level',
-		text: 'Questions written after the model was trained cannot have leaked. When the public score is far above the fresh one, the gap is the leak.'
+		text: 'Questions written after the model was trained cannot have leaked. When the public score is far above the fresh one on questions of the same difficulty, a leak is the likely cause.'
 	}
 ];
 
 export const trapCard =
-	'A leaked benchmark gives a confident wrong answer about the model. The score looks precise, and what it measures is memory of the test.';
+	'A leaked benchmark gives a confident wrong answer about the model. The score looks precise, yet part of it counts answers the model remembered.';
 
 export const why = [
 	{
@@ -38,7 +45,7 @@ export const why = [
 	},
 	{
 		title: 'Prefer fresh and private tests',
-		text: 'Some benchmarks add new questions over time or keep their questions private, so they are much harder to have seen. Give those scores more weight.'
+		text: 'Some benchmarks, like LiveBench and LiveCodeBench, add new questions over time; others keep theirs private. A model is much less likely to have seen them.'
 	},
 	{
 		title: 'Small tests are noisy',
@@ -46,17 +53,17 @@ export const why = [
 	},
 	{
 		title: 'Check the gap',
-		text: 'If a model scores far better on an old public benchmark than on newer questions of the same kind, suspect that it has seen the old ones.'
+		text: 'If a model scores far better on an old public benchmark than on newer questions of the same kind and difficulty, suspect that it has seen the old ones.'
 	}
 ];
 
 export const whyLead = 'Leaderboards rank models by benchmark scores. A few habits help you read them, and test models yourself.';
 
 export const whyDraft =
-	'Draft copy. Before release, source studies of benchmark contamination in large models, how labs check for it (overlap between training data and test questions), and benchmarks that refresh or hide their questions.';
+	'Checked on 2026-10-07 against the overlap checks in the GPT-3, GPT-4 and Llama 2 reports, the GSM1k study of fresh maths questions, and the LiveBench and LiveCodeBench papers.';
 
 export const hoodNote =
-	'The model here reads only the word before the blank, and a question counts as right when that word\'s top guess is the answer. Real benchmarks ask full questions of models trained on trillions of tokens, where a leak is a few copies among billions of pages, and labs search their training data for overlaps with test questions.';
+	'The model here reads only the word before the blank, and a question counts as right when that word\'s top guess is the answer. Real benchmarks ask full questions of models trained on trillions of tokens, where a leak is a few copies among billions of pages. Labs search their training data for test questions by matching runs of words or characters.';
 
 export const next = [
 	{

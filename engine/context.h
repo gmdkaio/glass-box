@@ -22,6 +22,23 @@ void gb_context_scores(size_t n, size_t key_at, double key_score, double spread,
                        size_t lookalikes, double lookalike_score, double dip,
                        unsigned int seed, double *scores);
 
+/* What each sentence is, as gb_context_kinds writes it. */
+enum { GB_SENTENCE_FILLER = 0, GB_SENTENCE_LOOKALIKE = 1, GB_SENTENCE_KEY = 2 };
+
+/* As gb_context_scores, and also writes what each of the n sentences is to kinds. */
+void gb_context_kinds(size_t n, size_t key_at, double key_score, double spread,
+                      size_t lookalikes, double lookalike_score, double dip,
+                      unsigned int seed, double *scores, int *kinds);
+
+/*
+ * The average shares of attention on the key (out[0]), the look-alikes (out[1])
+ * and the rest (out[2]), over `trials` contexts seeded seed, seed + 1, ...
+ * Each context matches gb_context_kinds with that seed. All 0 if n or trials is 0.
+ */
+void gb_context_split(size_t n, size_t key_at, double key_score, double spread,
+                      size_t lookalikes, double lookalike_score, double dip,
+                      size_t trials, unsigned int seed, double *out);
+
 /* Where a key at `place` (0 = first, 1 = last) sits among n sentences. */
 size_t gb_context_place(size_t n, double place);
 

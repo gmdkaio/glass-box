@@ -36,4 +36,16 @@ void gb_sample_counts(const double *p, size_t n, size_t draws, unsigned int seed
  */
 double gb_lean(const double *scores, size_t n, size_t yours, double push, double *out);
 
+/* The average of x[0..n), or 0 if n == 0. */
+double gb_mean(const double *x, size_t n);
+
+/*
+ * The scores divided by the temperature: the step softmax takes before exp.
+ * If temperature <= 0 the scores are copied unchanged.
+ */
+void gb_scale_scores(const double *x, double *out, size_t n, double temperature);
+
+/* The sum of exp(x[i]): the bottom of the softmax fraction at temperature 1. */
+double gb_exp_sum(const double *x, size_t n);
+
 #endif

@@ -2,20 +2,24 @@
 // the odds for the next word come from those counts. Turning text into word
 // numbers is the only thing done here.
 
+// pt: the label and hint shown in Portuguese; the text itself stays English
 export const TEXTS = [
 	{
 		label: 'A story',
 		hint: 'a cat and a dog',
+		pt: { label: 'Uma história', hint: 'um gato e um cachorro' },
 		text: 'the cat sat on the mat. the dog sat on the rug. the cat saw the dog. the dog saw the cat. the cat ran to the garden. the dog ran to the park. the cat likes the sun. the dog likes the rain. the cat sat in the sun and the dog sat in the rain.'
 	},
 	{
 		label: 'A weather report',
 		hint: 'sky, wind and rain',
+		pt: { label: 'Uma previsão do tempo', hint: 'céu, vento e chuva' },
 		text: 'today the sky is clear and the wind is calm. tomorrow the sky will be cloudy and the wind will be strong. the rain will start in the evening and the night will be cold. the sun will rise at six and the sky will be clear. the wind will be calm in the morning.'
 	},
 	{
 		label: 'A recipe',
 		hint: 'flour, eggs and a cake',
+		pt: { label: 'Uma receita', hint: 'farinha, ovos e um bolo' },
 		text: 'mix the flour and the sugar in a bowl. add the eggs and the milk to the bowl. stir the mix until it is smooth. pour the mix into a pan. bake the cake for forty minutes. let the cake cool and add the sugar on top. the cake is ready when the top is brown.'
 	}
 ];
@@ -57,9 +61,9 @@ export function buildModel(gb, text) {
 	};
 }
 
-// how a word is written on screen
-export function label(model, id) {
-	return model.words[id] === START ? 'full stop' : model.words[id];
+// how a word is written on screen; stop is the name shown for the full stop
+export function label(model, id, stop = 'full stop') {
+	return model.words[id] === START ? stop : model.words[id];
 }
 
 // what followed this word in the text: the odds, how many times, and the list sorted by odds

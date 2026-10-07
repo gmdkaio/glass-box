@@ -1,5 +1,6 @@
 <script>
 	import { Badge } from '$lib/components/ui/badge/index.js';
+	import { t } from '$lib/i18n.svelte.js';
 
 	// Every module page fills the same slots, in this order.
 	let {
@@ -26,7 +27,7 @@
 
 <div class="w-full max-w-[1600px] px-6 pb-16 lg:px-8">
 	<section class="pt-6 pb-4">
-		<Badge variant="outline">{track} · {n} of {total}</Badge>
+		<Badge variant="outline">{track} · {n} {t('of', 'de')} {total}</Badge>
 		{#if tag}<Badge variant="secondary" class="ml-2">{tag}</Badge>{/if}
 		<h1 class="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">{title}</h1>
 		<p class="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">{lead}</p>
@@ -41,12 +42,14 @@
 	{@render example?.()}
 	{@render explain?.()}
 
-	<h2 class="mt-10 text-xl font-semibold tracking-tight">Why knowing this helps you</h2>
+	<h2 class="mt-10 text-xl font-semibold tracking-tight">{t('Why knowing this helps you', 'Por que saber isso ajuda você')}</h2>
 	<p class="mt-1 mb-4 max-w-3xl text-sm text-muted-foreground">{whyLead}</p>
 	{@render why?.()}
 
-	<h2 class="mt-10 text-xl font-semibold tracking-tight">Where this goes next</h2>
+	<h2 class="mt-10 text-xl font-semibold tracking-tight">{t('Where this goes next', 'Para onde isso leva')}</h2>
 	<div class="mt-3">{@render next?.()}</div>
 
-	<p class="mt-8 max-w-3xl border-t pt-4 text-xs text-muted-foreground">{@render foot?.()}</p>
+	<p class="mt-8 max-w-3xl border-t pt-4 text-xs text-muted-foreground">
+		{@render foot?.()}
+	</p>
 </div>

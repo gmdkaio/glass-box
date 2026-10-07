@@ -3,6 +3,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import TesseractHero from '$lib/components/TesseractHero.svelte';
 	import { tracks, modules, inTrack } from '$lib/modules.js';
+	import { t, local } from '$lib/i18n.svelte.js';
 
 	const start = modules.find((m) => m.ready);
 </script>
@@ -14,16 +15,19 @@
 		<div class="flex flex-col justify-center py-2 lg:py-6">
 			<h1 class="text-4xl font-semibold tracking-tight">Glass Box</h1>
 			<p class="mt-4 max-w-xl leading-relaxed text-muted-foreground">
-				Interactive simulations of how AI systems work, with the math behind each one and where the toy models stop matching real LLMs. Move a slider, watch it happen, then read why it matters when you use AI.
+				{t(
+					'Interactive simulations of how AI systems work, with the math behind each one and where the toy models stop matching real ones. Move a slider, watch it happen, then read why it matters when you use AI.',
+					'Simulações interativas de como os sistemas de IA funcionam, com a matemática por trás de cada uma e os pontos onde os modelos de brinquedo deixam de se parecer com os de verdade. Mexa num controle, veja acontecer e depois leia por que isso importa quando você usa IA.'
+				)}
 			</p>
 			<ul class="mt-5 space-y-1.5 text-sm text-muted-foreground">
-				<li>Every number comes from a C engine compiled to WebAssembly.</li>
-				<li>It runs in your browser, with nothing to install.</li>
-				<li>Each module says where the toy model stops matching a real one.</li>
+				<li>{t('Every number comes from a small engine written in C, running in your browser.', 'Cada número vem de um pequeno motor escrito em C, rodando no seu navegador.')}</li>
+				<li>{t('There is nothing to install.', 'Não há nada para instalar.')}</li>
+				<li>{t('Each module says where the toy model stops matching a real one.', 'Cada módulo diz onde o modelo de brinquedo deixa de se parecer com um de verdade.')}</li>
 			</ul>
 			{#if start}
 				<div class="mt-6">
-					<Button href={resolve(`/${start.slug}`)}>Start with {start.title.toLowerCase()}</Button>
+					<Button href={resolve(`/${start.slug}`)}>{t('Start with', 'Comece por')} {local(start, 'title').toLowerCase()}</Button>
 				</div>
 			{/if}
 		</div>
@@ -36,19 +40,19 @@
 	<section class="mt-6 grid gap-4 lg:grid-cols-2 lg:gap-y-0">
 		{#each tracks as track (track.id)}
 			<div class="rounded-lg border px-4 py-4 lg:row-span-3 lg:grid lg:grid-rows-subgrid">
-				<h2 class="text-lg font-semibold tracking-tight">{track.title}</h2>
-				<p class="mt-1 text-sm text-muted-foreground">{track.blurb}</p>
+				<h2 class="text-lg font-semibold tracking-tight">{local(track, 'title')}</h2>
+				<p class="mt-1 text-sm text-muted-foreground">{local(track, 'blurb')}</p>
 				<ul class="mt-3 divide-y border-y self-start w-full">
 					{#each inTrack(track.id) as m, i (m.slug)}
 						<li class="flex items-center gap-4 py-2.5 text-sm">
 							<span class="w-4 text-muted-foreground">{i + 1}</span>
 							{#if m.ready}
-								<a href={resolve(`/${m.slug}`)} class="underline underline-offset-4">{m.title}</a>
+								<a href={resolve(`/${m.slug}`)} class="underline underline-offset-4">{local(m, 'title')}</a>
 							{:else}
-								<span class="text-muted-foreground">{m.title}</span>
+								<span class="text-muted-foreground">{local(m, 'title')}</span>
 							{/if}
-							{#if m.tag}<span class="text-xs text-muted-foreground">· {m.tag}</span>{/if}
-							<span class="ml-auto text-xs text-muted-foreground">{m.ready ? 'open' : 'soon'}</span>
+							{#if m.tag}<span class="text-xs text-muted-foreground">· {local(m, 'tag')}</span>{/if}
+							<span class="ml-auto text-xs text-muted-foreground">{m.ready ? t('open', 'abrir') : t('soon', 'em breve')}</span>
 						</li>
 					{/each}
 				</ul>

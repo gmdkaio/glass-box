@@ -25,50 +25,59 @@ export const PAGES = [
 
 // Five questions, each asked two ways: with the page's own words, and with
 // other words for the same thing. answers: what the model would say from each
-// page that touches the question.
+// page that touches the question. pt: the button label and the answers in
+// Portuguese, for display only (the wordings stay English for the search).
 export const QUESTIONS = [
 	{
 		short: 'first bus',
 		page: 0,
 		same: 'When does the first bus to the city leave?',
 		other: 'What time is the earliest coach into town?',
-		answers: { 0: '7:15', 1: '6:45', 14: '1931' }
+		answers: { 0: '7:15', 1: '6:45', 14: '1931' },
+		pt: { short: 'primeiro ônibus' }
 	},
 	{
 		short: 'library opened',
 		page: 3,
 		same: 'In what year did the town library open?',
 		other: 'When was the public reading room founded?',
-		answers: { 3: '1923', 2: '9:00', 15: 'every Saturday' }
+		answers: { 3: '1923', 2: '9:00', 15: 'every Saturday' },
+		pt: { short: 'abertura da biblioteca', answers: { 3: '1923', 2: '9:00', 15: 'todo sábado' } }
 	},
 	{
 		short: 'school pupils',
 		page: 4,
 		same: 'How many pupils did the new school start with?',
 		other: 'How many children were at the new academy at first?',
-		answers: { 4: '320', 0: '1.25', 15: 'every Saturday' }
+		answers: { 4: '320', 0: '1.25', 15: 'every Saturday' },
+		pt: { short: 'alunos da escola', answers: { 4: '320', 0: '1.25', 15: 'todo sábado' } }
 	},
 	{
 		short: 'river length',
 		page: 5,
 		same: 'How long is the river?',
 		other: 'How far does the stream run?',
-		answers: { 5: '120 kilometres' }
+		answers: { 5: '120 kilometres' },
+		pt: { short: 'tamanho do rio', answers: { 5: '120 quilômetros' } }
 	},
 	{
 		short: 'market day',
 		page: 6,
 		same: 'Which day is market day?',
 		other: 'When are the stalls set up in the square?',
-		answers: { 6: 'Saturday', 7: 'free on Sundays' }
+		answers: { 6: 'Saturday', 7: 'free on Sundays' },
+		pt: { short: 'dia de feira', answers: { 6: 'sábado', 7: 'grátis aos domingos' } }
 	}
 ];
 
 // three ways in, as presets
 export const SETUPS = [
-	{ label: 'Words match the page', hint: 'the question uses the page’s own words', question: 2, wording: 'same', meaning: false, old: true, k: 3 },
-	{ label: 'Different words', hint: 'same question, everyday words', question: 0, wording: 'other', meaning: false, old: true, k: 3 },
-	{ label: 'An old page in the pile', hint: 'last timetable still in the documents', question: 0, wording: 'same', meaning: false, old: true, k: 3 }
+	{ label: 'Words match the page', hint: 'the question uses the page’s own words', question: 2, wording: 'same', meaning: false, old: true, k: 3,
+		pt: { label: 'Palavras iguais às da página', hint: 'a pergunta usa as palavras da própria página' } },
+	{ label: 'Different words', hint: 'same question, everyday words', question: 0, wording: 'other', meaning: false, old: true, k: 3,
+		pt: { label: 'Outras palavras', hint: 'a mesma pergunta, com palavras do dia a dia' } },
+	{ label: 'An old page in the pile', hint: 'last timetable still in the documents', question: 0, wording: 'same', meaning: false, old: true, k: 3,
+		pt: { label: 'Uma página antiga na pilha', hint: 'o horário anterior ainda está nos documentos' } }
 ];
 
 export const MAX_K = 8;
@@ -175,14 +184,15 @@ export function outcome(gb, q, wording, meaning, old, k) {
 	return { handed: !!r && r.handed, right: r ? r.share : 0 };
 }
 
+// both, averaged over a set of outcomes: the share handed over and the average chance of a right answer
+export function totals(gb, outs) {
+	return { handed: gb.mean(outs.map((o) => (o.handed ? 1 : 0))), right: gb.mean(outs.map((o) => o.right)) };
+}
+
 // both, averaged over the five questions, for every number of pages handed over
 export function curve(gb, wording, meaning, old) {
-	return Array.from({ length: MAX_K }, (_, i) => {
-		const outs = QUESTIONS.map((q) => outcome(gb, q, wording, meaning, old, i + 1));
-		return {
-			k: i + 1,
-			handed: outs.filter((o) => o.handed).length / outs.length,
-			right: outs.reduce((s, o) => s + o.right, 0) / outs.length
-		};
-	});
+	return Array.from({ length: MAX_K }, (_, i) => ({
+		k: i + 1,
+		...totals(gb, QUESTIONS.map((q) => outcome(gb, q, wording, meaning, old, i + 1)))
+	}));
 }
