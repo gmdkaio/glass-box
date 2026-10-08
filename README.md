@@ -129,3 +129,7 @@ When test questions leak into training, a model scores well on the test and no b
 
 Pure C, no dependencies beyond the standard library. All math lives here; the
 web UI only displays what the engine computes.
+
+## AI Disclaimer
+
+PT Translation and some of the texts were AI-assisted then reviewed by hand.
